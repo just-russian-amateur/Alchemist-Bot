@@ -115,7 +115,7 @@ async def mode(message: Message):
     elif message.text == 'Классические цвета':
         await message.answer('Ты выбрал классический режим, я запомнил\nЗагрузи изображение как картинку, пожалуйства',)
     else:
-        await message.answer('Введите любой из предложенных вариантов')
+        await message.answer('Введите любой из предложенных вариантов, пожалуйста')
 
 
 @dp.message(Command("resolve"))    #   Команда перерешения

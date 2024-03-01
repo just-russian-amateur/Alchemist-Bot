@@ -103,7 +103,7 @@ async def mode_menu(message: Message):
             reply_markup=keyboard_buttons
         )
     else:
-        await message.answer('Введите любой из предложенных вариантов')
+        await message.answer('Введите любой из предложенных вариантов, пожалуйста')
 
 
 @dp.message(F.text == 'Режим паттерна')    #   Команды загрузки изображения

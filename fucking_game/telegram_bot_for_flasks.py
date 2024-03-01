@@ -84,6 +84,7 @@ async def help(message: Message):
 
 @dp.message(F.text == 'Начало работы')    #   Команды выбора режима распознавания
 @dp.message(F.text == 'Выбор режима распознавания')
+@dp.message(F.text == 'Хочу')
 async def mode_menu(message: Message):
     """Функция выбора режима распознавания"""
     after_mode_button_set = [
@@ -97,7 +98,7 @@ async def mode_menu(message: Message):
         resize_keyboard=True,
         one_time_keyboard=True
     )
-    if message.text == 'Начало работы' or message.text == 'Выбор режима распознавание':
+    if message.text == 'Начало работы' or message.text == 'Выбор режима распознавание' or message.text == 'Хочу':
         await message.answer(
             'Выбери, пожалуйста режим распознавания',
             reply_markup=keyboard_buttons
@@ -137,13 +138,14 @@ async def resolve(message: Message):
     
 
 @dp.message(F.photo)
+@dp.message(F.text == 'Не хочу')
 async def download_photoes(message:Message, bot: Bot):
     '''Функция получения и обработки фотографий'''
     await bot.download(
         message.photo[-1],
         destination=f'./images/{message.photo[-1].file_id}.jpg'
     )
-    await message.answer('Ты отправил фото, я понял')
+    await message.answer('Попробую распознать фото')
     
     with open(f'./images/{message.photo[-1].file_id}.jpg', 'rb') as open_image:
         await message.answer_photo(
@@ -170,12 +172,25 @@ async def download_photoes(message:Message, bot: Bot):
 
 @dp.message(F.text == "Да")
 async def agreement(message: Message):
+    '''Вызов программы для решения колб'''
     await message.answer('Хорошо, я начинаю решать')
 
 
 @dp.message(F.text == "Нет")
 async def disagreement(message: Message):
-    await message.answer('Ох, я лох, попробую еще раз')
+    '''Еще одна попытка распознать цвета'''
+    actions_buttons = [
+        [
+            KeyboardButton(text='Хочу'),
+            KeyboardButton(text='Не хочу')
+        ]
+    ]
+    actions = ReplyKeyboardMarkup(
+        keyboard=actions_buttons,
+        resize_keyboard=True,
+        one_time_keyboard=True
+    )
+    await message.answer('Ох, я лох, попробую еще раз, хочешь изменить фото?', reply_markup=actions)
 
 
 async def main():

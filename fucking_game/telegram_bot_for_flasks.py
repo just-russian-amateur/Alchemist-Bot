@@ -16,6 +16,10 @@ from aiogram import Bot, Dispatcher, Router, F  # Подключение биб�
 from aiogram.filters import CommandStart, Command
 from aiogram.types import Message, ReplyKeyboardRemove, ReplyKeyboardMarkup, KeyboardButton, FSInputFile, BufferedInputFile
 
+import json
+from flasks import flasks_solver
+from found_colors import found_colors_in_flasks
+
 import asyncio
 import logging
 import sys
@@ -167,13 +171,22 @@ async def download_photoes(message:Message, bot: Bot):
         resize_keyboard=True,
         one_time_keyboard=True
     )
+    #   Распознаем цвета и добавляем их в список для последующей сериализации в json
+    found_colors_in_flasks()
+    flasks_list.append([1, 2, 3, 4])    #   Добавление в список
+    #   Нужно нарисовать ответную картинку, где будет видно расположение цветов
+
     await message.answer('Да или нет?', reply_markup=agreement)
 
 
 @dp.message(F.text == "Да")
 async def agreement(message: Message):
     '''Вызов программы для решения колб'''
+    #   Добавляем колбы и цвета в них внутрь json
+    with open(f"./levels/this_level_{id_client}.json", "w") as this_level:
+        json.dump(flasks_list, this_level)
     await message.answer('Хорошо, я начинаю решать')
+    flasks_solver() 
 
 
 @dp.message(F.text == "Нет")
@@ -201,4 +214,6 @@ async def main():
 
 if __name__ == '__main__':
     """Запуск, логгирование и прочие вещи"""
+    id_client = 0   #   Добавить получение id клиента
+    flasks_list = []
     asyncio.run(main())

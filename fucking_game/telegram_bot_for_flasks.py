@@ -151,6 +151,11 @@ async def download_photoes(message:Message, bot: Bot):
     )
     await message.answer('Попробую распознать фото')
     
+    # Распознаем цвета и добавляем их в список для последующей сериализации в json
+    found_colors_in_flasks(image_for_search=f'./images/{message.photo[-1].file_id}.jpg')
+    flasks_list.append([1, 2, 3, 4])    #   Добавление в список
+    # Нужно нарисовать ответную картинку, где будет видно расположение цветов
+
     with open(f'./images/{message.photo[-1].file_id}.jpg', 'rb') as open_image:
         await message.answer_photo(
             BufferedInputFile(
@@ -171,11 +176,6 @@ async def download_photoes(message:Message, bot: Bot):
         resize_keyboard=True,
         one_time_keyboard=True
     )
-    #   Распознаем цвета и добавляем их в список для последующей сериализации в json
-    found_colors_in_flasks()
-    flasks_list.append([1, 2, 3, 4])    #   Добавление в список
-    #   Нужно нарисовать ответную картинку, где будет видно расположение цветов
-
     await message.answer('Да или нет?', reply_markup=agreement)
 
 

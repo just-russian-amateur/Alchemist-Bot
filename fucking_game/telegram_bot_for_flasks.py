@@ -152,9 +152,9 @@ async def download_photoes(message:Message, bot: Bot):
     await message.answer('Попробую распознать фото')
     
     # Распознаем цвета и добавляем их в список для последующей сериализации в json
-    found_colors_in_flasks(image_for_search=f'./images/{message.photo[-1].file_id}.jpg')
-    flasks_list.append([1, 2, 3, 4])    #   Добавление в список
-    # Нужно нарисовать ответную картинку, где будет видно расположение цветов
+    found_colors_in_flasks(image_for_search=f'./images/{message.photo[-1].file_id}.jpg', id=id_client)
+    # flasks_list.append([1, 2, 3, 4])    #   Добавление в список
+    # Нужно нарисовать ответную картинку по json, где будет видно расположение цветов
 
     with open(f'./images/{message.photo[-1].file_id}.jpg', 'rb') as open_image:
         await message.answer_photo(
@@ -183,10 +183,10 @@ async def download_photoes(message:Message, bot: Bot):
 async def agreement(message: Message):
     '''Вызов программы для решения колб'''
     #   Добавляем колбы и цвета в них внутрь json
-    with open(f"./levels/this_level_{id_client}.json", "w") as this_level:
-        json.dump(flasks_list, this_level)
+    # with open(f"./levels/this_level_{id_client}.json", "w") as this_level:
+    #     json.dump(flasks_list, this_level)
     await message.answer('Хорошо, я начинаю решать')
-    flasks_solver() 
+    flasks_solver(filename=f"./levels/this_level_{id_client}.json", id=id_client) 
 
 
 @dp.message(F.text == "Нет")

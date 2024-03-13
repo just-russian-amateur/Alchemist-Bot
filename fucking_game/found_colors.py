@@ -66,30 +66,29 @@ def preprocessing_image(image, image_for_sharp):
     return contours_flasks
 
 
-def found_rect(cnt, my_list, coeff_width):
+def found_rect(cnt, my_list, coeff_width, coeff_height):
     '''Функция распознавания прямоугольника'''
     rect = cv2.minAreaRect(cnt)
-    if (rect[1][0] >= rect[1][1] and rect[1][1] >= coeff_width) or \
-        (rect[1][0] < rect[1][1] and rect[1][0] >= coeff_width):
+    if (rect[1][0] >= rect[1][1] and rect[1][1] >= coeff_width and rect[1][0] >= coeff_height) or \
+        (rect[1][0] < rect[1][1] and rect[1][0] >= coeff_width and rect[1][1] >= coeff_height):
         # Добавляем прямоугольники с колбами в список
         my_list.append(rect)
+        print(rect)
     return my_list
 
 
 def crop_rects(my_list, image, cropped_image):
     '''Функция для увеличения каждой отдельной колбы для распознавания цветов внутри нее'''
-    idx_flask = []
+    flasks_info = []
     for cnt in my_list:
         filename = f'flask_{cnt}.jpg'
         # Взаимодействие с колбой
-        cropped_height_flask_first = round(cnt[0][1] - cnt[1][0] / 2)
-        cropped_height_flask_last = round(cnt[0][1] + cnt[1][0] / 2)
-        cropped_width_flask_first = round(cnt[0][0] - cnt[1][1] / 2)
-        cropped_width_flask_last = round(cnt[0][0] + cnt[1][1] / 2)
-        cropped_flask = cropped_image[cropped_height_flask_first:cropped_height_flask_last, cropped_width_flask_first:cropped_width_flask_last]
-        cv2.imwrite(filename, cropped_flask)
-        idx_flask.append(filename)
-    return idx_flask
+        height_flask = [round(cnt[0][1] - cnt[1][0] / 2), round(cnt[0][1] + cnt[1][0] / 2)]
+        width_flask = [round(cnt[0][0] - cnt[1][1] / 2), round(cnt[0][0] + cnt[1][1] / 2)]
+        flask = cropped_image[height_flask[0]:height_flask[1], width_flask[0]:width_flask[1]]
+        cv2.imwrite(filename, flask)
+        flasks_info.append((filename, (width_flask[1] - width_flask[0], height_flask[1] - height_flask[0])))
+    return flasks_info
 
 
 def found_colors_in_flasks(image_for_search, id):
@@ -99,34 +98,35 @@ def found_colors_in_flasks(image_for_search, id):
     original_image = cv2.imread(image_for_search)
     # Получение параметров размера изображения и вывод параметров обрезки
     height, width, _ = original_image.shape
-    cropped_height_first = round(height * 0.125)
-    cropped_height_last = round(height * 0.875)
-    print(height, width)
-    print(cropped_height_last - cropped_height_first, width)
+    cropped_height = [round(height * 0.125), round(height * 0.875)]
     # Обрзка изображения под определенные границы (чтобы были видны только колбы)
-    cropped_image = original_image[cropped_height_first:cropped_height_last, 0:width]
+    cropped_image = original_image[cropped_height[0]:cropped_height[1], 0:width]
     cv2.imwrite(image_for_search, cropped_image)
 
     contours_flasks = preprocessing_image(image_for_search, cropped_image)
 
     coeff_width_flask = round(width / 11)    # Эмпирически полученный коэффициент отношения ширины экрана к ширине колбы
+    coeff_height_flask = round((cropped_height[1] - cropped_height[0]) / 4.9)    # Эмпирически полученный коэффициент отношения высоты экрана к ширине колбы
     flasks = [] # Список прямоугольников-колб
     # Проходим по всем контурам и подсвечиваем прямоугольники целых колб
     for cnt_contours in contours_flasks:
         '''Определение границ прямоугольников и добавление цвета прямоугольника в список'''
-        flasks = found_rect(cnt_contours, flasks, coeff_width_flask)
+        flasks = found_rect(cnt_contours, flasks, coeff_width_flask, coeff_height_flask)
     flasks_images = crop_rects(flasks, image_for_search, cropped_image)
 
     colors_into_flask = []
+    print('flasks')
     for cnt_images in flasks_images:
-        only_flasks = preprocessing_image(cnt_images, cropped_image)
+        only_flasks = preprocessing_image(cnt_images[0], cropped_image)
         # Определение цветов внутри колбы
-        # coeff_width_color = round(cnt_flasks[1][1] / 1.1)
+        coeff_width_color = round(cnt_images[1][0] / 1.35)  # Эмпирически полученный коэффициент для отношения ширины колбы к ширине цвета
+        coeff_height_color = round(cnt_images[1][1] / 1.35)  # Эмпирически полученный коэффициент для отношения высоты колбы к ширине цвета
+        print('into flask')
         for cnt_contours_flask in only_flasks:
-            colors_into_flask = found_rect(cnt_contours_flask, colors_into_flask, 1)
+            colors_into_flask = found_rect(cnt_contours_flask, colors_into_flask, coeff_width_color, coeff_height_color)
         for cnt_box in colors_into_flask:
             box = np.int0(cv2.boxPoints(cnt_box))
-            draw_contours(cnt_images, box, (0, 255, 0))
+            draw_contours(cnt_images[0], box, (0, 255, 0))
  
     # flasks_list = create_list()
     # return create_json(flasks_list, id)

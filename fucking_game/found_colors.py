@@ -24,11 +24,12 @@ def draw_contours(file, box, color):
     )
 
 
-def preprocessing_image(image, image_for_sharp):
+def preprocessing_image(image):
     '''Функция предобработки изображения'''
-    # sharp_filter = np.array([[-1, -1, -1], [-1, 9, -1], [-1, -1, -1]])
-    # sharped_image = cv2.filter2D(cropped_image, ddepth=-1, kernel=sharp_filter)
-    # cv2.imwrite(image, sharped_image)
+    image_for_sharp = cv2.imread(image)
+    sharp_filter = np.array([[0, -1, 0], [-1, 5, -1], [0, -1, 0]])
+    sharped_image = cv2.filter2D(image_for_sharp, ddepth=-1, kernel=sharp_filter)
+    cv2.imwrite(image, sharped_image)
 
     # CLAHE (Contrast Limited Adaptive Histogram Equalization) - Повышение контрастности
     # clahe = cv2.createCLAHE(clipLimit=0.1, tileGridSize=(8,8))
@@ -73,7 +74,6 @@ def found_rect(cnt, my_list, coeff_width, coeff_height):
         (rect[1][0] < rect[1][1] and rect[1][0] >= coeff_width and rect[1][1] >= coeff_height):
         # Добавляем прямоугольники с колбами в список
         my_list.append(rect)
-        print(rect)
     return my_list
 
 
@@ -103,7 +103,7 @@ def found_colors_in_flasks(image_for_search, id):
     cropped_image = original_image[cropped_height[0]:cropped_height[1], 0:width]
     cv2.imwrite(image_for_search, cropped_image)
 
-    contours_flasks = preprocessing_image(image_for_search, cropped_image)
+    contours_flasks = preprocessing_image(image_for_search)
 
     coeff_width_flask = round(width / 11)    # Эмпирически полученный коэффициент отношения ширины экрана к ширине колбы
     coeff_height_flask = round((cropped_height[1] - cropped_height[0]) / 4.9)    # Эмпирически полученный коэффициент отношения высоты экрана к ширине колбы
@@ -115,13 +115,11 @@ def found_colors_in_flasks(image_for_search, id):
     flasks_images = crop_rects(flasks, image_for_search, cropped_image)
 
     colors_into_flask = []
-    print('flasks')
     for cnt_images in flasks_images:
-        only_flasks = preprocessing_image(cnt_images[0], cropped_image)
+        only_flasks = preprocessing_image(cnt_images[0])
         # Определение цветов внутри колбы
         coeff_width_color = round(cnt_images[1][0] / 1.35)  # Эмпирически полученный коэффициент для отношения ширины колбы к ширине цвета
         coeff_height_color = round(cnt_images[1][1] / 4.9)  # Эмпирически полученный коэффициент для отношения высоты колбы к ширине цвета
-        print('into flask')
         for cnt_contours_flask in only_flasks:
             colors_into_flask = found_rect(cnt_contours_flask, colors_into_flask, coeff_width_color, coeff_height_color)
         for cnt_box in colors_into_flask:

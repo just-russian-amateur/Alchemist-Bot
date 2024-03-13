@@ -120,7 +120,7 @@ def found_colors_in_flasks(image_for_search, id):
         only_flasks = preprocessing_image(cnt_images[0], cropped_image)
         # Определение цветов внутри колбы
         coeff_width_color = round(cnt_images[1][0] / 1.35)  # Эмпирически полученный коэффициент для отношения ширины колбы к ширине цвета
-        coeff_height_color = round(cnt_images[1][1] / 1.35)  # Эмпирически полученный коэффициент для отношения высоты колбы к ширине цвета
+        coeff_height_color = round(cnt_images[1][1] / 4.9)  # Эмпирически полученный коэффициент для отношения высоты колбы к ширине цвета
         print('into flask')
         for cnt_contours_flask in only_flasks:
             colors_into_flask = found_rect(cnt_contours_flask, colors_into_flask, coeff_width_color, coeff_height_color)

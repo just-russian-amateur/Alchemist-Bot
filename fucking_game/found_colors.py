@@ -5,24 +5,24 @@ import json
 from skimage import io
 
 
-# variations = [
-#     ('BLUE', (np.array((), np.uint0), np.array((), np.uint0))),
-#     ('ORANGE', (np.array((), np.uint0), np.array((), np.uint0))),
-#     ('YELLOW', (np.array((), np.uint0), np.array((), np.uint0))),
-#     ('RED', (np.array((), np.uint0), np.array((), np.uint0))),
-#     ('GREEN', (np.array((), np.uint0), np.array((), np.uint0))),
-#     ('DARKBLUE', (np.array((), np.uint0), np.array((), np.uint0))),
-#     ('DARKRED', (np.array((), np.uint0), np.array((), np.uint0))),
-#     ('DARKGREEN', (np.array((), np.uint0), np.array((), np.uint0))),
-#     ('PINK', (np.array((), np.uint0), np.array((), np.uint0))),
-#     ('DARKPINK', (np.array((), np.uint0), np.array((), np.uint0))),
-#     ('LIGHTPINK', (np.array((), np.uint0), np.array((), np.uint0))),
-#     ('PURPLE', (np.array((), np.uint0), np.array((), np.uint0))),
-#     ('GRAY', (np.array((), np.uint0), np.array((), np.uint0))),
-#     ('LILAC', (np.array((), np.uint0), np.array((), np.uint0))),
-#     ('EMPTY', (np.array((), np.uint0), np.array((), np.uint0))),
-#     ('UNDEFINED' (np.array((), np.uint0), np.array((), np.uint0)))
-# ]
+variations = [
+    ('BLUE', (np.array((30, 50, 192), np.uint8), np.array((108, 255, 255), np.uint8))),
+    ('ORANGE', (np.array((0, 165, 203), np.uint8), np.array((19, 255, 255), np.uint8))),
+    ('YELLOW', (np.array((22, 46, 192), np.uint8), np.array((34, 255, 255), np.uint8))),
+    ('RED', (np.array((0, 148, 114), np.uint8), np.array((7, 255, 255), np.uint8))),
+    ('GREEN', (np.array((41, 0, 160), np.uint8), np.array((65, 255, 255), np.uint8))),
+    ('DARKBLUE', (np.array((48, 195, 169), np.uint8), np.array((195, 255, 255), np.uint8))),
+    ('DARKRED', (np.array((164, 135, 84), np.uint8), np.array((255, 255, 110), np.uint8))),
+    ('DARKGREEN', (np.array((61, 108, 80), np.uint8), np.array((96, 255, 255), np.uint8))),
+    ('PINK', (np.array((137, 0, 197), np.uint8), np.array((152, 255, 255), np.uint8))),
+    ('DARKPINK', (np.array((140, 85, 183), np.uint8), np.array((195, 255, 255), np.uint8))),
+    ('LIGHTPINK', (np.array((10, 0, 228), np.uint8), np.array((20, 255, 255), np.uint8))),
+    ('PURPLE', (np.array((131, 157, 103), np.uint8), np.array((255, 255, 255), np.uint8))),
+    ('GRAY', (np.array((0, 0, 94), np.uint8), np.array((255, 29, 116), np.uint8))),
+    ('LILAC', (np.array((117, 155, 136), np.uint8), np.array((125, 255, 255), np.uint8))),
+    # ('EMPTY', (np.array((), np.uint8), np.array((), np.uint8))),
+    ('UNDEFINED' (np.array((0, 0, 26), np.uint8), np.array((0, 0, 26), np.uint8)))
+]
 
 
 def draw_contours(file, box, color):
@@ -116,40 +116,40 @@ def crop_rects(contours, cropped_image):
     return flasks_info
 
 
-def stack_colors(image):
-    '''Определение цвета внутри контура и добавление цвета в стек'''
-    # color_pixels = io.imread(image)
-    # pixels = np.float32(color_pixels.reshape(-1, 3))
+# def stack_colors(image):
+#     '''Определение цвета внутри контура и добавление цвета в стек'''
+#     # color_pixels = io.imread(image)
+#     # pixels = np.float32(color_pixels.reshape(-1, 3))
 
-    # n_colors = 5
-    # criteria = (cv2.TERM_CRITERIA_EPS + cv2.TERM_CRITERIA_MAX_ITER, 200, .1)
-    # flags = cv2.KMEANS_RANDOM_CENTERS
+#     # n_colors = 5
+#     # criteria = (cv2.TERM_CRITERIA_EPS + cv2.TERM_CRITERIA_MAX_ITER, 200, .1)
+#     # flags = cv2.KMEANS_RANDOM_CENTERS
 
-    # _, labels, palette = cv2.kmeans(pixels, n_colors, None, criteria, 10, flags)
-    # _, counts = np.unique(labels, return_counts=True)
+#     # _, labels, palette = cv2.kmeans(pixels, n_colors, None, criteria, 10, flags)
+#     # _, counts = np.unique(labels, return_counts=True)
 
-    # dominant = palette[np.argmax(counts)]
+#     # dominant = palette[np.argmax(counts)]
 
-    # return dominant
-    color_pixels = cv2.imread(image)
-    hsv_colors = cv2.cvtColor(color_pixels, cv2.COLOR_BGR2HSV)
-    mean_color = hsv_colors.mean(axis=0).mean(axis=0)
-
-    return mean_color
-
-
-# def create_color_list(image):
-#     '''Функция для создания списка колб с цветами вместо числовых значений'''
+#     # return dominant
 #     color_pixels = cv2.imread(image)
 #     hsv_colors = cv2.cvtColor(color_pixels, cv2.COLOR_BGR2HSV)
+#     mean_color = hsv_colors.mean(axis=0).mean(axis=0)
 
-#     for i in range(len(variations)):
-#         thresholder = cv2.inRange(hsv_colors, variations[i][1][0], variations[i][1][1])
-#         if thresholder == 255:
-#             color_name = variations[i][0]
-#             break
+#     return mean_color
 
-#     return color_name
+
+def create_color_list(image):
+    '''Функция для создания списка колб с цветами вместо числовых значений'''
+    color_pixels = cv2.imread(image)
+    hsv_colors = cv2.cvtColor(color_pixels, cv2.COLOR_BGR2HSV)
+
+    for i in range(len(variations)):
+        thresholder = cv2.inRange(hsv_colors, variations[i][1][0], variations[i][1][1])
+        if thresholder == 255:
+            color_name = variations[i][0]
+            break
+
+    return color_name
 
 
 def found_colors_in_flasks(image_for_search, id):
@@ -198,8 +198,8 @@ def found_colors_in_flasks(image_for_search, id):
         internal_colors = []
         single_colors = crop_rects(internal_contours, cv2.imread(images_contour[0]))
         for color_contour in single_colors:
-            internal_colors = stack_colors(color_contour[0])
-            # internal_colors.append(create_color_list(color_contour[0]))
+            # mean_color = stack_colors(color_contour[0])
+            internal_colors.append(create_color_list(color_contour[0]))
         flasks_list.append(internal_colors)
 
     # color_list = create_color_list(flasks_list)

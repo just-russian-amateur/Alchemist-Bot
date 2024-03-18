@@ -5,10 +5,24 @@ import json
 from skimage import io
 
 
-variations = [
-    'BLUE', 'ORANGE', 'YELLOW', 'RED', 'GREEN', 'DARKBLUE', 'DARKRED', 'DARKGREEN',
-    'PINK', 'DARKPINK', 'LIGHTPINK', 'PURPLE', 'GRAY', 'LILAC', 'EMPTY', 'UNDEFINED'
-]
+# variations = [
+#     ('BLUE', (np.array((), np.uint0), np.array((), np.uint0))),
+#     ('ORANGE', (np.array((), np.uint0), np.array((), np.uint0))),
+#     ('YELLOW', (np.array((), np.uint0), np.array((), np.uint0))),
+#     ('RED', (np.array((), np.uint0), np.array((), np.uint0))),
+#     ('GREEN', (np.array((), np.uint0), np.array((), np.uint0))),
+#     ('DARKBLUE', (np.array((), np.uint0), np.array((), np.uint0))),
+#     ('DARKRED', (np.array((), np.uint0), np.array((), np.uint0))),
+#     ('DARKGREEN', (np.array((), np.uint0), np.array((), np.uint0))),
+#     ('PINK', (np.array((), np.uint0), np.array((), np.uint0))),
+#     ('DARKPINK', (np.array((), np.uint0), np.array((), np.uint0))),
+#     ('LIGHTPINK', (np.array((), np.uint0), np.array((), np.uint0))),
+#     ('PURPLE', (np.array((), np.uint0), np.array((), np.uint0))),
+#     ('GRAY', (np.array((), np.uint0), np.array((), np.uint0))),
+#     ('LILAC', (np.array((), np.uint0), np.array((), np.uint0))),
+#     ('EMPTY', (np.array((), np.uint0), np.array((), np.uint0))),
+#     ('UNDEFINED' (np.array((), np.uint0), np.array((), np.uint0)))
+# ]
 
 
 def draw_contours(file, box, color):
@@ -78,7 +92,7 @@ def found_rect(filename, contour, my_list, coeff_width, coeff_height):
     '''Функция распознавания прямоугольника'''
     rect = cv2.minAreaRect(contour)
     box = np.int0(cv2.boxPoints(rect))
-    draw_contours(filename, box, (0, 255, 0))
+    # draw_contours(filename, box, (0, 255, 0))
     if (rect[1][0] >= rect[1][1] and rect[1][1] >= coeff_width and rect[1][0] >= coeff_height) or \
         (rect[1][0] < rect[1][1] and rect[1][0] >= coeff_width and rect[1][1] >= coeff_height):
         # Добавляем прямоугольники с колбами в список
@@ -118,9 +132,24 @@ def stack_colors(image):
 
     # return dominant
     color_pixels = cv2.imread(image)
-    mean_color = color_pixels.mean(axis=0).mean(axis=0)
+    hsv_colors = cv2.cvtColor(color_pixels, cv2.COLOR_BGR2HSV)
+    mean_color = hsv_colors.mean(axis=0).mean(axis=0)
 
     return mean_color
+
+
+# def create_color_list(image):
+#     '''Функция для создания списка колб с цветами вместо числовых значений'''
+#     color_pixels = cv2.imread(image)
+#     hsv_colors = cv2.cvtColor(color_pixels, cv2.COLOR_BGR2HSV)
+
+#     for i in range(len(variations)):
+#         thresholder = cv2.inRange(hsv_colors, variations[i][1][0], variations[i][1][1])
+#         if thresholder == 255:
+#             color_name = variations[i][0]
+#             break
+
+#     return color_name
 
 
 def found_colors_in_flasks(image_for_search, id):
@@ -135,7 +164,7 @@ def found_colors_in_flasks(image_for_search, id):
     cropped_image = original_image[cropped_height[0]:cropped_height[1], 0:width]
     cv2.imwrite(image_for_search, cropped_image)
     # Предобработка начального изображения после кропа
-    contours_of_flasks = preprocessing_image(image_for_search, is_flask=False)
+    contours_of_flasks = preprocessing_image(image_for_search, is_flask=True)
 
     # Задаем эмпирически полученные коэффициенты отношения высоты и ширины экрана к высоте и ширине колбы (возможно получится подстраиваться)
     coeff_width_flask = round(width / 11)
@@ -169,8 +198,11 @@ def found_colors_in_flasks(image_for_search, id):
         internal_colors = []
         single_colors = crop_rects(internal_contours, cv2.imread(images_contour[0]))
         for color_contour in single_colors:
-            internal_colors.append(stack_colors(color_contour[0]))
+            internal_colors = stack_colors(color_contour[0])
+            # internal_colors.append(create_color_list(color_contour[0]))
         flasks_list.append(internal_colors)
+
+    # color_list = create_color_list(flasks_list)
 
     return create_json(flasks_list, id)
 

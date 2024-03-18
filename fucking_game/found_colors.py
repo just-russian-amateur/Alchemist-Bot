@@ -164,7 +164,7 @@ def found_colors_in_flasks(image_for_search, id):
     cropped_image = original_image[cropped_height[0]:cropped_height[1], 0:width]
     cv2.imwrite(image_for_search, cropped_image)
     # Предобработка начального изображения после кропа
-    contours_of_flasks = preprocessing_image(image_for_search, is_flask=True)
+    contours_of_flasks = preprocessing_image(image_for_search, is_flask=False)
 
     # Задаем эмпирически полученные коэффициенты отношения высоты и ширины экрана к высоте и ширине колбы (возможно получится подстраиваться)
     coeff_width_flask = round(width / 11)

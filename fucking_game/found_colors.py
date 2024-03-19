@@ -20,8 +20,7 @@ variations = [
     ('PURPLE', (np.array((131, 157, 103), np.uint8), np.array((255, 255, 255), np.uint8))),
     ('GRAY', (np.array((0, 0, 94), np.uint8), np.array((255, 29, 116), np.uint8))),
     ('LILAC', (np.array((117, 155, 136), np.uint8), np.array((125, 255, 255), np.uint8))),
-    # ('EMPTY', (np.array((), np.uint8), np.array((), np.uint8))),
-    ('UNDEFINED' (np.array((0, 0, 26), np.uint8), np.array((0, 0, 26), np.uint8)))
+    ('UNDEFINED', (np.array((0, 0, 26), np.uint8), np.array((0, 0, 26), np.uint8)))
 ]
 
 
@@ -39,28 +38,8 @@ def draw_contours(file, box, color):
     )
 
 
-def preprocessing_image(image, is_flask):
+def preprocessing_image(image):
     '''Функция предобработки изображения'''
-    if is_flask == True:
-        # Более агрессивный подход для удаления ненужных шумов с изображения с использованием эрозии
-        morph_kernel = np.ones((3, 3))
-        erode_image = cv2.erode(cv2.imread(image), kernel=morph_kernel, iterations=4)
-        cv2.imwrite(image, erode_image)
-
-    # image_for_sharp = cv2.imread(image)
-    # sharp_filter = np.array([[0, -1, 0], [-1, 5, -1], [0, -1, 0]])
-    # sharped_image = cv2.filter2D(image_for_sharp, ddepth=-1, kernel=sharp_filter)
-    # cv2.imwrite(image, sharped_image)
-
-    # CLAHE (Contrast Limited Adaptive Histogram Equalization) - Повышение контрастности
-    # clahe = cv2.createCLAHE(clipLimit=1, tileGridSize=(8,8))
-    # lab = cv2.imread(image)
-    # lab = cv2.cvtColor(lab, cv2.COLOR_BGR2LAB)  # Конвертация RGB в LAB
-    # l, a, b = cv2.split(lab)  # Разделение на 3 канала
-    # l2 = clahe.apply(l)  # Применение коэффициента к каналу яркости
-    # lab = cv2.merge((l2,a,b))  # Слияние каналов
-    # cv2.imwrite(image, cv2.cvtColor(lab, cv2.COLOR_LAB2BGR))  # Обратная конвертация
-
     # Чтение обрезанного изображения в ч/б формате
     gray_noise = cv2.imread(image, 0)
     # Размытие фона для ч/б изображения
@@ -78,21 +57,14 @@ def preprocessing_image(image, is_flask):
         cv2.THRESH_BINARY
     )[1]
 
-    # Определение контуров элементов и их отрисовка на цветном изображении
-    contours_flasks, _ = cv2.findContours(
-        thresholder,
-        cv2.RETR_TREE,
-        cv2.CHAIN_APPROX_SIMPLE
-    )
-
-    return contours_flasks
+    return thresholder
 
 
 def found_rect(filename, contour, my_list, coeff_width, coeff_height):
     '''Функция распознавания прямоугольника'''
     rect = cv2.minAreaRect(contour)
     box = np.int0(cv2.boxPoints(rect))
-    # draw_contours(filename, box, (0, 255, 0))
+    draw_contours(filename, box, (0, 255, 0))
     if (rect[1][0] >= rect[1][1] and rect[1][1] >= coeff_width and rect[1][0] >= coeff_height) or \
         (rect[1][0] < rect[1][1] and rect[1][0] >= coeff_width and rect[1][1] >= coeff_height):
         # Добавляем прямоугольники с колбами в список
@@ -116,45 +88,38 @@ def crop_rects(contours, cropped_image):
     return flasks_info
 
 
-# def stack_colors(image):
-#     '''Определение цвета внутри контура и добавление цвета в стек'''
-#     # color_pixels = io.imread(image)
-#     # pixels = np.float32(color_pixels.reshape(-1, 3))
-
-#     # n_colors = 5
-#     # criteria = (cv2.TERM_CRITERIA_EPS + cv2.TERM_CRITERIA_MAX_ITER, 200, .1)
-#     # flags = cv2.KMEANS_RANDOM_CENTERS
-
-#     # _, labels, palette = cv2.kmeans(pixels, n_colors, None, criteria, 10, flags)
-#     # _, counts = np.unique(labels, return_counts=True)
-
-#     # dominant = palette[np.argmax(counts)]
-
-#     # return dominant
-#     color_pixels = cv2.imread(image)
-#     hsv_colors = cv2.cvtColor(color_pixels, cv2.COLOR_BGR2HSV)
-#     mean_color = hsv_colors.mean(axis=0).mean(axis=0)
-
-#     return mean_color
-
-
 def create_color_list(image):
     '''Функция для создания списка колб с цветами вместо числовых значений'''
+    # Более агрессивный подход для удаления ненужных шумов с изображения с использованием эрозии
+    morph_kernel = np.ones((3, 3))
+    erode_image = cv2.erode(cv2.imread(image), kernel=morph_kernel, iterations=4)
+    cv2.imwrite(image, erode_image)
     color_pixels = cv2.imread(image)
     hsv_colors = cv2.cvtColor(color_pixels, cv2.COLOR_BGR2HSV)
 
+    colors_info = []
+    coef_width = 1.1
+    coef_height = 4,9
     for i in range(len(variations)):
         thresholder = cv2.inRange(hsv_colors, variations[i][1][0], variations[i][1][1])
-        if thresholder == 255:
+        contours_color, _ = cv2.findContours(
+            thresholder,
+            cv2.RETR_TREE,
+            cv2.CHAIN_APPROX_SIMPLE
+        )
+        if len(contours_color) != 0:
+            color = []
             color_name = variations[i][0]
-            break
+            for cnt in contours_color:
+                color_coords, _ = found_rect(image, cnt, color, coef_width, coef_height)
+            # Определение контуров элементов и их отрисовка на цветном изображении
+            colors_info.append((color_name, color_coords[0]))
 
-    return color_name
+    return colors_info
 
 
 def found_colors_in_flasks(image_for_search, id):
     '''Основная функция для распознавания цветов на картинке и добавления их в массив'''
-    # TODO: Надо улучшить распознавание, чтобы с учетом погрешностей точно были видны все прямоугольники
     # Чтение изображения в цветном формате
     original_image = cv2.imread(image_for_search)
     # Получение параметров размера изображения и вывод параметров обрезки
@@ -164,7 +129,12 @@ def found_colors_in_flasks(image_for_search, id):
     cropped_image = original_image[cropped_height[0]:cropped_height[1], 0:width]
     cv2.imwrite(image_for_search, cropped_image)
     # Предобработка начального изображения после кропа
-    contours_of_flasks = preprocessing_image(image_for_search, is_flask=False)
+    # Определение контуров элементов и их отрисовка на цветном изображении
+    contours_of_flasks, _ = cv2.findContours(
+        preprocessing_image(image_for_search),
+        cv2.RETR_TREE,
+        cv2.CHAIN_APPROX_SIMPLE
+    )
 
     # Задаем эмпирически полученные коэффициенты отношения высоты и ширины экрана к высоте и ширине колбы (возможно получится подстраиваться)
     coeff_width_flask = round(width / 11)
@@ -177,32 +147,25 @@ def found_colors_in_flasks(image_for_search, id):
     flasks = sorted(flasks)
     images_of_flasks = crop_rects(flasks, cropped_image)
 
-    flasks_list = []
+    flasks_list = []    # Список цветов в колбах
     for images_contour in images_of_flasks:
-        # Повторная предобработка изображений содержащих только колбы
-        original_flask = preprocessing_image(images_contour[0], is_flask=True)
-        # Определение цветов внутри колбы
-        # Задаем эмпирически полученные коэффициенты отношения высоты и ширины колбы к высоте и ширине цвета в колбе (возможно получится подстраиваться)
-        coeff_width_color = 1
-        coeff_height_color = 1
-        # coeff_width_color = round(cnt_images[1][0] / 1.35)  # Эмпирически полученный коэффициент для отношения ширины колбы к ширине цвета
-        # coeff_height_color = round(cnt_images[1][1] / 4.9)  # Эмпирически полученный коэффициент для отношения высоты колбы к ширине цвета
-        
         # Находим контуры цветов внутри каждой колбы
-        internal_contours = [] # Список со стеком цветовых контуров внутри колб
-        for internal_flask in original_flask:
-            internal_contours, _ = found_rect(images_contour[0], internal_flask, internal_contours, coeff_width_color, coeff_height_color)
-        internal_contours = sorted(internal_contours, reverse=True)
+        internal_colors = {}
+        colors_list = create_color_list(images_contour[0])
+        for colors_contours in colors_list:
+            internal_colors.update([colors_contours[0], colors_list[1]])
+        internal_colors = sorted(
+            internal_colors.items(),
+            key=lambda
+            item:
+            item[1]
+        )
         
-        # Непосредственно определяем цвет и добавляем его в список для конкретной колбы
-        internal_colors = []
-        single_colors = crop_rects(internal_contours, cv2.imread(images_contour[0]))
-        for color_contour in single_colors:
-            # mean_color = stack_colors(color_contour[0])
-            internal_colors.append(create_color_list(color_contour[0]))
         flasks_list.append(internal_colors)
 
-    # color_list = create_color_list(flasks_list)
+    # Создаем пустую колбу и добавляем 2 пустых колбы в конец списка с колбами (2 колбы это значение по умолчанию для стандартного уровня)
+    empty_flask = ["EMPTY", "EMPTY", "EMPTY", "EMPTY"]
+    flasks_list.append([empty_flask], [empty_flask])
 
     return create_json(flasks_list, id)
 

@@ -50,6 +50,7 @@ def preprocessing_image(image):
     )
 
     # Пороговая обработка изображения
+    # TODO: подбор коэффициента для корректного распознавания пустых колб
     thresholder = cv2.threshold(
         blurred,
         72,
@@ -98,8 +99,9 @@ def create_color_list(image):
     hsv_colors = cv2.cvtColor(color_pixels, cv2.COLOR_BGR2HSV)
 
     colors_info = []
+    # TODO: подбор коэффициентов, чтобы исключить ненужные прямоугольники
     coef_width = 1.1
-    coef_height = 4,9
+    coef_height = 4.9
     for i in range(len(variations)):
         thresholder = cv2.inRange(hsv_colors, variations[i][1][0], variations[i][1][1])
         contours_color, _ = cv2.findContours(
@@ -112,8 +114,9 @@ def create_color_list(image):
             color_name = variations[i][0]
             for cnt in contours_color:
                 color_coords, _ = found_rect(image, cnt, color, coef_width, coef_height)
-            # Определение контуров элементов и их отрисовка на цветном изображении
-            colors_info.append((color_name, color_coords[0]))
+            for cnt in color_coords:
+                # Определение контуров элементов и их отрисовка на цветном изображении
+                colors_info.append((color_name, cnt[0]))
 
     return colors_info
 
@@ -136,6 +139,7 @@ def found_colors_in_flasks(image_for_search, id):
         cv2.CHAIN_APPROX_SIMPLE
     )
 
+    # TODO: подбор коэффициентов, чтобы исключить ненужные прямоугольники
     # Задаем эмпирически полученные коэффициенты отношения высоты и ширины экрана к высоте и ширине колбы (возможно получится подстраиваться)
     coeff_width_flask = round(width / 11)
     coeff_height_flask = round((cropped_height[1] - cropped_height[0]) / 5.2)
@@ -153,19 +157,24 @@ def found_colors_in_flasks(image_for_search, id):
         internal_colors = {}
         colors_list = create_color_list(images_contour[0])
         for colors_contours in colors_list:
-            internal_colors.update([colors_contours[0], colors_list[1]])
-        internal_colors = sorted(
-            internal_colors.items(),
-            key=lambda
-            item:
-            item[1]
+            internal_colors.update({colors_contours[0] : colors_contours[1]})
+        internal_colors = dict(
+            sorted(
+                internal_colors.items(),
+                key=lambda
+                item:
+                item[1][1]
+            )
         )
         
-        flasks_list.append(internal_colors)
+        flasks_list.append(list(internal_colors.keys()))
 
     # Создаем пустую колбу и добавляем 2 пустых колбы в конец списка с колбами (2 колбы это значение по умолчанию для стандартного уровня)
+    # TODO: возможно получится распознавать пустые колбы тоже
     empty_flask = ["EMPTY", "EMPTY", "EMPTY", "EMPTY"]
-    flasks_list.append([empty_flask], [empty_flask])
+    default_empty = 2
+    for i in range(default_empty):
+        flasks_list.append(empty_flask)
 
     return create_json(flasks_list, id)
 
@@ -173,6 +182,6 @@ def found_colors_in_flasks(image_for_search, id):
 def create_json(flasks_list, id_client):
     '''Создание и заполнение json файла с распознанными цветами'''
     with open(f"./levels/this_level_{id_client}.json", "w") as this_level:
-        json.dump({"bottles": flasks_list}, this_level)
+        json.dump({"bottles": flasks_list}, this_level, indent=2)
 
     return this_level

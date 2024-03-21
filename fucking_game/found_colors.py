@@ -2,7 +2,6 @@
 import cv2
 import numpy as np
 import json
-from skimage import io
 
 
 variations = [
@@ -50,10 +49,9 @@ def preprocessing_image(image):
     )
 
     # Пороговая обработка изображения
-    # TODO: подбор коэффициента для корректного распознавания пустых колб
     thresholder = cv2.threshold(
         blurred,
-        65,
+        68,
         255,
         cv2.THRESH_BINARY
     )[1]
@@ -65,7 +63,7 @@ def found_rect(filename, contour, my_list, coeff_width, coeff_height):
     '''Функция распознавания прямоугольника'''
     rect = cv2.minAreaRect(contour)
     box = np.int0(cv2.boxPoints(rect))
-    draw_contours(filename, box, (0, 255, 0))
+    # draw_contours(filename, box, (0, 255, 0))
     if (rect[1][0] >= rect[1][1] and rect[1][1] >= coeff_width and rect[1][0] >= coeff_height) or \
         (rect[1][0] < rect[1][1] and rect[1][0] >= coeff_width and rect[1][1] >= coeff_height):
         # Добавляем прямоугольники с колбами в список
@@ -139,8 +137,7 @@ def found_colors_in_flasks(image_for_search, id):
         cv2.CHAIN_APPROX_SIMPLE
     )
 
-    # TODO: подбор коэффициентов, чтобы исключить ненужные прямоугольники
-    # Задаем эмпирически полученные коэффициенты отношения высоты и ширины экрана к высоте и ширине колбы (возможно получится подстраиваться)
+    # Задаем эмпирически полученные коэффициенты отношения высоты и ширины экрана к высоте и ширине колбы
     coeff_width_flask = round(width / 11)
     coeff_height_flask = round((cropped_height[1] - cropped_height[0]) / 5.2)
     flasks = [] # Список прямоугольников-колб

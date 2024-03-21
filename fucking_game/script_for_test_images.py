@@ -63,7 +63,8 @@ def preprocessing_image(image):
 
 def main():
     for j in range(1, 15):
-        with open(f'/home/laptev/Документы/Projects/flasks/fucking_game/test_flasks/{j}.jpg', 'r') as test_img:
+        with open(f'C:/Users/Lapte/Documents/flasks/fucking_game/test_flasks/{j}.jpg', 'r') as test_img:
+        # with open(f'/home/laptev/Документы/Projects/flasks/fucking_game/test_flasks/{j}.jpg', 'r') as test_img:
         # with open(f'/home/laptev/Документы/Projects/flasks/fucking_game/test_pictures/{i}.jpg', 'r') as test_img:
             # Чтение изображения в цветном формате
             original_image = cv2.imread(test_img.name)
@@ -90,7 +91,8 @@ def main():
 
 
             # Более агрессивный подход для удаления ненужных шумов с изображения с использованием эрозии
-            color_pixels = cv2.imread(f'/home/laptev/Документы/Projects/flasks/fucking_game/test_flasks/{j}.jpg')
+            color_pixels = cv2.imread(f'C:/Users/Lapte/Documents/flasks/fucking_game/test_flasks/{j}.jpg')
+            # color_pixels = cv2.imread(f'/home/laptev/Документы/Projects/flasks/fucking_game/test_flasks/{j}.jpg')
             hsv_colors = cv2.cvtColor(color_pixels, cv2.COLOR_BGR2HSV)
 
             colors_info = []
@@ -114,8 +116,30 @@ def main():
                         # print(rect)
                         if rect[1][0] >= coeff_height and rect[1][1] >= coeff_height:
                             print(rect)
-                            draw_contours(f'/home/laptev/Документы/Projects/flasks/fucking_game/out_test_flasks/{j}.jpg', box, (255, 255, 255))
+                            draw_contours(f'C:/Users/Lapte/Documents/flasks/fucking_game/out_test_flasks/{j}.jpg', box, (255, 255, 255))
+                            # draw_contours(f'/home/laptev/Документы/Projects/flasks/fucking_game/out_test_flasks/{j}.jpg', box, (255, 255, 255))
                             # draw_contours(f'/home/laptev/Документы/Projects/flasks/fucking_game/out_test/{i}.jpg', box, (255, 255, 255))
+                            add = True
+                            for k in range(len(colors_info)):
+                                if rect[0][1] - colors_info[k][1][1] < 50:
+                                    add = False
+                                    break
+                            if add == True:
+                                colors_info.append([color_name, rect[0]])
+            # colors_info = sorted(
+            #     colors_info,
+            #     key=lambda
+            #     values:
+            #     values[1]
+            # )
+            # print(colors_info[1])
+
+            # for i in range(1, len(colors_info)):
+            #     if colors_info[i][1] - colors_info[i-1][1] < 15:
+            #         colors_info.pop(i)
+            #         i -= 1
+            #     if i > len(colors_info):
+            #         break
 
                     # for cnt in color_coords:
                     #     # Определение контуров элементов и их отрисовка на цветном изображении

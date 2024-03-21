@@ -53,7 +53,7 @@ def preprocessing_image(image):
     # TODO: подбор коэффициента для корректного распознавания пустых колб
     thresholder = cv2.threshold(
         blurred,
-        72,
+        65,
         255,
         cv2.THRESH_BINARY
     )[1]

@@ -5,18 +5,18 @@ import json
 
 
 variations = [
-    ('BLUE', (np.array((30, 50, 192), np.uint8), np.array((108, 255, 255), np.uint8))),
+    ('BLUE', (np.array((30, 50, 192), np.uint8), np.array((106, 255, 255), np.uint8))),
     ('ORANGE', (np.array((0, 165, 203), np.uint8), np.array((19, 255, 255), np.uint8))),
     ('YELLOW', (np.array((22, 46, 192), np.uint8), np.array((34, 255, 255), np.uint8))),
     ('RED', (np.array((0, 148, 114), np.uint8), np.array((7, 255, 255), np.uint8))),
     ('GREEN', (np.array((41, 0, 160), np.uint8), np.array((65, 255, 255), np.uint8))),
-    ('DARKBLUE', (np.array((48, 195, 169), np.uint8), np.array((195, 255, 255), np.uint8))),
+    ('DARKBLUE', (np.array((106, 200, 134), np.uint8), np.array((255, 255, 255), np.uint8))),
     ('DARKRED', (np.array((164, 135, 84), np.uint8), np.array((255, 255, 110), np.uint8))),
     ('DARKGREEN', (np.array((61, 108, 80), np.uint8), np.array((96, 255, 255), np.uint8))),
-    ('PINK', (np.array((137, 0, 197), np.uint8), np.array((152, 255, 255), np.uint8))),
+    ('PINK', (np.array((140, 0, 197), np.uint8), np.array((154, 255, 255), np.uint8))),
     ('DARKPINK', (np.array((140, 85, 183), np.uint8), np.array((195, 255, 255), np.uint8))),
     ('LIGHTPINK', (np.array((10, 0, 228), np.uint8), np.array((20, 255, 255), np.uint8))),
-    ('PURPLE', (np.array((131, 157, 103), np.uint8), np.array((255, 255, 255), np.uint8))),
+    ('PURPLE', (np.array((131, 157, 186), np.uint8), np.array((255, 255, 255), np.uint8))),
     ('GRAY', (np.array((0, 0, 94), np.uint8), np.array((255, 29, 116), np.uint8))),
     ('LILAC', (np.array((117, 155, 136), np.uint8), np.array((125, 255, 255), np.uint8))),
     ('UNDEFINED', (np.array((0, 0, 26), np.uint8), np.array((0, 0, 26), np.uint8)))
@@ -59,15 +59,19 @@ def preprocessing_image(image):
     return thresholder
 
 
-def found_rect(filename, contour, my_list, coeff_width, coeff_height):
+def found_rect(filename, contour, my_list, coeff_width, coeff_height, is_flask):
     '''Функция распознавания прямоугольника'''
     rect = cv2.minAreaRect(contour)
     box = np.int0(cv2.boxPoints(rect))
-    # draw_contours(filename, box, (0, 255, 0))
-    if (rect[1][0] >= rect[1][1] and rect[1][1] >= coeff_width and rect[1][0] >= coeff_height) or \
-        (rect[1][0] < rect[1][1] and rect[1][0] >= coeff_width and rect[1][1] >= coeff_height):
-        # Добавляем прямоугольники с колбами в список
-        my_list.append(rect)
+    if is_flask ==True:
+        if rect[1][0] >= coeff_height and rect[1][1] >= coeff_height:
+            my_list.append(rect)
+    else:
+        if (rect[1][0] >= rect[1][1] and rect[1][1] >= coeff_width and rect[1][0] >= coeff_height) or \
+            (rect[1][0] < rect[1][1] and rect[1][0] >= coeff_width and rect[1][1] >= coeff_height):
+            # Добавляем прямоугольники с колбами в список
+            my_list.append(rect)
+            draw_contours(filename, box, (255, 255, 255))
 
     return my_list, box
 
@@ -78,8 +82,12 @@ def crop_rects(contours, cropped_image):
     for cnt in contours:
         filename = f'flask_{cnt}.jpg'
         # Взаимодействие с колбой
-        height_flask = [round(cnt[0][1] - cnt[1][0] / 2), round(cnt[0][1] + cnt[1][0] / 2)]
-        width_flask = [round(cnt[0][0] - cnt[1][1] / 2), round(cnt[0][0] + cnt[1][1] / 2)]
+        if cnt[2] > 45:
+            height_flask = [round(cnt[0][1] - cnt[1][0] / 2), round(cnt[0][1] + cnt[1][0] / 2)]
+            width_flask = [round(cnt[0][0] - cnt[1][1] / 2), round(cnt[0][0] + cnt[1][1] / 2)]
+        else:
+            height_flask = [round(cnt[0][1] - cnt[1][1] / 2), round(cnt[0][1] + cnt[1][1] / 2)]
+            width_flask = [round(cnt[0][0] - cnt[1][0] / 2), round(cnt[0][0] + cnt[1][0] / 2)]
         flask = cropped_image[height_flask[0]:height_flask[1], width_flask[0]:width_flask[1]]
         cv2.imwrite(filename, flask)
         flasks_info.append((filename, (width_flask[1] - width_flask[0], height_flask[1] - height_flask[0])))
@@ -94,12 +102,12 @@ def create_color_list(image):
     erode_image = cv2.erode(cv2.imread(image), kernel=morph_kernel, iterations=4)
     cv2.imwrite(image, erode_image)
     color_pixels = cv2.imread(image)
+    height, width, _ = color_pixels.shape
     hsv_colors = cv2.cvtColor(color_pixels, cv2.COLOR_BGR2HSV)
 
     colors_info = []
-    # TODO: подбор коэффициентов, чтобы исключить ненужные прямоугольники
-    coef_width = 1.1
-    coef_height = 4.9
+    coeff_width = round(width / 1.5)
+    coeff_height = round(height / 6.5)
     for i in range(len(variations)):
         thresholder = cv2.inRange(hsv_colors, variations[i][1][0], variations[i][1][1])
         contours_color, _ = cv2.findContours(
@@ -109,12 +117,22 @@ def create_color_list(image):
         )
         if len(contours_color) != 0:
             color = []
-            color_name = variations[i][0]
             for cnt in contours_color:
-                color_coords, _ = found_rect(image, cnt, color, coef_width, coef_height)
+                color_coords, _ = found_rect(image, cnt, color, coeff_width, coeff_height, is_flask=True)
             for cnt in color_coords:
                 # Определение контуров элементов и их отрисовка на цветном изображении
-                colors_info.append((color_name, cnt[0]))
+                add_flag = True
+                if len(colors_info) > 0:
+                    for j in range(len(colors_info)):
+                        if abs(cnt[0][1] - colors_info[j][1][1]) < 40:
+                            add_flag = False
+                            break
+                if add_flag == True:
+                    color_name = variations[i][0]
+                    colors_info.append([color_name, cnt[0]])
+    
+    if len(colors_info) == 0:
+        colors_info = [["EMPTY", (0, 0)], ["EMPTY", (0, 1)], ["EMPTY", (0, 2)], ["EMPTY", (0, 3)]]
 
     return colors_info
 
@@ -144,34 +162,28 @@ def found_colors_in_flasks(image_for_search, id):
     # Проходим по всем контурам и подсвечиваем прямоугольники целых колб
     for contour in contours_of_flasks:
         # Определение границ прямоугольников и добавление цвета прямоугольника в список
-        flasks, _ = found_rect(image_for_search, contour, flasks, coeff_width_flask, coeff_height_flask)
+        flasks, _ = found_rect(image_for_search, contour, flasks, coeff_width_flask, coeff_height_flask, is_flask=False)
     flasks = sorted(flasks)
     images_of_flasks = crop_rects(flasks, cropped_image)
 
     flasks_list = []    # Список цветов в колбах
     for images_contour in images_of_flasks:
         # Находим контуры цветов внутри каждой колбы
-        internal_colors = {}
+        internal_colors = []
         colors_list = create_color_list(images_contour[0])
         for colors_contours in colors_list:
-            internal_colors.update({colors_contours[0] : colors_contours[1]})
-        internal_colors = dict(
-            sorted(
-                internal_colors.items(),
-                key=lambda
-                item:
-                item[1][1]
-            )
+            internal_colors.append((colors_contours[0], colors_contours[1]))
+        internal_colors = sorted(
+            internal_colors,
+            key=lambda
+            item:
+            item[1][1]
         )
         
-        flasks_list.append(list(internal_colors.keys()))
-
-    # Создаем пустую колбу и добавляем 2 пустых колбы в конец списка с колбами (2 колбы это значение по умолчанию для стандартного уровня)
-    # TODO: возможно получится распознавать пустые колбы тоже
-    empty_flask = ["EMPTY", "EMPTY", "EMPTY", "EMPTY"]
-    default_empty = 2
-    for i in range(default_empty):
-        flasks_list.append(empty_flask)
+        colors = []
+        for color in internal_colors:
+            colors.append(color[0])
+        flasks_list.append(colors)
 
     return create_json(flasks_list, id)
 

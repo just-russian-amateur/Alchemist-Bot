@@ -5,17 +5,21 @@ import json
 
 
 variations = [
-    ('BLUE', (np.array((30, 50, 192), np.uint8), np.array((106, 255, 255), np.uint8))),
+    ('BLUE', (np.array((30, 50, 205), np.uint8), np.array((106, 255, 255), np.uint8))),
+    # ('BLUE', (np.array((30, 50, 192), np.uint8), np.array((106, 255, 255), np.uint8))),
     ('ORANGE', (np.array((0, 165, 203), np.uint8), np.array((19, 255, 255), np.uint8))),
     ('YELLOW', (np.array((22, 46, 192), np.uint8), np.array((34, 255, 255), np.uint8))),
     ('RED', (np.array((0, 148, 114), np.uint8), np.array((7, 255, 255), np.uint8))),
     ('GREEN', (np.array((41, 0, 160), np.uint8), np.array((65, 255, 255), np.uint8))),
-    ('DARKBLUE', (np.array((106, 200, 134), np.uint8), np.array((255, 255, 255), np.uint8))),
+    ('DARKBLUE', (np.array((103, 181, 135), np.uint8), np.array((120, 255, 255), np.uint8))),
+    # ('DARKBLUE', (np.array((106, 223, 134), np.uint8), np.array((255, 255, 255), np.uint8))),
     ('DARKRED', (np.array((164, 135, 84), np.uint8), np.array((255, 255, 110), np.uint8))),
     ('DARKGREEN', (np.array((61, 108, 80), np.uint8), np.array((96, 255, 255), np.uint8))),
     ('PINK', (np.array((140, 0, 197), np.uint8), np.array((154, 255, 255), np.uint8))),
     ('DARKPINK', (np.array((140, 85, 183), np.uint8), np.array((195, 255, 255), np.uint8))),
-    ('LIGHTPINK', (np.array((10, 0, 228), np.uint8), np.array((20, 255, 255), np.uint8))),
+    ('LIGHTPINK', (np.array((0, 0, 241), np.uint8), np.array((20, 255, 255), np.uint8))),
+    # ('LIGHTPINK', (np.array((10, 0, 232), np.uint8), np.array((20, 255, 255), np.uint8))),
+    # ('LIGHTPINK', (np.array((10, 0, 228), np.uint8), np.array((20, 255, 255), np.uint8))),
     ('PURPLE', (np.array((131, 157, 186), np.uint8), np.array((255, 255, 255), np.uint8))),
     ('GRAY', (np.array((0, 0, 94), np.uint8), np.array((255, 29, 116), np.uint8))),
     ('LILAC', (np.array((117, 155, 136), np.uint8), np.array((125, 255, 255), np.uint8))),
@@ -66,12 +70,13 @@ def found_rect(filename, contour, my_list, coeff_width, coeff_height, is_flask):
     if is_flask ==True:
         if rect[1][0] >= coeff_height and rect[1][1] >= coeff_height:
             my_list.append(rect)
+            # draw_contours(filename, box, (255, 255, 255))
     else:
         if (rect[1][0] >= rect[1][1] and rect[1][1] >= coeff_width and rect[1][0] >= coeff_height) or \
             (rect[1][0] < rect[1][1] and rect[1][0] >= coeff_width and rect[1][1] >= coeff_height):
             # Добавляем прямоугольники с колбами в список
             my_list.append(rect)
-            draw_contours(filename, box, (255, 255, 255))
+            # draw_contours(filename, box, (255, 255, 255))
 
     return my_list, box
 
@@ -108,8 +113,8 @@ def create_color_list(image):
     colors_info = []
     coeff_width = round(width / 1.5)
     coeff_height = round(height / 6.5)
-    for i in range(len(variations)):
-        thresholder = cv2.inRange(hsv_colors, variations[i][1][0], variations[i][1][1])
+    for variation in variations:
+        thresholder = cv2.inRange(hsv_colors, variation[1][0], variation[1][1])
         contours_color, _ = cv2.findContours(
             thresholder,
             cv2.RETR_TREE,
@@ -123,12 +128,12 @@ def create_color_list(image):
                 # Определение контуров элементов и их отрисовка на цветном изображении
                 add_flag = True
                 if len(colors_info) > 0:
-                    for j in range(len(colors_info)):
-                        if abs(cnt[0][1] - colors_info[j][1][1]) < 40:
+                    for add_color in colors_info:
+                        if abs(cnt[0][1] - add_color[1][1]) < 38:
                             add_flag = False
                             break
                 if add_flag == True:
-                    color_name = variations[i][0]
+                    color_name = variation[0]
                     colors_info.append([color_name, cnt[0]])
     
     if len(colors_info) == 0:

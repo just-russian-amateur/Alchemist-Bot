@@ -108,8 +108,8 @@ def create_color_list(image):
     colors_info = []
     coeff_width = round(width / 1.5)
     coeff_height = round(height / 6.5)
-    for i in range(len(variations)):
-        thresholder = cv2.inRange(hsv_colors, variations[i][1][0], variations[i][1][1])
+    for variation in variations:
+        thresholder = cv2.inRange(hsv_colors, variation[1][0], variation[1][1])
         contours_color, _ = cv2.findContours(
             thresholder,
             cv2.RETR_TREE,
@@ -123,12 +123,12 @@ def create_color_list(image):
                 # Определение контуров элементов и их отрисовка на цветном изображении
                 add_flag = True
                 if len(colors_info) > 0:
-                    for j in range(len(colors_info)):
-                        if abs(cnt[0][1] - colors_info[j][1][1]) < 40:
+                    for add_color in colors_info:
+                        if abs(cnt[0][1] - add_color[1][1]) < 40:
                             add_flag = False
                             break
                 if add_flag == True:
-                    color_name = variations[i][0]
+                    color_name = variation[0]
                     colors_info.append([color_name, cnt[0]])
     
     if len(colors_info) == 0:

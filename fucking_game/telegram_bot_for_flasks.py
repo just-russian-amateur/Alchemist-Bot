@@ -34,9 +34,6 @@ dp = Dispatcher()
 Список поддерживаемых команд (желательно все сделать в виде кнопок):
 /start - начало работы с ботом
 /help - вызов помощника с описанием команд
-/resolve - команда для решения, если картинка не изменилась, но предыдущее решение не сработало
-/download_picture - загрузка изображения с текущей расстановкой цветов в колбах
-/mode - режим работы (обычные цвета/паттерн фигур)
 Надеюсь будут добавлены:
 /payment - покупка попыток участия, если бот станет популярен
 /share - ссылка для распространения бота в различных социальных сетях
@@ -44,13 +41,12 @@ dp = Dispatcher()
 
 
 @dp.message(CommandStart())  # Команда для начала работы с ботом
-@dp.message(Command('finish'))
 async def send_welcome(message: Message):
     """Приветственная функция"""
     start_button_set = [
         [
             KeyboardButton(text='Начало работы'),
-            KeyboardButton(text='Помощь')
+            KeyboardButton(text='Справка')
         ]
     ]
     keyboard_buttons = ReplyKeyboardMarkup(
@@ -59,17 +55,17 @@ async def send_welcome(message: Message):
         one_time_keyboard=True
     )
     await message.answer(
-        "Привет!\nЯ бот, который поможет тебе решить эти гребаные колбы какими бы сложными они ни были:)\nТут должны быть указаны допустимые команды и что делать\nВведи /finish, если хочешь закончить решение",
+        "Привет!\nЯ бот, который поможет тебе перелить жидкость в колбах и, что самое главное, сделать это правильно, иначе говоря, я - твой спаситель:)\nВ работе со мной нет ничего сложного, но если ты делаешь это впервые, то прочитай мою справу сначала, пожалуйста, там совсем немного букв:)",
         reply_markup=keyboard_buttons
     )
 
 
-@dp.message(F.text == 'Помощь')    #   Команда помощи
+@dp.message(F.text == 'Справка')    #   Команда помощи
 async def help(message: Message):
     """Функция помощи"""
     after_help_button_set = [
         [
-            KeyboardButton(text='Выбор режима распознавания')
+            KeyboardButton(text='Начало работы')
         ]
     ]
     keyboard_buttons = ReplyKeyboardMarkup(
@@ -77,56 +73,27 @@ async def help(message: Message):
         resize_keyboard=True,
         one_time_keyboard=True
     )
-    if message.text == 'Помощь':
+    if message.text == 'Справка':
         await message.answer(
-            'Тут будет текст помощника',
+            'Добро пожаловать в короткую справку обо мне:)\nДля того, чтобы меня перезапустить ты можешь ввести команду /start.\nДля доступа к справке ты можешь использовать команду /help вместо кнопки.\n\nТеперь пару слов о функциональности:\n1. Когда ты загружаешь скриншот, то нужно загрузить его как картинку, а не как файл, то есть в чате со мной я должен увидеть твое сообщение как полноценную картинку в половину экрана:)\n2. Скриншот не нужно никак обрезать или сжимать, я сделаю это самостояетельно, так что просто пришли мне исходное изображение:)\nВот, собственно, и все, что я хотел тебе рассказать о себе, удачи!',
             reply_markup=keyboard_buttons
         )
     else:
-        await message.answer('Введите любой из предложенных вариантов')
+        await message.answer('Нажми на кнопку ниже, пожалуйста :)')
 
 
 @dp.message(F.text == 'Начало работы')    #   Команды выбора режима распознавания
-@dp.message(F.text == 'Выбор режима распознавания')
-@dp.message(F.text == 'Хочу')
-async def mode_menu(message: Message):
-    """Функция выбора режима распознавания"""
-    after_mode_button_set = [
-        [
-            KeyboardButton(text='Режим паттерна'),
-            KeyboardButton(text='Классические цвета')
-        ]
-    ]
-    keyboard_buttons = ReplyKeyboardMarkup(
-        keyboard=after_mode_button_set,
-        resize_keyboard=True,
-        one_time_keyboard=True
-    )
-    if message.text == 'Начало работы' or message.text == 'Выбор режима распознавание' or message.text == 'Хочу':
-        await message.answer(
-            'Выбери, пожалуйста режим распознавания',
-            reply_markup=keyboard_buttons
-        )
-    else:
-        await message.answer('Введите любой из предложенных вариантов')
-
-
-@dp.message(F.text == 'Режим паттерна')    #   Команды загрузки изображения
-@dp.message(F.text == 'Классические цвета')
+@dp.message(F.text == 'Загрузить новое изображение')
 async def mode(message: Message):
     """Функция загрузки изображения"""
-    if message.text == 'Режим паттерна':
-        await message.answer('Ты выбрал паттерн режим, я запомнил\nЗагрузи изображение как картинку, пожалуйства')
-    elif message.text == 'Классические цвета':
-        await message.answer('Ты выбрал классический режим, я запомнил\nЗагрузи изображение как картинку, пожалуйства',)
+    if message.text == 'Начало работы':
+        await message.answer('Итак, давай приступим :)\nЗагрузи скриншот как картинку, пожалуйства')
+        # start = True
+    elif message.text == 'Загрузить новое изображение':
+        await message.answer('Загрузи новый скриншот как картинку, пожалуйста')
+        # again = True
     else:
-        await message.answer('Введите любой из предложенных вариантов')
-
-
-@dp.message(Command("resolve"))    #   Команда перерешения
-async def resolve(message: Message):
-    """Функция перерешивания"""
-    await message.answer(message.text)
+        await message.answer('Нажми на кнопку ниже, пожалуйста :)')
 
 
 # @dp.message(Command("share"))    #   Команда поделиться
@@ -142,9 +109,9 @@ async def resolve(message: Message):
     
 
 @dp.message(F.photo)
-@dp.message(F.text == 'Не хочу')
 async def download_photoes(message:Message, bot: Bot):
     '''Функция получения и обработки фотографий'''
+    # if start == True or again == True:
     await bot.download(
         message.photo[-1],
         destination=f'./images/{message.photo[-1].file_id}.jpg'
@@ -153,7 +120,6 @@ async def download_photoes(message:Message, bot: Bot):
     
     # Распознаем цвета и добавляем их в список для последующей сериализации в json
     found_colors_in_flasks(image_for_search=f'./images/{message.photo[-1].file_id}.jpg', id=id_client)
-    # flasks_list.append([1, 2, 3, 4])    #   Добавление в список
     # Нужно нарисовать ответную картинку по json, где будет видно расположение цветов
 
     with open(f'./images/{message.photo[-1].file_id}.jpg', 'rb') as open_image:
@@ -162,48 +128,31 @@ async def download_photoes(message:Message, bot: Bot):
                 open_image.read(),
                 filename='solve_flasks'
             ),
-            caption='Я верно распознал цвета?'
+            caption='Я буду использовать эту начальную позицию в решении'
         )
     
-    agreement_buttons = [
+    flasks_solver(filename=f"./levels/this_level_{id_client}.json", id=id_client)
+
+    download_again = [
         [
-            KeyboardButton(text='Да'),
-            KeyboardButton(text='Нет')
+            KeyboardButton(text='Загрузить новое изображение')
         ]
     ]
-    agreement = ReplyKeyboardMarkup(
-        keyboard=agreement_buttons,
+    keyboard_buttons = ReplyKeyboardMarkup(
+        keyboard=download_again,
         resize_keyboard=True,
         one_time_keyboard=True
     )
-    await message.answer('Да или нет?', reply_markup=agreement)
 
-
-@dp.message(F.text == "Да")
-async def agreement(message: Message):
-    '''Вызов программы для решения колб'''
-    #   Добавляем колбы и цвета в них внутрь json
-    # with open(f"./levels/this_level_{id_client}.json", "w") as this_level:
-    #     json.dump(flasks_list, this_level)
-    await message.answer('Хорошо, я начинаю решать')
-    flasks_solver(filename=f"./levels/this_level_{id_client}.json", id=id_client) 
-
-
-@dp.message(F.text == "Нет")
-async def disagreement(message: Message):
-    '''Еще одна попытка распознать цвета'''
-    actions_buttons = [
-        [
-            KeyboardButton(text='Хочу'),
-            KeyboardButton(text='Не хочу')
-        ]
-    ]
-    actions = ReplyKeyboardMarkup(
-        keyboard=actions_buttons,
-        resize_keyboard=True,
-        one_time_keyboard=True
+    await message.answer(
+        'Я нашел решение для тебя! Дай мне знать, если ты хочешь найти решение для другого скриншота:)',
+        reply_markup=keyboard_buttons
     )
-    await message.answer('Ох, я лох, попробую еще раз, хочешь изменить фото?', reply_markup=actions)
+    # else:
+    await message.answer('Нажми на кнопку ниже, пожалуйста:)')
+    
+    # start = False
+    # again = False
 
 
 async def main():
@@ -215,5 +164,6 @@ async def main():
 if __name__ == '__main__':
     """Запуск, логгирование и прочие вещи"""
     id_client = 0   #   Добавить получение id клиента
-    flasks_list = []
+    # start = False
+    # again = False
     asyncio.run(main())

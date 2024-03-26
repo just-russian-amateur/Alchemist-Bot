@@ -5,21 +5,21 @@ import json
 
 
 variations = [
-    ('BLUE', (np.array((30, 50, 192), np.uint8), np.array((106, 255, 255), np.uint8))),
+    ('BLUE', (np.array((30, 50, 205), np.uint8), np.array((106, 255, 255), np.uint8))),
     ('ORANGE', (np.array((0, 165, 203), np.uint8), np.array((19, 255, 255), np.uint8))),
     ('YELLOW', (np.array((22, 46, 192), np.uint8), np.array((34, 255, 255), np.uint8))),
     ('RED', (np.array((0, 148, 114), np.uint8), np.array((7, 255, 255), np.uint8))),
     ('GREEN', (np.array((41, 0, 160), np.uint8), np.array((65, 255, 255), np.uint8))),
-    ('DARKBLUE', (np.array((106, 200, 134), np.uint8), np.array((255, 255, 255), np.uint8))),
+    ('DARKBLUE', (np.array((103, 181, 135), np.uint8), np.array((120, 255, 255), np.uint8))),
     ('DARKRED', (np.array((164, 135, 84), np.uint8), np.array((255, 255, 110), np.uint8))),
     ('DARKGREEN', (np.array((61, 108, 80), np.uint8), np.array((96, 255, 255), np.uint8))),
     ('PINK', (np.array((140, 0, 197), np.uint8), np.array((154, 255, 255), np.uint8))),
     ('DARKPINK', (np.array((140, 85, 183), np.uint8), np.array((195, 255, 255), np.uint8))),
-    ('LIGHTPINK', (np.array((10, 0, 228), np.uint8), np.array((20, 255, 255), np.uint8))),
+    ('LIGHTPINK', (np.array((0, 0, 241), np.uint8), np.array((20, 255, 255), np.uint8))),
     ('PURPLE', (np.array((131, 157, 186), np.uint8), np.array((255, 255, 255), np.uint8))),
     ('GRAY', (np.array((0, 0, 94), np.uint8), np.array((255, 29, 116), np.uint8))),
     ('LILAC', (np.array((117, 155, 136), np.uint8), np.array((125, 255, 255), np.uint8))),
-    ('UNDEFINED', (np.array((0, 0, 26), np.uint8), np.array((0, 0, 26), np.uint8)))
+    ('UNDEFINED', (np.array((90, 80, 20), np.uint8), np.array((110, 255, 255), np.uint8)))
 ]
 
 
@@ -66,12 +66,13 @@ def found_rect(filename, contour, my_list, coeff_width, coeff_height, is_flask):
     if is_flask ==True:
         if rect[1][0] >= coeff_height and rect[1][1] >= coeff_height:
             my_list.append(rect)
+            # draw_contours(filename, box, (255, 255, 255))
     else:
         if (rect[1][0] >= rect[1][1] and rect[1][1] >= coeff_width and rect[1][0] >= coeff_height) or \
             (rect[1][0] < rect[1][1] and rect[1][0] >= coeff_width and rect[1][1] >= coeff_height):
             # Добавляем прямоугольники с колбами в список
             my_list.append(rect)
-            draw_contours(filename, box, (255, 255, 255))
+            # draw_contours(filename, box, (255, 255, 255))
 
     return my_list, box
 
@@ -107,7 +108,7 @@ def create_color_list(image):
 
     colors_info = []
     coeff_width = round(width / 1.5)
-    coeff_height = round(height / 6.5)
+    coeff_height = round(height / 6.6)
     for variation in variations:
         thresholder = cv2.inRange(hsv_colors, variation[1][0], variation[1][1])
         contours_color, _ = cv2.findContours(
@@ -124,17 +125,62 @@ def create_color_list(image):
                 add_flag = True
                 if len(colors_info) > 0:
                     for add_color in colors_info:
-                        if abs(cnt[0][1] - add_color[1][1]) < 40:
+                        if abs(cnt[0][1] - add_color[1][1]) < 38:
                             add_flag = False
                             break
                 if add_flag == True:
                     color_name = variation[0]
+                    # circle = 1
+                    # if cnt[1][0] > 4 * coeff_height:
+                    #     circle = 4
+                    # elif cnt[1][0] > 3 * coeff_height:
+                    #     circle = 3
+                    # elif cnt[1][0] > 2 * coeff_height:
+                    #     circle = 2
+                    # for i in range(circle):
                     colors_info.append([color_name, cnt[0]])
     
-    if len(colors_info) == 0:
-        colors_info = [["EMPTY", (0, 0)], ["EMPTY", (0, 1)], ["EMPTY", (0, 2)], ["EMPTY", (0, 3)]]
-
     return colors_info
+
+
+def sorted_flasks(flasks_list):
+    '''Пользовательская функция для сортировки колб в нужном порядке'''
+    min_coord = sorted(
+        flasks_list,
+        key=lambda
+        item:
+        item[0][1]
+    )[1][0][1]
+    layer_height = 500
+    sorted_flask_list = []
+    layer_1 = []
+    layer_2 = []
+    layer_3 = []
+
+    for coord_flask in flasks_list:
+        number_layer = round((coord_flask[0][1] - min_coord) / layer_height)
+        if number_layer == 0:
+            layer_1.append(coord_flask)
+        elif number_layer == 1:
+            layer_2.append(coord_flask)
+        elif number_layer == 2:
+            layer_3.append(coord_flask)
+    
+    if len(layer_1) != 0:
+        layer_1 = sorted(layer_1)
+    if len(layer_2) != 0:
+        layer_2 = sorted(layer_2)
+    if len(layer_3) != 0:
+        layer_3 = sorted(layer_3)
+
+    for element in layer_1:
+        sorted_flask_list.append(element)
+    for element in layer_2:
+        sorted_flask_list.append(element)
+    for element in layer_3:
+        sorted_flask_list.append(element)
+
+    return sorted_flask_list
 
 
 def found_colors_in_flasks(image_for_search, id):
@@ -163,7 +209,7 @@ def found_colors_in_flasks(image_for_search, id):
     for contour in contours_of_flasks:
         # Определение границ прямоугольников и добавление цвета прямоугольника в список
         flasks, _ = found_rect(image_for_search, contour, flasks, coeff_width_flask, coeff_height_flask, is_flask=False)
-    flasks = sorted(flasks)
+    flasks = sorted_flasks(flasks)
     images_of_flasks = crop_rects(flasks, cropped_image)
 
     flasks_list = []    # Список цветов в колбах

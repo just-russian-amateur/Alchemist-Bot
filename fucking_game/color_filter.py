@@ -21,7 +21,7 @@ crange = [0,0,0, 0,0,0]
 
 while True:
     # flag, img = cap.read()
-    img = cv2.imread('test3.jpg')
+    img = cv2.imread('test4.jpg')
     hsv = cv2.cvtColor(img, cv2.COLOR_BGR2HSV )
  
     # считываем значения бегунков

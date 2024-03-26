@@ -19,7 +19,7 @@ variations = [
     ('PURPLE', (np.array((131, 157, 186), np.uint8), np.array((255, 255, 255), np.uint8))),
     ('GRAY', (np.array((0, 0, 94), np.uint8), np.array((255, 29, 116), np.uint8))),
     ('LILAC', (np.array((117, 155, 136), np.uint8), np.array((125, 255, 255), np.uint8))),
-    ('UNDEFINED', (np.array((90, 80, 20), np.uint8), np.array((110, 255, 255), np.uint8)))
+    ('UNDEFINED', (np.array((70, 80, 15), np.uint8), np.array((110, 255, 255), np.uint8)))
 ]
 
 
@@ -66,7 +66,7 @@ def found_rect(filename, contour, my_list, coeff_width, coeff_height, is_flask):
     if is_flask ==True:
         if rect[1][0] >= coeff_height and rect[1][1] >= coeff_height:
             my_list.append(rect)
-            # draw_contours(filename, box, (255, 255, 255))
+            draw_contours(filename, box, (255, 255, 255))
     else:
         if (rect[1][0] >= rect[1][1] and rect[1][1] >= coeff_width and rect[1][0] >= coeff_height) or \
             (rect[1][0] < rect[1][1] and rect[1][0] >= coeff_width and rect[1][1] >= coeff_height):

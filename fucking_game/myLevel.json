@@ -1,82 +1,88 @@
 {
   "bottles": [
     [
-      "GRAY",
-      "YELLOW",
-      "BLUE",
-      "ORANGE"
-    ],
-    [
-      "PURPLE",
-      "BLUE",
-      "WHITE",
-      "DARKGREEN"
-    ],
-    [
+      "SEREN",
       "DARKGREEN",
-      "DARKRED",
-      "YELLOW",
-      "PURPLE"
-    ],
-    [
-      "WHITE",
       "ORANGE",
-      "RED",
-      "PURPLE"
+      "DARKRED"
     ],
     [
-      "GREEN",
-      "DARKRED",
-      "GRAY",
-      "PINK"
-    ],
-    [
+      "YELLOW",
       "BLUE",
+      "WHITE",
+      "DARKPINK"
+    ],
+    [
       "RED",
       "DARKBLUE",
-      "YELLOW"
-    ],
-    [
-      "WHITE",
-      "DARKRED",
-      "GREEN",
-      "RED"
+      "ORANGE",
+      "DARKBLUE"
     ],
     [
       "DARKPINK",
-      "DARKBLUE",
-      "GRAY",
-      "PINK"
-    ],
-    [
       "PINK",
-      "DARKPINK",
-      "DARKGREEN",
+      "SEREN",
       "GREEN"
     ],
     [
-      "WHITE",
-      "ORANGE",
-      "GREEN",
-      "GRAY"
-    ],
-    [
-      "DARKPINK",
-      "DARKBLUE",
+      "PINK",
       "RED",
-      "ORANGE"
+      "DARKRED",
+      "DARKGREEN"
     ],
     [
-      "PURPLE",
-      "DARKPINK",
-      "DARKBLUE",
-      "YELLOW"
+      "DARKGREEN",
+      "GRAY",
+      "ORANGE",
+      "GREEN"
+    ],
+    [
+      "GRAY",
+      "SEREN",
+      "YELLOW",
+      "DARKBLUE"
     ],
     [
       "PINK",
+      "YELLOW",
+      "WHITE",
+      "DARKPINK"
+    ],
+    [
+      "DARKBLUE",
+      "RED",
+      "PURPLE",
+      "RED"
+    ],
+    [
+      "GREEN",
+      "WHITE",
+      "PURPLE",
+      "BLUE"
+    ],
+    [
       "DARKRED",
+      "YELLOW",
+      "WHITE",
+      "ORANGE"
+    ],
+    [
+      "SEREN",
+      "DARKGREEN",
       "BLUE",
-      "DARKGREEN"
+      "GREEN"
+    ],
+    [
+      "PURPLE",
+      "GRAY",
+      "DARKRED",
+      "BLUE"
+    ],
+    [
+      "DARKPINK",
+      "PURPLE",
+      "PINK",
+      "GRAY"
     ],
     [
       "EMPTY",

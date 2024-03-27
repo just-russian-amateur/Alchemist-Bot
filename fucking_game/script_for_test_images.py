@@ -14,7 +14,7 @@ variations = [
     ('DARKRED', (np.array((164, 135, 84), np.uint8), np.array((255, 255, 110), np.uint8))),
     ('DARKGREEN', (np.array((61, 108, 80), np.uint8), np.array((96, 255, 255), np.uint8))),
     ('PINK', (np.array((140, 0, 197), np.uint8), np.array((154, 255, 255), np.uint8))),
-    ('DARKPINK', (np.array((140, 85, 183), np.uint8), np.array((195, 255, 255), np.uint8))),
+    ('DARKPINK', (np.array((140, 88, 183), np.uint8), np.array((195, 255, 255), np.uint8))),
     ('LIGHTPINK', (np.array((0, 0, 241), np.uint8), np.array((20, 255, 255), np.uint8))),
     ('PURPLE', (np.array((131, 157, 186), np.uint8), np.array((255, 255, 255), np.uint8))),
     ('GRAY', (np.array((0, 0, 94), np.uint8), np.array((255, 29, 116), np.uint8))),
@@ -135,26 +135,27 @@ def create_color_list(image):
                 if add_flag == True:
                     # Добавляем в список информацию о цвете и его местоположении
                     color_name = variation[0]
-                    if cnt[2] > 45:
-                        if cnt[1][0] > height * 0.9:
-                            count_colors = 4
-                        elif cnt[1][0] > height * 0.65:
-                            count_colors = 3
-                        elif cnt[1][0] > height * 0.35:
-                            count_colors = 2
-                        else:
-                            count_colors = 1
-                    else:
-                        if cnt[1][1] > height * 0.9:
-                            count_colors = 4
-                        elif cnt[1][1] > height * 0.65:
-                            count_colors = 3
-                        elif cnt[1][1] > height * 0.35:
-                            count_colors = 2
-                        else:
-                            count_colors = 1
-                    for i in range(count_colors):
-                        colors_info.append([color_name, cnt[0]])
+                    # if cnt[2] > 45:
+                    #     if cnt[1][0] > height * 0.9:
+                    #         count_colors = 4
+                    #     elif cnt[1][0] > height * 0.65:
+                    #         count_colors = 3
+                    #     elif cnt[1][0] > height * 0.35:
+                    #         count_colors = 2
+                    #     else:
+                    #         count_colors = 1
+                    # else:
+                    #     if cnt[1][1] > height * 0.9:
+                    #         count_colors = 4
+                    #     elif cnt[1][1] > height * 0.65:
+                    #         count_colors = 3
+                    #     elif cnt[1][1] > height * 0.35:
+                    #         count_colors = 2
+                    #     else:
+                    #         count_colors = 1
+                    # for i in range(count_colors):
+                    #     colors_info.append([color_name, cnt[0]])
+                    colors_info.append([color_name, cnt[0]])
     
     # Добавляем абсолютно пустую колбу, если список пуст
     if len(colors_info) == 0:

@@ -18,8 +18,8 @@ variations = [
     ('LIGHTPINK', (np.array((0, 0, 241), np.uint8), np.array((20, 255, 255), np.uint8))),
     ('PURPLE', (np.array((131, 157, 186), np.uint8), np.array((255, 255, 255), np.uint8))),
     ('GRAY', (np.array((0, 0, 94), np.uint8), np.array((255, 29, 116), np.uint8))),
-    ('LILAC', (np.array((117, 155, 136), np.uint8), np.array((125, 255, 255), np.uint8))),
-    ('UNDEFINED', (np.array((70, 80, 15), np.uint8), np.array((110, 255, 255), np.uint8)))
+    ('LILAC', (np.array((117, 155, 136), np.uint8), np.array((125, 255, 255), np.uint8)))
+    # ('UNDEFINED', (np.array((70, 80, 15), np.uint8), np.array((110, 255, 255), np.uint8)))
 ]
 
 
@@ -107,21 +107,25 @@ def create_color_list(image):
     hsv_colors = cv2.cvtColor(color_pixels, cv2.COLOR_BGR2HSV)
 
     colors_info = []
+    # Подбор коэффициентов
     coeff_width = round(width / 1.5)
     coeff_height = round(height / 6.6)
     for variation in variations:
+        # Проверяем пороговое значение для каждой вариации цвета на картинке и находим контуры
         thresholder = cv2.inRange(hsv_colors, variation[1][0], variation[1][1])
         contours_color, _ = cv2.findContours(
             thresholder,
             cv2.RETR_TREE,
             cv2.CHAIN_APPROX_SIMPLE
         )
+
         if len(contours_color) != 0:
+            # В случае если контур был найден, определяем координаты и размеры прямоугольника с цветом
             color = []
             for cnt in contours_color:
                 color_coords, _ = found_rect(image, cnt, color, coeff_width, coeff_height, is_flask=True)
             for cnt in color_coords:
-                # Определение контуров элементов и их отрисовка на цветном изображении
+                # Исключаем наложение прямоугольников друг на друга
                 add_flag = True
                 if len(colors_info) > 0:
                     for add_color in colors_info:
@@ -129,16 +133,38 @@ def create_color_list(image):
                             add_flag = False
                             break
                 if add_flag == True:
+                    # Добавляем в список информацию о цвете и его местоположении
                     color_name = variation[0]
-                    # circle = 1
-                    # if cnt[1][0] > 4 * coeff_height:
-                    #     circle = 4
-                    # elif cnt[1][0] > 3 * coeff_height:
-                    #     circle = 3
-                    # elif cnt[1][0] > 2 * coeff_height:
-                    #     circle = 2
-                    # for i in range(circle):
-                    colors_info.append([color_name, cnt[0]])
+                    if cnt[2] > 45:
+                        if cnt[1][0] > height * 0.9:
+                            count_colors = 4
+                        elif cnt[1][0] > height * 0.65:
+                            count_colors = 3
+                        elif cnt[1][0] > height * 0.35:
+                            count_colors = 2
+                        else:
+                            count_colors = 1
+                    else:
+                        if cnt[1][1] > height * 0.9:
+                            count_colors = 4
+                        elif cnt[1][1] > height * 0.65:
+                            count_colors = 3
+                        elif cnt[1][1] > height * 0.35:
+                            count_colors = 2
+                        else:
+                            count_colors = 1
+                    for i in range(count_colors):
+                        colors_info.append([color_name, cnt[0]])
+    
+    # Добавляем абсолютно пустую колбу, если список пуст
+    if len(colors_info) == 0:
+        for i in range(4):
+            colors_info.append(['EMPTY', (0, i)])
+
+    if len(colors_info) < 4:
+        # Добавляем неопределившиеся значения список цветов в колбе
+        for i in range(4 - len(colors_info)):
+            colors_info.append(['UNDEFINED', (0, height)])
     
     return colors_info
 
@@ -152,11 +178,8 @@ def sorted_flasks(flasks_list):
         item[0][1]
     )[1][0][1]
     layer_height = 500
-    sorted_flask_list = []
-    layer_1 = []
-    layer_2 = []
-    layer_3 = []
-
+    sorted_flask_list, layer_1, layer_2, layer_3 = [], [], [], []
+    
     for coord_flask in flasks_list:
         number_layer = round((coord_flask[0][1] - min_coord) / layer_height)
         if number_layer == 0:

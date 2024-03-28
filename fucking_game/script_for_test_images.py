@@ -12,14 +12,14 @@ variations = [
     ('GREEN', (np.array((41, 0, 160), np.uint8), np.array((65, 255, 255), np.uint8))),
     ('DARKBLUE', (np.array((103, 181, 135), np.uint8), np.array((120, 255, 255), np.uint8))),
     ('DARKRED', (np.array((164, 135, 84), np.uint8), np.array((255, 255, 110), np.uint8))),
-    ('DARKGREEN', (np.array((61, 108, 80), np.uint8), np.array((96, 255, 255), np.uint8))),
+    ('DARKGREEN', (np.array((86, 121, 86), np.uint8), np.array((100, 255, 255), np.uint8))),
+    # ('DARKGREEN', (np.array((61, 114, 80), np.uint8), np.array((96, 255, 255), np.uint8))),
     ('PINK', (np.array((140, 0, 197), np.uint8), np.array((154, 255, 255), np.uint8))),
     ('DARKPINK', (np.array((140, 88, 183), np.uint8), np.array((195, 255, 255), np.uint8))),
     ('LIGHTPINK', (np.array((0, 0, 241), np.uint8), np.array((20, 255, 255), np.uint8))),
     ('PURPLE', (np.array((131, 157, 186), np.uint8), np.array((255, 255, 255), np.uint8))),
     ('GRAY', (np.array((0, 0, 94), np.uint8), np.array((255, 29, 116), np.uint8))),
     ('LILAC', (np.array((117, 155, 136), np.uint8), np.array((125, 255, 255), np.uint8)))
-    # ('UNDEFINED', (np.array((70, 80, 15), np.uint8), np.array((110, 255, 255), np.uint8)))
 ]
 
 
@@ -66,7 +66,7 @@ def found_rect(filename, contour, my_list, coeff_width, coeff_height, is_flask):
     if is_flask ==True:
         if rect[1][0] >= coeff_height and rect[1][1] >= coeff_height:
             my_list.append(rect)
-            draw_contours(filename, box, (255, 255, 255))
+            # draw_contours(filename, box, (255, 255, 255))
     else:
         if (rect[1][0] >= rect[1][1] and rect[1][1] >= coeff_width and rect[1][0] >= coeff_height) or \
             (rect[1][0] < rect[1][1] and rect[1][0] >= coeff_width and rect[1][1] >= coeff_height):
@@ -100,7 +100,7 @@ def create_color_list(image):
     '''Функция для создания списка колб с цветами вместо числовых значений'''
     # Более агрессивный подход для удаления ненужных шумов с изображения с использованием эрозии
     morph_kernel = np.ones((3, 3))
-    erode_image = cv2.erode(cv2.imread(image), kernel=morph_kernel, iterations=4)
+    erode_image = cv2.erode(cv2.imread(image), kernel=morph_kernel, iterations=3)
     cv2.imwrite(image, erode_image)
     color_pixels = cv2.imread(image)
     height, width, _ = color_pixels.shape
@@ -267,7 +267,7 @@ def create_json(flasks_list, id_client):
 
 
 if __name__ == '__main__':
-    for i in range(1, 118):
+    for i in range(25, 118):
         with open(f"./fucking_game/out_test/{i}.jpg", "r") as img:
             id = i
             found_colors_in_flasks(img.name, id)

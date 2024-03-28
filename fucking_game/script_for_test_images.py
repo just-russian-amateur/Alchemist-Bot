@@ -11,7 +11,7 @@ variations = [
     ('RED', (np.array((0, 148, 114), np.uint8), np.array((7, 255, 255), np.uint8))),
     ('GREEN', (np.array((41, 0, 160), np.uint8), np.array((65, 255, 255), np.uint8))),
     ('DARKBLUE', (np.array((103, 181, 135), np.uint8), np.array((120, 255, 255), np.uint8))),
-    ('DARKRED', (np.array((164, 135, 84), np.uint8), np.array((255, 255, 110), np.uint8))),
+    ('DARKRED', (np.array((164, 135, 84), np.uint8), np.array((255, 255, 127), np.uint8))),
     ('DARKGREEN', (np.array((86, 121, 86), np.uint8), np.array((100, 255, 255), np.uint8))),
     # ('DARKGREEN', (np.array((61, 114, 80), np.uint8), np.array((96, 255, 255), np.uint8))),
     ('PINK', (np.array((140, 0, 197), np.uint8), np.array((154, 255, 255), np.uint8))),
@@ -135,26 +135,6 @@ def create_color_list(image):
                 if add_flag == True:
                     # Добавляем в список информацию о цвете и его местоположении
                     color_name = variation[0]
-                    # if cnt[2] > 45:
-                    #     if cnt[1][0] > height * 0.9:
-                    #         count_colors = 4
-                    #     elif cnt[1][0] > height * 0.65:
-                    #         count_colors = 3
-                    #     elif cnt[1][0] > height * 0.35:
-                    #         count_colors = 2
-                    #     else:
-                    #         count_colors = 1
-                    # else:
-                    #     if cnt[1][1] > height * 0.9:
-                    #         count_colors = 4
-                    #     elif cnt[1][1] > height * 0.65:
-                    #         count_colors = 3
-                    #     elif cnt[1][1] > height * 0.35:
-                    #         count_colors = 2
-                    #     else:
-                    #         count_colors = 1
-                    # for i in range(count_colors):
-                    #     colors_info.append([color_name, cnt[0]])
                     colors_info.append([color_name, cnt[0]])
     
     # Добавляем абсолютно пустую колбу, если список пуст
@@ -267,7 +247,7 @@ def create_json(flasks_list, id_client):
 
 
 if __name__ == '__main__':
-    for i in range(25, 118):
+    for i in range(42, 118):
         with open(f"./fucking_game/out_test/{i}.jpg", "r") as img:
             id = i
             found_colors_in_flasks(img.name, id)

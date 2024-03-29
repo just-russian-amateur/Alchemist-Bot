@@ -47,8 +47,8 @@ async def send_welcome(message: Message):
     """Приветственная функция"""
     start_button_set = [
         [
-            KeyboardButton(text='Начало работы'),
-            KeyboardButton(text='Справка')
+            KeyboardButton(text='Start solving'),
+            KeyboardButton(text='Help')
         ]
     ]
     keyboard_buttons = ReplyKeyboardMarkup(
@@ -57,18 +57,18 @@ async def send_welcome(message: Message):
         one_time_keyboard=True
     )
     await message.answer(
-        "Привет!\nЯ бот, который поможет тебе перелить жидкость в колбах и, что самое главное, сделать это правильно, иначе говоря, я - твой спаситель:)\nВ работе со мной нет ничего сложного, но если ты делаешь это впервые, то прочитай мою справу сначала, пожалуйста, там совсем немного букв:)",
+        "Hello!\nI am a bot that will help you pour liquid into flasks and, most importantly, do it correctly, in other words, I am your savior :)\nThere is nothing difficult in working with me, but if you are doing this for the first time, then click the help button on the right for instructions :)",
         reply_markup=keyboard_buttons
     )
 
 
-@dp.message(F.text == 'Справка')    #   Команда помощи
+@dp.message(F.text == 'Help')    #   Команда помощи
 @dp.message(Command('help'))
 async def help(message: Message):
     """Функция помощи"""
     after_help_button_set = [
         [
-            KeyboardButton(text='Начало работы')
+            KeyboardButton(text='Start solving')
         ]
     ]
     keyboard_buttons = ReplyKeyboardMarkup(
@@ -76,27 +76,27 @@ async def help(message: Message):
         resize_keyboard=True,
         one_time_keyboard=True
     )
-    if message.text == 'Справка' or Command('help'):
+    if message.text == 'Help' or Command('help'):
         await message.answer(
-            'Добро пожаловать в короткую справку обо мне:)\nДля того, чтобы меня перезапустить ты можешь ввести команду /start.\nДля доступа к справке ты можешь использовать команду /help вместо кнопки.\n\nТеперь пару слов о функциональности:\n1. Когда ты загружаешь скриншот, то нужно загрузить его как картинку, а не как файл, то есть в чате со мной я должен увидеть твое сообщение как полноценную картинку в половину экрана:)\n2. Скриншот не нужно никак обрезать или сжимать, я сделаю это самостояетельно, так что просто пришли мне исходное изображение:)\n3. Загружай для меня изображение с исходной позицией цветов в колбах (то есть 2 пустых колбы и остальные колбы наполнены полностью), только так я смогу найти решение:)\nВот, собственно, и все, что я хотел тебе рассказать о себе, удачи!',
+            "Welcome to a short passage of information about me :)\nIn order to restart me, you can enter the /start command.\nTo access help, you can use the /help command instead of the button.\n\nNow a few words about functionality:\n\t1. When you upload a screenshot, you need to upload it as a picture, not as a file, that is, in a chat with me, I should see your message as a full-fledged picture in half the screen :)\n\t2. The screenshot does not need to be cropped or compressed in any way, I will do it myself, so just send me the original image :)\n\t3. Upload for me an image with the initial position of the colors in the flasks (that is, 2 empty flasks and the remaining flasks are completely filled), this is the only way I can find a solution :)\nThat's basically all I wanted to tell you about myself, good luck!",
             reply_markup=keyboard_buttons
         )
     else:
-        await message.answer('Нажми на кнопку ниже, пожалуйста :)')
+        await message.answer('Click on the button below please :)')
 
 
-@dp.message(F.text == 'Начало работы')    #   Команды выбора режима распознавания
-@dp.message(F.text == 'Загрузить новое изображение')
+@dp.message(F.text == 'Start solving')    #   Команды выбора режима распознавания
+@dp.message(F.text == 'Upload new image')
 async def solve(message: Message):
     """Функция загрузки изображения"""
-    if message.text == 'Начало работы':
-        await message.answer('Итак, давай приступим :)\nЗагрузи скриншот как картинку, пожалуйства')
+    if message.text == 'Start solving':
+        await message.answer("So let's get started :)\nUpload the screenshot as an image, please")
         global_names.start_solve = True
-    elif message.text == 'Загрузить новое изображение':
-        await message.answer('Загрузи новый скриншот как картинку, пожалуйста')
+    elif message.text == 'Upload new image':
+        await message.answer('Upload a new screenshot as an image, please')
         global_names.solve_again = True
     else:
-        await message.answer('Нажми на кнопку ниже, пожалуйста :)')
+        await message.answer('Click on the button below please :)')
 
 
 # @dp.message(Command("share"))    #   Команда поделиться
@@ -119,7 +119,7 @@ async def download_photoes(message:Message, bot: Bot):
             message.photo[-1],
             destination=f'./images/{message.photo[-1].file_id}.jpg'
         )
-        await message.answer('Попробую распознать фото')
+        await message.answer("I'll try to recognize colors in the photo")
         
         # Распознаем цвета и добавляем их в список для последующей сериализации в json
         found_colors_in_flasks(image_for_search=f'./images/{message.photo[-1].file_id}.jpg', id=global_names.id_client)
@@ -131,14 +131,14 @@ async def download_photoes(message:Message, bot: Bot):
                     open_image.read(),
                     filename='solve_flasks'
                 ),
-                caption='Я буду использовать эту начальную позицию в решении'
+                caption="I'll use this starting position in the solution"
             )
         
         flasks_solver(filename=f"./levels/this_level_{global_names.id_client}.json", id=global_names.id_client)
 
         download_again = [
             [
-                KeyboardButton(text='Загрузить новое изображение')
+                KeyboardButton(text='Upload new image')
             ]
         ]
         keyboard_buttons = ReplyKeyboardMarkup(
@@ -148,11 +148,11 @@ async def download_photoes(message:Message, bot: Bot):
         )
 
         await message.answer(
-            'Я нашел решение для тебя! Дай мне знать, если ты хочешь найти решение для другого скриншота:)',
+            'I found a solution for you! Let me know if you want a solution for another screenshot :)',
             reply_markup=keyboard_buttons
         )
     else:
-        await message.answer('Нажми на кнопку ниже, пожалуйста:)')
+        await message.answer('Click on the button below please :)')
     
     global_names.start_solve = False
     global_names.solve_again = False
@@ -160,8 +160,8 @@ async def download_photoes(message:Message, bot: Bot):
 
 async def clue(bot: Bot):
     bot_commands = [
-        BotCommand(command='/start', description='Перезапустить бота'),
-        BotCommand(command='/help', description='Вызвать справку по работе с ботом')
+        BotCommand(command='/start', description='Restart bot'),
+        BotCommand(command='/help', description='Call for help on working with the bot')
     ]
     await bot.set_my_commands(bot_commands)
 

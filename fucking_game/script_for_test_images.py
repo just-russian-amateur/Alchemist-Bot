@@ -5,17 +5,17 @@ import json
 
 
 variations = [
-    ('BLUE', (np.array((30, 50, 205), np.uint8), np.array((106, 255, 255), np.uint8))),
+    ('BLUE', (np.array((30, 50, 210), np.uint8), np.array((106, 255, 255), np.uint8))),
     ('ORANGE', (np.array((0, 165, 203), np.uint8), np.array((19, 255, 255), np.uint8))),
     ('YELLOW', (np.array((22, 46, 192), np.uint8), np.array((34, 255, 255), np.uint8))),
     ('RED', (np.array((0, 148, 114), np.uint8), np.array((7, 255, 255), np.uint8))),
     ('GREEN', (np.array((41, 0, 160), np.uint8), np.array((65, 255, 255), np.uint8))),
     ('DARKBLUE', (np.array((103, 181, 135), np.uint8), np.array((120, 255, 255), np.uint8))),
-    ('DARKRED', (np.array((164, 135, 84), np.uint8), np.array((255, 255, 127), np.uint8))),
-    ('DARKGREEN', (np.array((86, 121, 86), np.uint8), np.array((98, 255, 255), np.uint8))),
+    ('DARKRED', (np.array((158, 135, 84), np.uint8), np.array((255, 255, 127), np.uint8))),
+    ('DARKGREEN', (np.array((86, 121, 86), np.uint8), np.array((96, 255, 255), np.uint8))),
     ('PINK', (np.array((140, 0, 197), np.uint8), np.array((154, 255, 255), np.uint8))),
     ('DARKPINK', (np.array((140, 88, 183), np.uint8), np.array((195, 255, 255), np.uint8))),
-    ('LIGHTPINK', (np.array((0, 0, 241), np.uint8), np.array((20, 255, 255), np.uint8))),
+    ('LIGHTPINK', (np.array((0, 0, 241), np.uint8), np.array((13, 255, 255), np.uint8))),
     ('PURPLE', (np.array((131, 157, 186), np.uint8), np.array((255, 255, 255), np.uint8))),
     ('GRAY', (np.array((0, 0, 94), np.uint8), np.array((255, 29, 116), np.uint8))),
     ('LILAC', (np.array((117, 155, 136), np.uint8), np.array((125, 255, 255), np.uint8)))
@@ -108,7 +108,7 @@ def create_color_list(image):
     colors_info = []
     # Подбор коэффициентов
     coeff_width = round(width / 1.5)
-    coeff_height = round(height / 6.6)
+    coeff_height = round(height / 6.8)
     for variation in variations:
         # Проверяем пороговое значение для каждой вариации цвета на картинке и находим контуры
         thresholder = cv2.inRange(hsv_colors, variation[1][0], variation[1][1])
@@ -157,7 +157,12 @@ def sorted_flasks(flasks_list):
         item:
         item[0][1]
     )[1][0][1]
-    max_flask_height = max(flasks_list, key=lambda item: item[1][0])[1][0]
+    max_flask_height = max(
+        flasks_list,
+        key=lambda
+        item:
+        item[1][0]
+    )[1][0]
     layer_height = max_flask_height * 1.55
     sorted_flask_list, layer_1, layer_2, layer_3 = [], [], [], []
     
@@ -247,7 +252,7 @@ def create_json(flasks_list, id_client):
 
 
 if __name__ == '__main__':
-    for i in range(117, 0, -1):
+    for i in range(28, 0, -1):
         with open(f"./fucking_game/out_test/{i}.jpg", "r") as img:
             id = i
             found_colors_in_flasks(img.name, id)

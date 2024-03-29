@@ -5,21 +5,20 @@ import json
 
 
 variations = [
-    ('BLUE', (np.array((30, 50, 205), np.uint8), np.array((106, 255, 255), np.uint8))),
+    ('BLUE', (np.array((30, 50, 210), np.uint8), np.array((106, 255, 255), np.uint8))),
     ('ORANGE', (np.array((0, 165, 203), np.uint8), np.array((19, 255, 255), np.uint8))),
     ('YELLOW', (np.array((22, 46, 192), np.uint8), np.array((34, 255, 255), np.uint8))),
     ('RED', (np.array((0, 148, 114), np.uint8), np.array((7, 255, 255), np.uint8))),
     ('GREEN', (np.array((41, 0, 160), np.uint8), np.array((65, 255, 255), np.uint8))),
     ('DARKBLUE', (np.array((103, 181, 135), np.uint8), np.array((120, 255, 255), np.uint8))),
-    ('DARKRED', (np.array((164, 135, 84), np.uint8), np.array((255, 255, 110), np.uint8))),
-    ('DARKGREEN', (np.array((61, 108, 80), np.uint8), np.array((96, 255, 255), np.uint8))),
+    ('DARKRED', (np.array((158, 135, 84), np.uint8), np.array((255, 255, 127), np.uint8))),
+    ('DARKGREEN', (np.array((86, 121, 86), np.uint8), np.array((96, 255, 255), np.uint8))),
     ('PINK', (np.array((140, 0, 197), np.uint8), np.array((154, 255, 255), np.uint8))),
-    ('DARKPINK', (np.array((140, 85, 183), np.uint8), np.array((195, 255, 255), np.uint8))),
-    ('LIGHTPINK', (np.array((0, 0, 241), np.uint8), np.array((20, 255, 255), np.uint8))),
+    ('DARKPINK', (np.array((140, 88, 183), np.uint8), np.array((195, 255, 255), np.uint8))),
+    ('LIGHTPINK', (np.array((0, 0, 241), np.uint8), np.array((13, 255, 255), np.uint8))),
     ('PURPLE', (np.array((131, 157, 186), np.uint8), np.array((255, 255, 255), np.uint8))),
     ('GRAY', (np.array((0, 0, 94), np.uint8), np.array((255, 29, 116), np.uint8))),
-    ('LILAC', (np.array((117, 155, 136), np.uint8), np.array((125, 255, 255), np.uint8))),
-    ('UNDEFINED', (np.array((90, 80, 20), np.uint8), np.array((110, 255, 255), np.uint8)))
+    ('LILAC', (np.array((117, 155, 136), np.uint8), np.array((125, 255, 255), np.uint8)))
 ]
 
 
@@ -100,28 +99,32 @@ def create_color_list(image):
     '''Функция для создания списка колб с цветами вместо числовых значений'''
     # Более агрессивный подход для удаления ненужных шумов с изображения с использованием эрозии
     morph_kernel = np.ones((3, 3))
-    erode_image = cv2.erode(cv2.imread(image), kernel=morph_kernel, iterations=4)
+    erode_image = cv2.erode(cv2.imread(image), kernel=morph_kernel, iterations=3)
     cv2.imwrite(image, erode_image)
     color_pixels = cv2.imread(image)
     height, width, _ = color_pixels.shape
     hsv_colors = cv2.cvtColor(color_pixels, cv2.COLOR_BGR2HSV)
 
     colors_info = []
+    # Подбор коэффициентов
     coeff_width = round(width / 1.5)
-    coeff_height = round(height / 6.6)
+    coeff_height = round(height / 6.8)
     for variation in variations:
+        # Проверяем пороговое значение для каждой вариации цвета на картинке и находим контуры
         thresholder = cv2.inRange(hsv_colors, variation[1][0], variation[1][1])
         contours_color, _ = cv2.findContours(
             thresholder,
             cv2.RETR_TREE,
             cv2.CHAIN_APPROX_SIMPLE
         )
+
         if len(contours_color) != 0:
+            # В случае если контур был найден, определяем координаты и размеры прямоугольника с цветом
             color = []
             for cnt in contours_color:
                 color_coords, _ = found_rect(image, cnt, color, coeff_width, coeff_height, is_flask=True)
             for cnt in color_coords:
-                # Определение контуров элементов и их отрисовка на цветном изображении
+                # Исключаем наложение прямоугольников друг на друга
                 add_flag = True
                 if len(colors_info) > 0:
                     for add_color in colors_info:
@@ -129,16 +132,19 @@ def create_color_list(image):
                             add_flag = False
                             break
                 if add_flag == True:
+                    # Добавляем в список информацию о цвете и его местоположении
                     color_name = variation[0]
-                    # circle = 1
-                    # if cnt[1][0] > 4 * coeff_height:
-                    #     circle = 4
-                    # elif cnt[1][0] > 3 * coeff_height:
-                    #     circle = 3
-                    # elif cnt[1][0] > 2 * coeff_height:
-                    #     circle = 2
-                    # for i in range(circle):
                     colors_info.append([color_name, cnt[0]])
+    
+    # Добавляем абсолютно пустую колбу, если список пуст
+    if len(colors_info) == 0:
+        for i in range(4):
+            colors_info.append(['EMPTY', (0, i)])
+
+    if len(colors_info) < 4:
+        # Добавляем неопределившиеся значения список цветов в колбе
+        for i in range(4 - len(colors_info)):
+            colors_info.append(['UNDEFINED', (0, height)])
     
     return colors_info
 
@@ -151,12 +157,15 @@ def sorted_flasks(flasks_list):
         item:
         item[0][1]
     )[1][0][1]
-    layer_height = 500
-    sorted_flask_list = []
-    layer_1 = []
-    layer_2 = []
-    layer_3 = []
-
+    max_flask_height = max(
+        flasks_list,
+        key=lambda
+        item:
+        item[1][0]
+    )[1][0]
+    layer_height = max_flask_height * 1.55
+    sorted_flask_list, layer_1, layer_2, layer_3 = [], [], [], []
+    
     for coord_flask in flasks_list:
         number_layer = round((coord_flask[0][1] - min_coord) / layer_height)
         if number_layer == 0:

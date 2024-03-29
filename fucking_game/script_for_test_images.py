@@ -12,8 +12,7 @@ variations = [
     ('GREEN', (np.array((41, 0, 160), np.uint8), np.array((65, 255, 255), np.uint8))),
     ('DARKBLUE', (np.array((103, 181, 135), np.uint8), np.array((120, 255, 255), np.uint8))),
     ('DARKRED', (np.array((164, 135, 84), np.uint8), np.array((255, 255, 127), np.uint8))),
-    ('DARKGREEN', (np.array((86, 121, 86), np.uint8), np.array((100, 255, 255), np.uint8))),
-    # ('DARKGREEN', (np.array((61, 114, 80), np.uint8), np.array((96, 255, 255), np.uint8))),
+    ('DARKGREEN', (np.array((86, 121, 86), np.uint8), np.array((98, 255, 255), np.uint8))),
     ('PINK', (np.array((140, 0, 197), np.uint8), np.array((154, 255, 255), np.uint8))),
     ('DARKPINK', (np.array((140, 88, 183), np.uint8), np.array((195, 255, 255), np.uint8))),
     ('LIGHTPINK', (np.array((0, 0, 241), np.uint8), np.array((20, 255, 255), np.uint8))),
@@ -158,7 +157,8 @@ def sorted_flasks(flasks_list):
         item:
         item[0][1]
     )[1][0][1]
-    layer_height = 500
+    max_flask_height = max(flasks_list, key=lambda item: item[1][0])[1][0]
+    layer_height = max_flask_height * 1.55
     sorted_flask_list, layer_1, layer_2, layer_3 = [], [], [], []
     
     for coord_flask in flasks_list:
@@ -247,7 +247,7 @@ def create_json(flasks_list, id_client):
 
 
 if __name__ == '__main__':
-    for i in range(42, 118):
+    for i in range(117, 0, -1):
         with open(f"./fucking_game/out_test/{i}.jpg", "r") as img:
             id = i
             found_colors_in_flasks(img.name, id)

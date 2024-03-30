@@ -2,6 +2,7 @@
 import cv2
 import numpy as np
 import json
+import os
 
 
 variations = [
@@ -64,7 +65,7 @@ def crop_rects(contours, cropped_image):
     '''Функция для выделения каждой отдельной колбы или цвета в ней для распознавания цветов'''
     flasks_info = []
     for cnt in contours:
-        filename = f'flask_{cnt}.jpg'
+        filename = f'./images/flask_{cnt}.jpg'
         # Взаимодействие с колбой
         if cnt[2] > 45:
             height_flask = [round(cnt[0][1] - cnt[1][0] / 2), round(cnt[0][1] + cnt[1][0] / 2)]
@@ -223,6 +224,10 @@ def found_colors_in_flasks(image_for_search, id):
         for color in internal_colors:
             colors.append(color[0])
         flasks_list.append(colors)
+    
+    # Удаление всех временных файлов для экономии места
+    for flask_info in images_of_flasks:
+        os.remove(flask_info[0])
 
     return create_json(flasks_list, id)
 

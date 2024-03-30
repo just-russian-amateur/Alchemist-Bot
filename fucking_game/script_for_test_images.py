@@ -15,7 +15,7 @@ variations = [
     ('DARKGREEN', (np.array((86, 121, 86), np.uint8), np.array((96, 255, 255), np.uint8))),
     ('PINK', (np.array((140, 0, 197), np.uint8), np.array((154, 255, 255), np.uint8))),
     ('DARKPINK', (np.array((140, 88, 183), np.uint8), np.array((195, 255, 255), np.uint8))),
-    ('LIGHTPINK', (np.array((0, 0, 241), np.uint8), np.array((13, 255, 255), np.uint8))),
+    ('LIGHTPINK', (np.array((0, 0, 241), np.uint8), np.array((20, 255, 255), np.uint8))),
     ('PURPLE', (np.array((131, 157, 186), np.uint8), np.array((255, 255, 255), np.uint8))),
     ('GRAY', (np.array((0, 0, 94), np.uint8), np.array((255, 29, 116), np.uint8))),
     ('LILAC', (np.array((117, 155, 136), np.uint8), np.array((125, 255, 255), np.uint8)))
@@ -151,12 +151,12 @@ def create_color_list(image):
 
 def sorted_flasks(flasks_list):
     '''Пользовательская функция для сортировки колб в нужном порядке'''
-    min_coord = sorted(
+    min_coord = min(
         flasks_list,
         key=lambda
         item:
         item[0][1]
-    )[1][0][1]
+    )[0][1]
     max_flask_height = max(
         flasks_list,
         key=lambda
@@ -252,7 +252,7 @@ def create_json(flasks_list, id_client):
 
 
 if __name__ == '__main__':
-    for i in range(28, 0, -1):
+    for i in range(117, 0, -1):
         with open(f"./fucking_game/out_test/{i}.jpg", "r") as img:
             id = i
             found_colors_in_flasks(img.name, id)

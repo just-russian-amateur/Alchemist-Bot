@@ -5,35 +5,21 @@ import json
 
 
 variations = [
-    ('BLUE', (np.array((30, 50, 210), np.uint8), np.array((106, 255, 255), np.uint8))),
+    ('LIGHTBLUE', (np.array((30, 50, 210), np.uint8), np.array((106, 255, 255), np.uint8))),
     ('ORANGE', (np.array((0, 165, 203), np.uint8), np.array((19, 255, 255), np.uint8))),
     ('YELLOW', (np.array((22, 46, 192), np.uint8), np.array((34, 255, 255), np.uint8))),
     ('RED', (np.array((0, 148, 114), np.uint8), np.array((7, 255, 255), np.uint8))),
-    ('GREEN', (np.array((41, 0, 160), np.uint8), np.array((65, 255, 255), np.uint8))),
-    ('DARKBLUE', (np.array((103, 181, 135), np.uint8), np.array((120, 255, 255), np.uint8))),
-    ('DARKRED', (np.array((158, 135, 84), np.uint8), np.array((255, 255, 127), np.uint8))),
-    ('DARKGREEN', (np.array((86, 121, 86), np.uint8), np.array((96, 255, 255), np.uint8))),
+    ('LIGHTLIGHT', (np.array((41, 0, 160), np.uint8), np.array((65, 255, 255), np.uint8))),
+    ('BLUE', (np.array((103, 181, 135), np.uint8), np.array((120, 255, 255), np.uint8))),
+    ('BURGUNDY', (np.array((158, 135, 84), np.uint8), np.array((255, 255, 127), np.uint8))),
+    ('GREEN', (np.array((86, 121, 86), np.uint8), np.array((96, 255, 255), np.uint8))),
     ('PINK', (np.array((140, 0, 197), np.uint8), np.array((154, 255, 255), np.uint8))),
-    ('DARKPINK', (np.array((140, 88, 183), np.uint8), np.array((195, 255, 255), np.uint8))),
-    ('LIGHTPINK', (np.array((0, 0, 241), np.uint8), np.array((13, 255, 255), np.uint8))),
+    ('CRIMSON', (np.array((140, 88, 183), np.uint8), np.array((195, 255, 255), np.uint8))),
+    ('CREAM', (np.array((0, 0, 241), np.uint8), np.array((20, 255, 255), np.uint8))),
     ('PURPLE', (np.array((131, 157, 186), np.uint8), np.array((255, 255, 255), np.uint8))),
     ('GRAY', (np.array((0, 0, 94), np.uint8), np.array((255, 29, 116), np.uint8))),
     ('LILAC', (np.array((117, 155, 136), np.uint8), np.array((125, 255, 255), np.uint8)))
 ]
-
-
-def draw_contours(file, box, color):
-    '''Временная функция для визуализации границ'''
-    cv2.imwrite(
-        file,
-        cv2.drawContours(
-            cv2.imread(file),
-            [box],
-            0,
-            color,
-            2
-        )
-    )
 
 
 def preprocessing_image(image):
@@ -58,20 +44,18 @@ def preprocessing_image(image):
     return thresholder
 
 
-def found_rect(filename, contour, my_list, coeff_width, coeff_height, is_flask):
+def found_rect(contour, my_list, coeff_width, coeff_height, is_flask):
     '''Функция распознавания прямоугольника'''
     rect = cv2.minAreaRect(contour)
     box = np.int0(cv2.boxPoints(rect))
     if is_flask ==True:
         if rect[1][0] >= coeff_height and rect[1][1] >= coeff_height:
             my_list.append(rect)
-            # draw_contours(filename, box, (255, 255, 255))
     else:
         if (rect[1][0] >= rect[1][1] and rect[1][1] >= coeff_width and rect[1][0] >= coeff_height) or \
             (rect[1][0] < rect[1][1] and rect[1][0] >= coeff_width and rect[1][1] >= coeff_height):
             # Добавляем прямоугольники с колбами в список
             my_list.append(rect)
-            # draw_contours(filename, box, (255, 255, 255))
 
     return my_list, box
 
@@ -122,7 +106,7 @@ def create_color_list(image):
             # В случае если контур был найден, определяем координаты и размеры прямоугольника с цветом
             color = []
             for cnt in contours_color:
-                color_coords, _ = found_rect(image, cnt, color, coeff_width, coeff_height, is_flask=True)
+                color_coords, _ = found_rect(cnt, color, coeff_width, coeff_height, is_flask=True)
             for cnt in color_coords:
                 # Исключаем наложение прямоугольников друг на друга
                 add_flag = True
@@ -151,12 +135,12 @@ def create_color_list(image):
 
 def sorted_flasks(flasks_list):
     '''Пользовательская функция для сортировки колб в нужном порядке'''
-    min_coord = sorted(
+    min_coord = min(
         flasks_list,
         key=lambda
         item:
         item[0][1]
-    )[1][0][1]
+    )[0][1]
     max_flask_height = max(
         flasks_list,
         key=lambda
@@ -217,7 +201,7 @@ def found_colors_in_flasks(image_for_search, id):
     # Проходим по всем контурам и подсвечиваем прямоугольники целых колб
     for contour in contours_of_flasks:
         # Определение границ прямоугольников и добавление цвета прямоугольника в список
-        flasks, _ = found_rect(image_for_search, contour, flasks, coeff_width_flask, coeff_height_flask, is_flask=False)
+        flasks, _ = found_rect(contour, flasks, coeff_width_flask, coeff_height_flask, is_flask=False)
     flasks = sorted_flasks(flasks)
     images_of_flasks = crop_rects(flasks, cropped_image)
 

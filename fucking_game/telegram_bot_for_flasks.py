@@ -19,7 +19,7 @@ from aiogram.types import Message, ReplyKeyboardRemove, ReplyKeyboardMarkup, Key
 import json
 from flasks import flasks_solver
 from found_colors import found_colors_in_flasks
-import global_names
+import fucking_game.config as config
 
 import asyncio
 import logging
@@ -91,10 +91,10 @@ async def solve(message: Message):
     """Функция загрузки изображения"""
     if message.text == 'Start solving':
         await message.answer("So let's get started :)\nUpload the screenshot as an image, please")
-        global_names.start_solve = True
+        config.start_solve = True
     elif message.text == 'Upload new image':
         await message.answer('Upload a new screenshot as an image, please')
-        global_names.solve_again = True
+        config.solve_again = True
     else:
         await message.answer('Click on the button below please :)')
 
@@ -114,7 +114,7 @@ async def solve(message: Message):
 @dp.message(F.photo)
 async def download_photoes(message:Message, bot: Bot):
     '''Функция получения и обработки фотографий'''
-    if global_names.start_solve == True or global_names.solve_again == True:
+    if config.start_solve == True or config.solve_again == True:
         await bot.download(
             message.photo[-1],
             destination=f'./images/{message.photo[-1].file_id}.jpg'
@@ -122,7 +122,7 @@ async def download_photoes(message:Message, bot: Bot):
         await message.answer("I'll try to recognize colors in the photo")
         
         # Распознаем цвета и добавляем их в список для последующей сериализации в json
-        found_colors_in_flasks(image_for_search=f'./images/{message.photo[-1].file_id}.jpg', id=global_names.id_client)
+        found_colors_in_flasks(image_for_search=f'./images/{message.photo[-1].file_id}.jpg', id=config.id_client)
         # Нужно нарисовать ответную картинку по json, где будет видно расположение цветов
 
         with open(f'./images/{message.photo[-1].file_id}.jpg', 'rb') as open_image:
@@ -134,7 +134,7 @@ async def download_photoes(message:Message, bot: Bot):
                 caption="I'll use this starting position in the solution"
             )
         
-        flasks_solver(filename=f"./levels/this_level_{global_names.id_client}.json", id=global_names.id_client)
+        flasks_solver(filename=f"./levels/this_level_{config.id_client}.json", id=config.id_client)
 
         download_again = [
             [
@@ -154,8 +154,8 @@ async def download_photoes(message:Message, bot: Bot):
     else:
         await message.answer('Click on the button below please :)')
     
-    global_names.start_solve = False
-    global_names.solve_again = False
+    config.start_solve = False
+    config.solve_again = False
 
 
 async def clue(bot: Bot):

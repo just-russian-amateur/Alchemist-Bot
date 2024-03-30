@@ -47,7 +47,7 @@ def preprocessing_image(image):
 def found_rect(contour, my_list, coeff_width, coeff_height, is_flask):
     '''Функция распознавания прямоугольника'''
     rect = cv2.minAreaRect(contour)
-    box = np.int0(cv2.boxPoints(rect))
+    box = np.intp(cv2.boxPoints(rect))
     if is_flask ==True:
         if rect[1][0] >= coeff_height and rect[1][1] >= coeff_height:
             my_list.append(rect)

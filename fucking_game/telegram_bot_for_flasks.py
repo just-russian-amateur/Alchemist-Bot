@@ -123,8 +123,8 @@ async def download_photoes(message:Message, bot: Bot):
         )
         await message.answer("I'll try to recognize colors in the photo")
         
-        # Распознаем цвета и добавляем их в список для последующей сериализации в json
-        found_colors_in_flasks(image_for_search=f'./images/{message.photo[-1].file_id}.jpg', id=config.id_client)
+        # Распознаем цвета и добавляем их в список с последующей сериализации в json
+        config.undefined_colors = found_colors_in_flasks(image_for_search=f'./images/{message.photo[-1].file_id}.jpg', id=config.id_client)
         # Нужно нарисовать ответную картинку по json, где будет видно расположение цветов
 
         with open(f'./images/{message.photo[-1].file_id}.jpg', 'rb') as open_image:
@@ -133,33 +133,100 @@ async def download_photoes(message:Message, bot: Bot):
                     open_image.read(),
                     filename='solve_flasks'
                 ),
-                caption="I'll use this starting position in the solution"
+                caption="I'll use this starting position in the solution\nPlease fill in the missing colors manually"
             )
         
-        flasks_solver(input_file=f"./levels/start_level_{config.id_client}.json", output_file=f"./levels/result_level_{config.id_client}.txt")
+        color_buttons = []
+        for color in config.undefined_colors.keys():
+            button_line = []
+            for _ in range(config.undefined_colors[color]):
+                if color == 'LIGHTLIGHT':
+                    button_line.append(KeyboardButton(text='LIGHT LIGHT'))
+                elif color == 'LIGHTBLUE':
+                    button_line.append(KeyboardButton(text='LIGHT BLUE'))
+                else:
+                    button_line.append(KeyboardButton(text=color))
+            color_buttons.append(button_line)
 
-        download_again = [
-            [
-                KeyboardButton(text='Upload new image')
-            ]
-        ]
         keyboard_buttons = ReplyKeyboardMarkup(
-            keyboard=download_again,
+            keyboard=color_buttons,
             resize_keyboard=True,
             one_time_keyboard=True
         )
 
-        with open(f"./levels/result_level_{config.id_client}.txt", "r") as result:
-            await message.answer(
-                f'I found a solution for you!\n{result.read()}\nLet me know if you want a solution for another screenshot :)',
-                reply_markup=keyboard_buttons
-            )
-        os.remove(f"./levels/result_level_{config.id_client}.txt")
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+        # flasks_solver(input_file=f"./levels/start_level_{config.id_client}.json", output_file=f"./levels/result_level_{config.id_client}.txt")
+
+        # download_again = [
+        #     [
+        #         KeyboardButton(text='Upload new image')
+        #     ]
+        # ]
+        # keyboard_buttons = ReplyKeyboardMarkup(
+        #     keyboard=download_again,
+        #     resize_keyboard=True,
+        #     one_time_keyboard=True
+        # )
+
+        # with open(f"./levels/result_level_{config.id_client}.txt", "r") as result:
+        #     await message.answer(
+        #         f'I found a solution for you!\n{result.read()}\nLet me know if you want a solution for another screenshot :)',
+        #         reply_markup=keyboard_buttons
+        #     )
+        # os.remove(f"./levels/result_level_{config.id_client}.txt")
     else:
         await message.answer('Click on the button below please :)')
     
     config.start_solve = False
     config.solve_again = False
+
+
+@dp.message(F.text == "LIGHT BLUE")
+@dp.message(F.text == "ORANGE")
+@dp.message(F.text == "YELLOW")
+@dp.message(F.text == "RED")
+@dp.message(F.text == "LIGHT LIGHT")
+@dp.message(F.text == "BLUE")
+@dp.message(F.text == "BURGUNDY")
+@dp.message(F.text == "GREEN")
+@dp.message(F.text == "PINK")
+@dp.message(F.text == "CRIMSON")
+@dp.message(F.text == "CREAM")
+@dp.message(F.text == "PURPLE")
+@dp.message(F.text == "GRAY")
+@dp.message(F.text == "LILAC")
+async def fill(message:Message):
+    '''Функция дозаполнения неопределенных цветов вручную'''
+    for variation in config.color_variations:
+        if message.text == variation:
+            if variation == 'LIGHT LIGHT':
+                config.undefined_colors['LIGHTLIGHT'] -= 1
+                if config.undefined_colors['LIGHTLIGHT'] == 0:
+                    config.undefined_colors.pop('LIGHTLIGHT')
+            elif variation == 'LIGHT BLUE':
+                config.undefined_colors['LIGHTBLUE'] -= 1
+                if config.undefined_colors['LIGHTBLUE'] == 0:
+                    config.undefined_colors.pop('LIGHTBLUE')
+            else:
+                config.undefined_colors[variation] -= 1
+                if config.undefined_colors[variation] == 0:
+                    config.undefined_colors.pop(variation)
+            
+
 
 
 async def clue(bot: Bot):

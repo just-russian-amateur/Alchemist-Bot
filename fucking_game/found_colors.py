@@ -90,7 +90,7 @@ def create_color_list(image):
     height, width, _ = color_pixels.shape
     hsv_colors = cv2.cvtColor(color_pixels, cv2.COLOR_BGR2HSV)
 
-    colors_info = []
+    colors_info, count_colors = [], []
     # Подбор коэффициентов
     coeff_width = round(width / 1.5)
     coeff_height = round(height / 6.8)
@@ -120,6 +120,7 @@ def create_color_list(image):
                     # Добавляем в список информацию о цвете и его местоположении
                     color_name = variation[0]
                     colors_info.append([color_name, cnt[0]])
+                    count_colors.append([variation[0]])
     
     # Добавляем абсолютно пустую колбу, если список пуст
     if len(colors_info) == 0:
@@ -177,6 +178,19 @@ def sorted_flasks(flasks_list):
     return sorted_flask_list
 
 
+def replace_undefined(flasks_list):
+    '''Функция для составления списка неопределенных значений недостающими цветами'''
+    # Подготовление списка с цвтеами и их количеством, которые нужно добавить
+    flasks_list = np.asarray(flasks_list)
+    colors, counts = np.unique(flasks_list, return_counts=True)
+    colors_dict = dict(zip(colors, counts))
+    added_colors = dict()
+    for key in colors_dict.keys():
+        if colors_dict[key] < 4:
+            added_colors.update(key=4 - colors_dict[key])
+    return added_colors
+
+
 def found_colors_in_flasks(image_for_search, id):
     '''Основная функция для распознавания цветов на картинке и добавления их в массив'''
     # Чтение изображения в цветном формате
@@ -217,7 +231,8 @@ def found_colors_in_flasks(image_for_search, id):
             internal_colors,
             key=lambda
             item:
-            item[1][1]
+            item[1][1],
+            reverse=True
         )
         
         colors = []
@@ -229,12 +244,12 @@ def found_colors_in_flasks(image_for_search, id):
     for flask_info in images_of_flasks:
         os.remove(flask_info[0])
 
-    return create_json(flasks_list, id)
+    create_json(flasks_list, id)
+
+    return replace_undefined(flasks_list)
 
 
 def create_json(flasks_list, id_client):
     '''Создание и заполнение json файла с распознанными цветами'''
     with open(f"./levels/start_level_{id_client}.json", "w") as this_level:
         json.dump({"bottles": flasks_list}, this_level, indent=2)
-
-    return this_level

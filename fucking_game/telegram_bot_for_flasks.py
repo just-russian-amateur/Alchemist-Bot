@@ -134,7 +134,8 @@ async def download_photoes(message:Message, bot: Bot):
                 caption="I'll use this starting position in the solution"
             )
         
-        flasks_solver(filename=f"./levels/this_level_{config.id_client}.json", id=config.id_client)
+        flasks_solver(input_file=f"./levels/start_level_{config.id_client}.json", output_file=f"./levels/result_level_{config.id_client}.txt", id=config.id_client)
+        os.remove(f"./levels/result_level_{config.id_client}.txt")
 
         download_again = [
             [

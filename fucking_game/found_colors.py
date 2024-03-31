@@ -234,7 +234,7 @@ def found_colors_in_flasks(image_for_search, id):
 
 def create_json(flasks_list, id_client):
     '''Создание и заполнение json файла с распознанными цветами'''
-    with open(f"./levels/this_level_{id_client}.json", "w") as this_level:
+    with open(f"./levels/start_level_{id_client}.json", "w") as this_level:
         json.dump({"bottles": flasks_list}, this_level, indent=2)
 
     return this_level

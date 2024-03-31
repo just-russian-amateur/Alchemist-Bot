@@ -19,7 +19,7 @@ from aiogram.types import Message, ReplyKeyboardRemove, ReplyKeyboardMarkup, Key
 import json
 from flasks import flasks_solver
 from found_colors import found_colors_in_flasks
-import fucking_game.config as config
+import config
 
 import asyncio
 import logging
@@ -60,6 +60,8 @@ async def send_welcome(message: Message):
         "Hello!\nI am a bot that will help you pour liquid into flasks and, most importantly, do it correctly, in other words, I am your savior :)\nThere is nothing difficult in working with me, but if you are doing this for the first time, then click the help button on the right for instructions :)",
         reply_markup=keyboard_buttons
     )
+
+    config.id_client = message.from_user.id
 
 
 @dp.message(F.text == 'Help')    #   Команда помощи
@@ -134,8 +136,7 @@ async def download_photoes(message:Message, bot: Bot):
                 caption="I'll use this starting position in the solution"
             )
         
-        flasks_solver(input_file=f"./levels/start_level_{config.id_client}.json", output_file=f"./levels/result_level_{config.id_client}.txt", id=config.id_client)
-        os.remove(f"./levels/result_level_{config.id_client}.txt")
+        flasks_solver(input_file=f"./levels/start_level_{config.id_client}.json", output_file=f"./levels/result_level_{config.id_client}.txt")
 
         download_again = [
             [
@@ -148,10 +149,12 @@ async def download_photoes(message:Message, bot: Bot):
             one_time_keyboard=True
         )
 
-        await message.answer(
-            'I found a solution for you! Let me know if you want a solution for another screenshot :)',
-            reply_markup=keyboard_buttons
-        )
+        with open(f"./levels/result_level_{config.id_client}.txt", "r") as result:
+            await message.answer(
+                f'I found a solution for you!\n{result.read()}\nLet me know if you want a solution for another screenshot :)',
+                reply_markup=keyboard_buttons
+            )
+        os.remove(f"./levels/result_level_{config.id_client}.txt")
     else:
         await message.answer('Click on the button below please :)')
     

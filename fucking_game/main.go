@@ -11,7 +11,7 @@ func main() {
 	input_file := os.Args[1:][0]
 	output_file := os.Args[1:][1]
 
-	file := flag.String("file", input_file, "specify the mapping file you want to solve\n--file 647.json")
+	file := flag.String("file", input_file, fmt.Sprintf("specify the mapping file you want to solve\n--file %s", input_file))
 
 	flag.Parse()
 

@@ -18,7 +18,7 @@ from aiogram.types import Message, ReplyKeyboardRemove, ReplyKeyboardMarkup, Key
 
 import json
 from flasks import flasks_solver
-from found_colors import found_colors_in_flasks
+from found_colors import found_colors_in_flasks, replace_in_json
 import config
 
 import asyncio
@@ -125,17 +125,16 @@ async def download_photoes(message:Message, bot: Bot):
         
         # Распознаем цвета и добавляем их в список с последующей сериализации в json
         config.undefined_colors = found_colors_in_flasks(image_for_search=f'./images/{message.photo[-1].file_id}.jpg', id=config.id_client)
-        # Нужно нарисовать ответную картинку по json, где будет видно расположение цветов
+        # Нужно нарисовать ответную картинку по json, где будет видно расположение цветов (вместо копирования этого же изображения)
+        # with open(f'./images/{message.photo[-1].file_id}.jpg', 'rb') as open_image:
+        #     await message.answer_photo(
+        #         BufferedInputFile(
+        #             open_image.read(),
+        #             filename='solve_flasks'
+        #         ),
+        #         caption="I'll use this starting position in the solution\nPlease fill in the missing colors manually"
+        #     )
 
-        with open(f'./images/{message.photo[-1].file_id}.jpg', 'rb') as open_image:
-            await message.answer_photo(
-                BufferedInputFile(
-                    open_image.read(),
-                    filename='solve_flasks'
-                ),
-                caption="I'll use this starting position in the solution\nPlease fill in the missing colors manually"
-            )
-        
         color_buttons = []
         for color in config.undefined_colors.keys():
             button_line = []
@@ -154,40 +153,16 @@ async def download_photoes(message:Message, bot: Bot):
             one_time_keyboard=True
         )
 
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-        # flasks_solver(input_file=f"./levels/start_level_{config.id_client}.json", output_file=f"./levels/result_level_{config.id_client}.txt")
-
-        # download_again = [
-        #     [
-        #         KeyboardButton(text='Upload new image')
-        #     ]
-        # ]
-        # keyboard_buttons = ReplyKeyboardMarkup(
-        #     keyboard=download_again,
-        #     resize_keyboard=True,
-        #     one_time_keyboard=True
-        # )
-
-        # with open(f"./levels/result_level_{config.id_client}.txt", "r") as result:
-        #     await message.answer(
-        #         f'I found a solution for you!\n{result.read()}\nLet me know if you want a solution for another screenshot :)',
-        #         reply_markup=keyboard_buttons
-        #     )
-        # os.remove(f"./levels/result_level_{config.id_client}.txt")
+        # Изображение, где подсвечивается первый неопределенный цвет
+        with open(f'./images/{message.photo[-1].file_id}.jpg', 'rb') as open_image:
+            await message.answer_photo(
+                BufferedInputFile(
+                    open_image.read(),
+                    filename='solve_flasks'
+                ),
+                caption="Please choose from the suggested options the color that you think should be here",
+                reply_markup=keyboard_buttons
+            )
     else:
         await message.answer('Click on the button below please :)')
     
@@ -217,16 +192,70 @@ async def fill(message:Message):
                 config.undefined_colors['LIGHTLIGHT'] -= 1
                 if config.undefined_colors['LIGHTLIGHT'] == 0:
                     config.undefined_colors.pop('LIGHTLIGHT')
+                replace_in_json(json_name=f"./levels/start_level_{config.id_client}.json", color_name='LIGHTLIGHT')
+                break
             elif variation == 'LIGHT BLUE':
                 config.undefined_colors['LIGHTBLUE'] -= 1
                 if config.undefined_colors['LIGHTBLUE'] == 0:
                     config.undefined_colors.pop('LIGHTBLUE')
+                replace_in_json(json_name=f"./levels/start_level_{config.id_client}.json", color_name='LIGHTLIGHT')
+                break
             else:
                 config.undefined_colors[variation] -= 1
                 if config.undefined_colors[variation] == 0:
                     config.undefined_colors.pop(variation)
+                replace_in_json(json_name=f"./levels/start_level_{config.id_client}.json", color_name=variation)
+                break
             
+    if len(config.undefined_colors) == 0:
+        flasks_solver(input_file=f"./levels/start_level_{config.id_client}.json", output_file=f"./levels/result_level_{config.id_client}.txt")
 
+        download_again = [
+            [
+                KeyboardButton(text='Upload new image')
+            ]
+        ]
+        keyboard_buttons = ReplyKeyboardMarkup(
+            keyboard=download_again,
+            resize_keyboard=True,
+            one_time_keyboard=True
+        )
+
+        with open(f"./levels/result_level_{config.id_client}.txt", "r") as result:
+            await message.answer(
+                f'I found a solution for you!\n{result.read()}\nLet me know if you want a solution for another screenshot :)',
+                reply_markup=keyboard_buttons
+            )
+        os.remove(f"./levels/result_level_{config.id_client}.txt")
+    else:
+        color_buttons = []
+        for color in config.undefined_colors.keys():
+            button_line = []
+            for _ in range(config.undefined_colors[color]):
+                if color == 'LIGHTLIGHT':
+                    button_line.append(KeyboardButton(text='LIGHT LIGHT'))
+                elif color == 'LIGHTBLUE':
+                    button_line.append(KeyboardButton(text='LIGHT BLUE'))
+                else:
+                    button_line.append(KeyboardButton(text=color))
+            color_buttons.append(button_line)
+
+        keyboard_buttons = ReplyKeyboardMarkup(
+            keyboard=color_buttons,
+            resize_keyboard=True,
+            one_time_keyboard=True
+        )
+
+        # Изображение, где подсвечивается первый неопределенный цвет
+        with open(f'./images/{message.photo[-1].file_id}.jpg', 'rb') as open_image:
+            await message.answer_photo(
+                BufferedInputFile(
+                    open_image.read(),
+                    filename='solve_flasks'
+                ),
+                caption="Please choose from the suggested options the color that you think should be here",
+                reply_markup=keyboard_buttons
+            )
 
 
 async def clue(bot: Bot):

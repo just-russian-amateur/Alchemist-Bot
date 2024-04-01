@@ -187,7 +187,7 @@ def replace_undefined(flasks_list):
     added_colors = dict()
     for key in colors_dict.keys():
         if colors_dict[key] < 4:
-            added_colors.update(key=4 - colors_dict[key])
+            added_colors[key] = 4 - colors_dict[key]
     return added_colors
 
 
@@ -253,3 +253,16 @@ def create_json(flasks_list, id_client):
     '''Создание и заполнение json файла с распознанными цветами'''
     with open(f"./levels/start_level_{id_client}.json", "w") as this_level:
         json.dump({"bottles": flasks_list}, this_level, indent=2)
+
+
+def replace_in_json(json_name, color_name):
+    with open(json_name, "r") as this_level:
+        file = json.load(this_level)
+    
+    for _, color in file.items():
+        if color == 'UNDEFINED':
+            color = color_name
+            break
+    
+    with open(json_name, "w") as this_level:
+        json.dump(file, this_level, indent=2)

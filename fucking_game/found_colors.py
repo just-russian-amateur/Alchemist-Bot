@@ -5,6 +5,10 @@ import json
 import os
 
 
+class BreakReplace(Exception):
+    pass
+
+
 variations = [
     ('LIGHTBLUE', (np.array((30, 50, 210), np.uint8), np.array((106, 255, 255), np.uint8))),
     ('ORANGE', (np.array((0, 165, 203), np.uint8), np.array((19, 255, 255), np.uint8))),
@@ -256,13 +260,19 @@ def create_json(flasks_list, id_client):
 
 
 def replace_in_json(json_name, color_name):
+    '''Фуекция для замены неопределенных цветов в json на выбранные пользователем'''
     with open(json_name, "r") as this_level:
         file = json.load(this_level)
     
-    for _, color in file.items():
-        if color == 'UNDEFINED':
-            color = color_name
-            break
+    try:
+        for _, flasks in file.items():
+            for colors in range(len(flasks)):
+                for color in range(len(flasks[colors])):
+                    if flasks[colors][color] == 'UNDEFINED':
+                        file[_][colors][color] = color_name
+                        raise BreakReplace
+    except BreakReplace:
+        pass
     
     with open(json_name, "w") as this_level:
         json.dump(file, this_level, indent=2)

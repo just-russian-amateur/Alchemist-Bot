@@ -186,26 +186,27 @@ async def download_photoes(message:Message, bot: Bot):
 @dp.message(F.text == "LILAC")
 async def fill(message:Message):
     '''Функция дозаполнения неопределенных цветов вручную'''
-    for variation in config.color_variations:
-        if message.text == variation:
-            if variation == 'LIGHT LIGHT':
-                config.undefined_colors['LIGHTLIGHT'] -= 1
-                if config.undefined_colors['LIGHTLIGHT'] == 0:
-                    config.undefined_colors.pop('LIGHTLIGHT')
-                replace_in_json(json_name=f"./levels/start_level_{config.id_client}.json", color_name='LIGHTLIGHT')
-                break
-            elif variation == 'LIGHT BLUE':
-                config.undefined_colors['LIGHTBLUE'] -= 1
-                if config.undefined_colors['LIGHTBLUE'] == 0:
-                    config.undefined_colors.pop('LIGHTBLUE')
-                replace_in_json(json_name=f"./levels/start_level_{config.id_client}.json", color_name='LIGHTLIGHT')
-                break
-            else:
-                config.undefined_colors[variation] -= 1
-                if config.undefined_colors[variation] == 0:
-                    config.undefined_colors.pop(variation)
-                replace_in_json(json_name=f"./levels/start_level_{config.id_client}.json", color_name=variation)
-                break
+    if len(config.undefined_colors) != 0:
+        for variation in config.color_variations:
+            if message.text == variation:
+                if variation == 'LIGHT LIGHT':
+                    config.undefined_colors['LIGHTLIGHT'] -= 1
+                    if config.undefined_colors['LIGHTLIGHT'] == 0:
+                        config.undefined_colors.pop('LIGHTLIGHT')
+                    replace_in_json(json_name=f"./levels/start_level_{config.id_client}.json", color_name='LIGHTLIGHT')
+                    break
+                elif variation == 'LIGHT BLUE':
+                    config.undefined_colors['LIGHTBLUE'] -= 1
+                    if config.undefined_colors['LIGHTBLUE'] == 0:
+                        config.undefined_colors.pop('LIGHTBLUE')
+                    replace_in_json(json_name=f"./levels/start_level_{config.id_client}.json", color_name='LIGHTLIGHT')
+                    break
+                else:
+                    config.undefined_colors[variation] -= 1
+                    if config.undefined_colors[variation] == 0:
+                        config.undefined_colors.pop(variation)
+                    replace_in_json(json_name=f"./levels/start_level_{config.id_client}.json", color_name=variation)
+                    break
             
     if len(config.undefined_colors) == 0:
         flasks_solver(input_file=f"./levels/start_level_{config.id_client}.json", output_file=f"./levels/result_level_{config.id_client}.txt")
@@ -245,17 +246,21 @@ async def fill(message:Message):
             resize_keyboard=True,
             one_time_keyboard=True
         )
+        await message.answer(
+            "Fill the next one",
+            reply_markup=keyboard_buttons
+        )
 
         # Изображение, где подсвечивается первый неопределенный цвет
-        with open(f'./images/{message.photo[-1].file_id}.jpg', 'rb') as open_image:
-            await message.answer_photo(
-                BufferedInputFile(
-                    open_image.read(),
-                    filename='solve_flasks'
-                ),
-                caption="Please choose from the suggested options the color that you think should be here",
-                reply_markup=keyboard_buttons
-            )
+        # with open(f'./images/{message.photo[-1].file_id}.jpg', 'rb') as open_image:
+        #     await message.answer_photo(
+        #         BufferedInputFile(
+        #             open_image.read(),
+        #             filename='solve_flasks'
+        #         ),
+        #         caption="Please choose from the suggested options the color that you think should be here",
+        #         reply_markup=keyboard_buttons
+        #     )
 
 
 async def clue(bot: Bot):

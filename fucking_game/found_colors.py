@@ -10,20 +10,20 @@ class BreakReplace(Exception):
 
 
 variations = [
-    ('LIGHTBLUE', (np.array((30, 50, 210), np.uint8), np.array((106, 255, 255), np.uint8))),
-    ('ORANGE', (np.array((0, 165, 203), np.uint8), np.array((19, 255, 255), np.uint8))),
-    ('YELLOW', (np.array((22, 46, 192), np.uint8), np.array((34, 255, 255), np.uint8))),
-    ('RED', (np.array((0, 148, 114), np.uint8), np.array((7, 255, 255), np.uint8))),
-    ('LIGHTLIGHT', (np.array((41, 0, 160), np.uint8), np.array((65, 255, 255), np.uint8))),
-    ('BLUE', (np.array((103, 181, 135), np.uint8), np.array((120, 255, 255), np.uint8))),
-    ('BURGUNDY', (np.array((158, 135, 84), np.uint8), np.array((255, 255, 127), np.uint8))),
-    ('GREEN', (np.array((86, 121, 86), np.uint8), np.array((96, 255, 255), np.uint8))),
-    ('PINK', (np.array((140, 0, 197), np.uint8), np.array((154, 255, 255), np.uint8))),
-    ('CRIMSON', (np.array((140, 88, 183), np.uint8), np.array((195, 255, 255), np.uint8))),
-    ('CREAM', (np.array((0, 0, 241), np.uint8), np.array((20, 255, 255), np.uint8))),
-    ('PURPLE', (np.array((131, 157, 186), np.uint8), np.array((255, 255, 255), np.uint8))),
-    ('GRAY', (np.array((0, 0, 94), np.uint8), np.array((255, 29, 116), np.uint8))),
-    ('LILAC', (np.array((117, 155, 136), np.uint8), np.array((125, 255, 255), np.uint8)))
+    ('LIGHTBLUE', (np.array((30, 50, 210), np.uint8), np.array((106, 255, 255), np.uint8)), (103, 161, 224)),
+    ('ORANGE', (np.array((0, 165, 203), np.uint8), np.array((19, 255, 255), np.uint8)), (226, 144, 68)),
+    ('YELLOW', (np.array((22, 46, 192), np.uint8), np.array((34, 255, 255), np.uint8)), (227, 185, 64)),
+    ('RED', (np.array((0, 148, 114), np.uint8), np.array((7, 255, 255), np.uint8)), (173, 43, 30)),
+    ('LIGHTLIGHT', (np.array((41, 0, 160), np.uint8), np.array((65, 255, 255), np.uint8)), (108, 187, 70)),
+    ('BLUE', (np.array((103, 181, 135), np.uint8), np.array((120, 255, 255), np.uint8)), (39, 90, 207)),
+    ('BURGUNDY', (np.array((158, 135, 84), np.uint8), np.array((255, 255, 127), np.uint8)), (95, 32, 53)),
+    ('GREEN', (np.array((86, 121, 86), np.uint8), np.array((96, 255, 255), np.uint8)), (46, 97, 100)),
+    ('PINK', (np.array((140, 0, 197), np.uint8), np.array((154, 255, 255), np.uint8)), (212, 153, 219)),
+    ('CRIMSON', (np.array((140, 88, 183), np.uint8), np.array((195, 255, 255), np.uint8)), (218, 109, 128)),
+    ('CREAM', (np.array((0, 0, 241), np.uint8), np.array((20, 255, 255), np.uint8)), (248, 218, 194)),
+    ('PURPLE', (np.array((131, 157, 186), np.uint8), np.array((255, 255, 255), np.uint8)), (132, 64, 201)),
+    ('GRAY', (np.array((0, 0, 94), np.uint8), np.array((255, 29, 116), np.uint8)), (106, 107, 109)),
+    ('LILAC', (np.array((117, 155, 136), np.uint8), np.array((125, 255, 255), np.uint8)), (71, 62, 187))
 ]
 
 
@@ -276,3 +276,23 @@ def replace_in_json(json_name, color_name):
     
     with open(json_name, "w") as this_level:
         json.dump(file, this_level, indent=2)
+
+
+def create_image_for_replace(json_name):
+    '''Функция для отрисовки изображения с подсветкой того цвета, который нужно заполнить'''
+    with open(json_name, "r") as this_level:
+        file = json.load(this_level)
+    
+    # Создание пустого черного изображения
+    height, width = 1200, 1400
+    template = np.zeros((height, width, 3), np.uint8)
+
+    _, flasks = file.items()
+    height_flask, width_flask = 100, 40
+    count_lines = np.trunc(len(flasks) / 6) + 1
+    centers_flasks = []
+    for x in range(0, width, width / 7):
+        for y in range(0, height, height / (count_lines + 1)):
+            centers_flasks.append([x, y])
+    # for colors in flasks:
+

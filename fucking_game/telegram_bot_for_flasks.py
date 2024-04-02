@@ -54,7 +54,8 @@ async def send_welcome(message: Message):
     keyboard_buttons = ReplyKeyboardMarkup(
         keyboard=start_button_set,
         resize_keyboard=True,
-        one_time_keyboard=True
+        one_time_keyboard=True,
+        input_field_placeholder='Click on the button'
     )
     await message.answer(
         f"Hello, {message.from_user.first_name}!\nI am a bot that will help you pour liquid into flasks and, most importantly, do it correctly, in other words, I am your savior :)\nThere is nothing difficult in working with me, but if you are doing this for the first time, then click the help button on the right for instructions :)",
@@ -90,10 +91,16 @@ async def help(message: Message):
 async def solve(message: Message):
     """Функция загрузки изображения"""
     if message.text == 'Start solving':
-        await message.answer("So let's get started :)\nUpload the screenshot as an image, please")
+        await message.answer(
+            "So let's get started :)\nUpload the screenshot as an image, please",
+            reply_markup=ReplyKeyboardRemove()
+        )
         config.start_solve = True
     elif message.text == 'Upload new image':
-        await message.answer('Upload a new screenshot as an image, please')
+        await message.answer(
+            'Upload a new screenshot as an image, please',
+            reply_markup=ReplyKeyboardRemove()
+        )
         config.solve_again = True
     else:
         await message.answer('Click on the button below please :)')
@@ -162,19 +169,21 @@ async def download_photoes(message:Message, bot: Bot):
         keyboard_buttons = ReplyKeyboardMarkup(
             keyboard=color_buttons,
             resize_keyboard=True,
-            one_time_keyboard=True
+            one_time_keyboard=True,
+            input_field_placeholder='Choose a color'
         )
 
         # Изображение, где подсвечивается первый неопределенный цвет
-        with open(f'./images/{message.photo[-1].file_id}.jpg', 'rb') as open_image:
-            await message.answer_photo(
-                BufferedInputFile(
-                    open_image.read(),
-                    filename='solve_flasks'
-                ),
-                caption="Please choose from the suggested options the color that you think should be here",
-                reply_markup=keyboard_buttons
-            )
+        # with open(f'./images/{message.photo[-1].file_id}.jpg', 'rb') as open_image:
+        #     await message.answer_photo(
+        #         BufferedInputFile(
+        #             open_image.read(),
+        #             filename='solve_flasks'
+        #         ),
+        #         caption="Please choose from the suggested options the color that you think should be here",
+        #         reply_markup=keyboard_buttons
+        #     )
+        await message.answer('Pictures here)', reply_markup=keyboard_buttons)
         config.start_replace = True
     else:
         await message.answer('Click on the button below please :)')
@@ -274,7 +283,8 @@ async def fill(message:Message):
             keyboard_buttons = ReplyKeyboardMarkup(
                 keyboard=color_buttons,
                 resize_keyboard=True,
-                one_time_keyboard=True
+                one_time_keyboard=True,
+                input_field_placeholder='Choose a color'
             )
             await message.answer(
                 "Fill the next one",

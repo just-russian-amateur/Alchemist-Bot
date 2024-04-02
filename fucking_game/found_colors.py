@@ -5,25 +5,25 @@ import json
 import os
 
 
-class BreakReplace(Exception):
+class BreakAction(Exception):
     pass
 
 
 variations = [
-    ('LIGHTBLUE', (np.array((30, 50, 210), np.uint8), np.array((106, 255, 255), np.uint8)), (103, 161, 224)),
-    ('ORANGE', (np.array((0, 165, 203), np.uint8), np.array((19, 255, 255), np.uint8)), (226, 144, 68)),
-    ('YELLOW', (np.array((22, 46, 192), np.uint8), np.array((34, 255, 255), np.uint8)), (227, 185, 64)),
-    ('RED', (np.array((0, 148, 114), np.uint8), np.array((7, 255, 255), np.uint8)), (173, 43, 30)),
-    ('LIGHTLIGHT', (np.array((41, 0, 160), np.uint8), np.array((65, 255, 255), np.uint8)), (108, 187, 70)),
-    ('BLUE', (np.array((103, 181, 135), np.uint8), np.array((120, 255, 255), np.uint8)), (39, 90, 207)),
-    ('BURGUNDY', (np.array((158, 135, 84), np.uint8), np.array((255, 255, 127), np.uint8)), (95, 32, 53)),
-    ('GREEN', (np.array((86, 121, 86), np.uint8), np.array((96, 255, 255), np.uint8)), (46, 97, 100)),
-    ('PINK', (np.array((140, 0, 197), np.uint8), np.array((154, 255, 255), np.uint8)), (212, 153, 219)),
-    ('CRIMSON', (np.array((140, 88, 183), np.uint8), np.array((195, 255, 255), np.uint8)), (218, 109, 128)),
-    ('CREAM', (np.array((0, 0, 241), np.uint8), np.array((20, 255, 255), np.uint8)), (248, 218, 194)),
-    ('PURPLE', (np.array((131, 157, 186), np.uint8), np.array((255, 255, 255), np.uint8)), (132, 64, 201)),
-    ('GRAY', (np.array((0, 0, 94), np.uint8), np.array((255, 29, 116), np.uint8)), (106, 107, 109)),
-    ('LILAC', (np.array((117, 155, 136), np.uint8), np.array((125, 255, 255), np.uint8)), (71, 62, 187))
+    ('LIGHTBLUE', (np.array((30, 50, 210), np.uint8), np.array((106, 255, 255), np.uint8)), (224, 161, 103)),
+    ('ORANGE', (np.array((0, 165, 203), np.uint8), np.array((19, 255, 255), np.uint8)), (68, 144, 226)),
+    ('YELLOW', (np.array((22, 46, 192), np.uint8), np.array((34, 255, 255), np.uint8)), (64, 185, 227)),
+    ('RED', (np.array((0, 148, 114), np.uint8), np.array((7, 255, 255), np.uint8)), (30, 43, 173)),
+    ('LIGHTLIGHT', (np.array((41, 0, 160), np.uint8), np.array((65, 255, 255), np.uint8)), (70, 187, 108)),
+    ('BLUE', (np.array((103, 181, 135), np.uint8), np.array((120, 255, 255), np.uint8)), (207, 90, 39)),
+    ('BURGUNDY', (np.array((158, 135, 84), np.uint8), np.array((255, 255, 127), np.uint8)), (53, 32, 95)),
+    ('GREEN', (np.array((86, 121, 86), np.uint8), np.array((96, 255, 255), np.uint8)), (100, 97, 46)),
+    ('PINK', (np.array((140, 0, 197), np.uint8), np.array((154, 255, 255), np.uint8)), (219, 153, 212)),
+    ('CRIMSON', (np.array((140, 88, 183), np.uint8), np.array((195, 255, 255), np.uint8)), (128, 109, 218)),
+    ('CREAM', (np.array((0, 0, 241), np.uint8), np.array((20, 255, 255), np.uint8)), (194, 218, 248)),
+    ('PURPLE', (np.array((131, 157, 186), np.uint8), np.array((255, 255, 255), np.uint8)), (201, 64, 132)),
+    ('GRAY', (np.array((0, 0, 94), np.uint8), np.array((255, 29, 116), np.uint8)), (109, 107, 106)),
+    ('LILAC', (np.array((117, 155, 136), np.uint8), np.array((125, 255, 255), np.uint8)), (187, 62, 71))
 ]
 
 
@@ -270,8 +270,8 @@ def replace_in_json(json_name, color_name):
                 for color in range(len(flasks[colors])):
                     if flasks[colors][color] == 'UNDEFINED':
                         file[_][colors][color] = color_name
-                        raise BreakReplace
-    except BreakReplace:
+                        raise BreakAction
+    except BreakAction:
         pass
     
     with open(json_name, "w") as this_level:
@@ -288,11 +288,23 @@ def create_image_for_replace(json_name):
     template = np.zeros((height, width, 3), np.uint8)
 
     _, flasks = file.items()
-    height_flask, width_flask = 100, 40
+    height_flask, width_flask = 160, 40
     count_lines = np.trunc(len(flasks) / 6) + 1
     centers_flasks = []
-    for x in range(0, width, width / 7):
-        for y in range(0, height, height / (count_lines + 1)):
-            centers_flasks.append([x, y])
-    # for colors in flasks:
+    try:
+        for x in range(0, width, width / 7):
+            for y in range(0, height, height / (count_lines + 1)):
+                centers_flasks.append([x, y])
+                if len(centers_flasks) == len(flasks):
+                    raise BreakAction
+    except BreakAction:
+        pass
+    
+    for _, flask in range(len(file.items())):
+        x1, y1 = centers_flasks[flask][0] - width_flask / 2, centers_flasks[flask][1] - height_flask / 2
+        x2, y2 = centers_flasks[flask][0] + width_flask / 2, centers_flasks[flask][1] + height_flask / 2
+        cv2.rectangle(template, (x1, y1), (x2, y2), (176, 176, 90), 3)
+
+        # for colors in range(len(flasks)):
+        
 

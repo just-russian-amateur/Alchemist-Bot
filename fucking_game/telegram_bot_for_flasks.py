@@ -238,7 +238,8 @@ async def fill(message:Message):
                         open_image.read(),
                         filename='solve_flasks'
                     ),
-                    caption="I'll look for a solution from this position. Wait, this may take a while"
+                    caption="I'll look for a solution from this position. Wait, this may take a while",
+                    reply_markup=ReplyKeyboardRemove()
                 )
 
             config.start_replace = False
@@ -280,8 +281,10 @@ async def fill(message:Message):
                         f'I found a solution for you!\n{result.read()}\nLet me know if you want a solution for another screenshot :)',
                         reply_markup=download_buttons
                     )
-            shutil.rmtree("./tmp")
-            os.mkdir("./tmp")
+            # Удаление временных файлов
+            os.remove(f"./tmp/result_level_{message.from_user.id}.txt")
+            os.remove(f"./tmp/start_level_{message.from_user.id}.json")
+            os.remove(f"./tmp/level_for_{message.from_user.id}.jpg")
         else:
             color_buttons_list = []
             # Создание списка кнопок с цветмаи, которыми можно будет заменить неопределенные значения

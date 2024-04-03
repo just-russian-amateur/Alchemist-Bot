@@ -18,7 +18,7 @@ from aiogram.types import Message, ReplyKeyboardRemove, ReplyKeyboardMarkup, Key
 from aiogram.utils.keyboard import InlineKeyboardBuilder
 
 from flasks import flasks_solver
-from found_colors import found_colors_in_flasks, replace_in_json, create_image_for_replace, add_empty_flask
+from found_colors import found_colors_in_flasks, replace_in_json, create_image_for_replace, add_empty_flask, create_undef_buttons
 import config
 
 import asyncio
@@ -145,23 +145,7 @@ async def download_photoes(message:Message, bot: Bot):
                     color_buttons_list.append(KeyboardButton(text='LIGHT BLUE'))
                 else:
                     color_buttons_list.append(KeyboardButton(text=color))
-        color_buttons, button_line = [], []
-        # "Красивая" расстановка кнопок
-        for i in range(len(color_buttons_list)):
-            if i % 3 == 0 and i == len(color_buttons_list) - 1:
-                color_buttons.append(button_line)
-                button_line = []
-                button_line.append(color_buttons_list[i])
-                color_buttons.append(button_line)
-            elif i % 3 == 0 and i != 0:
-                color_buttons.append(button_line)
-                button_line = []
-                button_line.append(color_buttons_list[i])
-            elif i == len(color_buttons_list) - 1:
-                button_line.append(color_buttons_list[i])
-                color_buttons.append(button_line)
-            else:
-                button_line.append(color_buttons_list[i])
+        color_buttons = create_undef_buttons(color_buttons_list)
 
         keyboard_buttons = ReplyKeyboardMarkup(
             keyboard=color_buttons,
@@ -310,23 +294,7 @@ async def fill(message:Message):
                         color_buttons_list.append(KeyboardButton(text='LIGHT BLUE'))
                     else:
                         color_buttons_list.append(KeyboardButton(text=color))
-            color_buttons, button_line = [], []
-            # "Красивая" расстановка кнопок
-            for i in range(len(color_buttons_list)):
-                if i % 3 == 0 and i == len(color_buttons_list) - 1:
-                    color_buttons.append(button_line)
-                    button_line = []
-                    button_line.append(color_buttons_list[i])
-                    color_buttons.append(button_line)
-                elif i % 3 == 0 and i != 0:
-                    color_buttons.append(button_line)
-                    button_line = []
-                    button_line.append(color_buttons_list[i])
-                elif i == len(color_buttons_list) - 1:
-                    button_line.append(color_buttons_list[i])
-                    color_buttons.append(button_line)
-                else:
-                    button_line.append(color_buttons_list[i])
+            color_buttons = create_undef_buttons(color_buttons_list)
 
             keyboard_buttons = ReplyKeyboardMarkup(
                 keyboard=color_buttons,

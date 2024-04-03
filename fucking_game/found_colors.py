@@ -343,3 +343,26 @@ def add_empty_flask(json_name):
 
     with open(json_name, "w") as this_level:
         json.dump(file, this_level, indent=2)
+
+
+def create_undef_buttons(color_buttons_list):
+    '''Функция для расстановки кнопок с цветами'''
+    color_buttons, button_line = [], []
+    # "Красивая" расстановка кнопок
+    for i in range(len(color_buttons_list)):
+        if i % 3 == 0 and i == len(color_buttons_list) - 1:
+            color_buttons.append(button_line)
+            button_line = []
+            button_line.append(color_buttons_list[i])
+            color_buttons.append(button_line)
+        elif i % 3 == 0 and i != 0:
+            color_buttons.append(button_line)
+            button_line = []
+            button_line.append(color_buttons_list[i])
+        elif i == len(color_buttons_list) - 1:
+            button_line.append(color_buttons_list[i])
+            color_buttons.append(button_line)
+        else:
+            button_line.append(color_buttons_list[i])
+    
+    return color_buttons

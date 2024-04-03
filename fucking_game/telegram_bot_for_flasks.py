@@ -15,7 +15,6 @@ For a description of the Bot API, see this page: https://core.telegram.org/bots/
 from aiogram import Bot, Dispatcher, F  # Подключение библиотек
 from aiogram.filters import CommandStart, Command
 from aiogram.types import Message, ReplyKeyboardRemove, ReplyKeyboardMarkup, KeyboardButton, BufferedInputFile, BotCommand, InlineKeyboardButton, InlineKeyboardMarkup
-from aiogram.utils.keyboard import InlineKeyboardBuilder
 
 from flasks import flasks_solver
 from found_colors import found_colors_in_flasks, replace_in_json, create_image_for_replace, add_empty_flask, create_undef_buttons

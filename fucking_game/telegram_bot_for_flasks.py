@@ -12,18 +12,17 @@ Keep your token secure and store it safely, it can be used by anyone to control 
 For a description of the Bot API, see this page: https://core.telegram.org/bots/api
 """
 
-from aiogram import Bot, Dispatcher, Router, F  # Подключение библиотек
+from aiogram import Bot, Dispatcher, F  # Подключение библиотек
 from aiogram.filters import CommandStart, Command
-from aiogram.types import Message, ReplyKeyboardRemove, ReplyKeyboardMarkup, KeyboardButton, BufferedInputFile, BotCommand
+from aiogram.types import Message, ReplyKeyboardRemove, ReplyKeyboardMarkup, KeyboardButton, BufferedInputFile, BotCommand, InlineKeyboardButton, InlineKeyboardMarkup
+from aiogram.utils.keyboard import InlineKeyboardBuilder
 
-import json
 from flasks import flasks_solver
 from found_colors import found_colors_in_flasks, replace_in_json, create_image_for_replace, add_empty_flask
 import config
 
 import asyncio
 import logging
-import sys
 import os
 import shutil
 
@@ -117,7 +116,7 @@ async def solve(message: Message):
 # async def payment(message: Message):
 #     """Функция для покупки попыток"""
 #     await message.answer(message.text)
-    
+
 
 @dp.message(F.text == 'Reload image')
 @dp.message(F.text == 'Add an empty flask')
@@ -171,10 +170,19 @@ async def download_photoes(message:Message, bot: Bot):
 
         if message.text == 'Add an empty flask':
             # Добавляем пустую колбу
-            add_empty_flask(json_name=f"./levels/start_level_{message.from_user.id}.json")
+            add_empty_flask(json_name=f"./tmp/start_level_{message.from_user.id}.json")
 
         # Подготавливаем картинку, в которой подсвечиваем неопределенные области
-        create_image_for_replace(json_name=f"./levels/start_level_{message.from_user.id}.json", id_client=message.from_user.id)
+        create_image_for_replace(json_name=f"./tmp/start_level_{message.from_user.id}.json", id_client=message.from_user.id)
+
+        feedback_button_set = [
+            [
+                InlineKeyboardButton(text='Feedback to me', url=f"tg://user?id={984089348}")
+            ]
+        ]
+        feedback_button = InlineKeyboardBuilder(
+            feedback_button_set
+        )
 
         # Изображение, где подсвечивается первый неопределенный цвет
         with open(f'./tmp/level_for_{message.from_user.id}.jpg', 'rb') as open_image:
@@ -183,9 +191,13 @@ async def download_photoes(message:Message, bot: Bot):
                     open_image.read(),
                     filename='solve_flasks'
                 ),
-                caption="Please select from the options provided the color that should be in place of the green circle",
-                reply_markup=keyboard_buttons
+                caption="If I recognized some colors incorrectly, please give me feedback by clicking the button below the message (send a photo and describe the problem)",
+                reply_markup=feedback_button.as_markup()
             )
+        await message.answer(
+            'Please select from the options provided the color that should be in place of the green circle',
+            reply_markup=keyboard_buttons
+        )
         config.start_replace = True
     else:
         await message.answer('Click on the button below please :)')
@@ -219,24 +231,24 @@ async def fill(message:Message):
                         config.undefined_colors['LIGHTLIGHT'] -= 1
                         if config.undefined_colors['LIGHTLIGHT'] == 0:
                             config.undefined_colors.pop('LIGHTLIGHT')
-                        replace_in_json(json_name=f"./levels/start_level_{message.from_user.id}.json", color_name='LIGHTLIGHT')
+                        replace_in_json(json_name=f"./tmp/start_level_{message.from_user.id}.json", color_name='LIGHTLIGHT')
                         break
                     elif variation == 'LIGHT BLUE':
                         config.undefined_colors['LIGHTBLUE'] -= 1
                         if config.undefined_colors['LIGHTBLUE'] == 0:
                             config.undefined_colors.pop('LIGHTBLUE')
-                        replace_in_json(json_name=f"./levels/start_level_{message.from_user.id}.json", color_name='LIGHTLIGHT')
+                        replace_in_json(json_name=f"./tmp/start_level_{message.from_user.id}.json", color_name='LIGHTLIGHT')
                         break
                     else:
                         config.undefined_colors[variation] -= 1
                         if config.undefined_colors[variation] == 0:
                             config.undefined_colors.pop(variation)
-                        replace_in_json(json_name=f"./levels/start_level_{message.from_user.id}.json", color_name=variation)
+                        replace_in_json(json_name=f"./tmp/start_level_{message.from_user.id}.json", color_name=variation)
                         break
                 
         if len(config.undefined_colors) == 0:
             config.start_replace = False
-            flasks_solver(input_file=f"./levels/start_level_{message.from_user.id}.json", output_file=f"./tmp/result_level_{message.from_user.id}.txt")
+            flasks_solver(input_file=f"./tmp/start_level_{message.from_user.id}.json", output_file=f"./tmp/result_level_{message.from_user.id}.txt")
 
             download_again = [
                 [
@@ -276,7 +288,6 @@ async def fill(message:Message):
                     )
             shutil.rmtree("./tmp")
             os.mkdir("./tmp")
-            # os.remove(f"./levels/start_level_{message.from_user.id}.json")
         else:
             color_buttons_list = []
             for color in config.undefined_colors.keys():
@@ -310,14 +321,14 @@ async def fill(message:Message):
                 one_time_keyboard=True,
                 input_field_placeholder='Choose a color'
             )
-            await message.answer(
-                "Зlease fill in the next one",
-                reply_markup=keyboard_buttons
-            )
 
             # Подготавливаем картинку, в которой подсвечиваем неопределенные области
-            create_image_for_replace(json_name=f"./levels/start_level_{message.from_user.id}.json", id_client=message.from_user.id)
+            create_image_for_replace(json_name=f"./tmp/start_level_{message.from_user.id}.json", id_client=message.from_user.id)
 
+            await message.answer(
+                "Please fill in the next one",
+                reply_markup=keyboard_buttons
+            )
             # Изображение, где подсвечивается первый неопределенный цвет
             with open(f'./tmp/level_for_{message.from_user.id}.jpg', 'rb') as open_image:
                 await message.answer_photo(

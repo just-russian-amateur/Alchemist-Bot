@@ -4,6 +4,8 @@ import numpy as np
 import json
 import os
 
+import config
+
 
 class BreakAction(Exception):
     pass
@@ -106,7 +108,7 @@ def create_color_list(image):
             cv2.RETR_TREE,
             cv2.CHAIN_APPROX_SIMPLE
         )
-
+        # TODO: реализовать поддержку 2 и более цветов друг за другом
         if len(contours_color) != 0:
             # В случае если контур был найден, определяем координаты и размеры прямоугольника с цветом
             color = []
@@ -201,7 +203,10 @@ def found_colors_in_flasks(image_for_search, id):
     original_image = cv2.imread(image_for_search)
     # Получение параметров размера изображения и вывод параметров обрезки
     height, width, _ = original_image.shape
-    cropped_height = [round(height * 0.125), round(height * 0.875)]
+    if config.reload_image == False:
+        cropped_height = [round(height * 0.125), round(height * 0.875)]
+    else:
+        cropped_height = [0, height]
     # Обрзка изображения под определенные границы (чтобы были видны только колбы)
     cropped_image = original_image[cropped_height[0]:cropped_height[1], 0:width]
     cv2.imwrite(image_for_search, cropped_image)

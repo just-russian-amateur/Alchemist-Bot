@@ -101,7 +101,7 @@ async def solve(message: Message):
             'Upload a new screenshot as an image, please',
             reply_markup=ReplyKeyboardRemove()
         )
-        config.solve_again = True
+        config.start_solve = True
     else:
         await message.answer('Click on the button below please :)')
 
@@ -123,15 +123,17 @@ async def solve(message: Message):
 @dp.message(F.photo)
 async def download_photoes(message:Message, bot: Bot):
     '''Функция получения и обработки фотографий'''
-    if config.start_solve == True or config.solve_again == True or config.reload_image == True:
-        await bot.download(
-            message.photo[-1],
-            destination=f'./images/{message.photo[-1].file_id}.jpg'
-        )
-        await message.answer("I'll try to recognize colors in the photo")
+    if config.start_solve == True or config.reload_image == True:
+        if config.reload_image == False:
+            config.image_for_load = f'./images/{message.photo[-1].file_id}.jpg'   # Сохраняем на всякий случай путь к картинке
+            await bot.download(
+                message.photo[-1],
+                destination=config.image_for_load
+            )
+            await message.answer("I'll try to recognize colors in the photo")
         
         # Распознаем цвета и добавляем их в список с последующей сериализации в json
-        config.undefined_colors = found_colors_in_flasks(image_for_search=f'./images/{message.photo[-1].file_id}.jpg', id=message.from_user.id)
+        config.undefined_colors = found_colors_in_flasks(image_for_search=config.image_for_load, id=message.from_user.id)
 
         color_buttons_list = []
         # Создание списка кнопок с цветмаи, которыми можно будет заменить неопределенные значения
@@ -180,9 +182,7 @@ async def download_photoes(message:Message, bot: Bot):
                 InlineKeyboardButton(text='Feedback to me', url=f"tg://user?id={984089348}")
             ]
         ]
-        feedback_button = InlineKeyboardBuilder(
-            feedback_button_set
-        )
+        feedback_button = InlineKeyboardMarkup(inline_keyboard=feedback_button_set)
 
         # Изображение, где подсвечивается первый неопределенный цвет
         with open(f'./tmp/level_for_{message.from_user.id}.jpg', 'rb') as open_image:
@@ -192,7 +192,7 @@ async def download_photoes(message:Message, bot: Bot):
                     filename='solve_flasks'
                 ),
                 caption="If I recognized some colors incorrectly, please give me feedback by clicking the button below the message (send a photo and describe the problem)",
-                reply_markup=feedback_button.as_markup()
+                reply_markup=feedback_button
             )
         await message.answer(
             'Please select from the options provided the color that should be in place of the green circle',
@@ -203,7 +203,6 @@ async def download_photoes(message:Message, bot: Bot):
         await message.answer('Click on the button below please :)')
     
     config.start_solve = False
-    config.solve_again = False
     config.reload_image = False
 
 
@@ -247,6 +246,18 @@ async def fill(message:Message):
                         break
                 
         if len(config.undefined_colors) == 0:
+            # Формируем итоговый json
+            create_image_for_replace(json_name=f"./tmp/start_level_{message.from_user.id}.json", id_client=message.from_user.id)
+            # Итоговое изображение
+            with open(f'./tmp/level_for_{message.from_user.id}.jpg', 'rb') as open_image:
+                await message.answer_photo(
+                    BufferedInputFile(
+                        open_image.read(),
+                        filename='solve_flasks'
+                    ),
+                    caption="I'll look for a solution from this position. Wait, this may take a while"
+                )
+
             config.start_replace = False
             flasks_solver(input_file=f"./tmp/start_level_{message.from_user.id}.json", output_file=f"./tmp/result_level_{message.from_user.id}.txt")
 
@@ -274,14 +285,14 @@ async def fill(message:Message):
                 one_time_keyboard=True
             )
 
-            with open(f"./tmp/result_level_{message.from_user.id}.txt", "r") as result:
-                if os.stat(result).st_size == 0:
-                    await message.answer(
-                        f'Unfortunately, I was unable to find a solution for this arrangement.\nIf you want to change the order of undefined colors, click "Reload image".\nIf you know all the colors, but the solution still hasn’t been found, then I can add another empty flask, to do this, click “Add an empty flask”\nOr you can upload a new image, to do this, click "Upload new image"',
-                        reply_markup=error_buttons
-                    )
-                    config.reload_image = True
-                else:
+            if os.stat(f"./tmp/result_level_{message.from_user.id}.txt").st_size == 0:
+                await message.answer(
+                    f'Unfortunately, I was unable to find a solution for this arrangement.\nIf you want to change the order of undefined colors, click "Reload image".\nIf you know all the colors, but the solution still hasn’t been found, then I can add another empty flask, to do this, click “Add an empty flask”\nOr you can upload a new image, to do this, click "Upload new image"',
+                    reply_markup=error_buttons
+                )
+                config.reload_image = True
+            else:
+                with open(f"./tmp/result_level_{message.from_user.id}.txt", "r") as result:
                     await message.answer(
                         f'I found a solution for you!\n{result.read()}\nLet me know if you want a solution for another screenshot :)',
                         reply_markup=download_buttons
@@ -290,6 +301,7 @@ async def fill(message:Message):
             os.mkdir("./tmp")
         else:
             color_buttons_list = []
+            # Создание списка кнопок с цветмаи, которыми можно будет заменить неопределенные значения
             for color in config.undefined_colors.keys():
                 for _ in range(config.undefined_colors[color]):
                     if color == 'LIGHTLIGHT':
@@ -299,6 +311,7 @@ async def fill(message:Message):
                     else:
                         color_buttons_list.append(KeyboardButton(text=color))
             color_buttons, button_line = [], []
+            # "Красивая" расстановка кнопок
             for i in range(len(color_buttons_list)):
                 if i % 3 == 0 and i == len(color_buttons_list) - 1:
                     color_buttons.append(button_line)

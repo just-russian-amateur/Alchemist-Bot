@@ -278,33 +278,63 @@ def replace_in_json(json_name, color_name):
         json.dump(file, this_level, indent=2)
 
 
-def create_image_for_replace(json_name):
+def create_image_for_replace(json_name, id_client):
     '''Функция для отрисовки изображения с подсветкой того цвета, который нужно заполнить'''
     with open(json_name, "r") as this_level:
         file = json.load(this_level)
     
-    # Создание пустого черного изображения
-    height, width = 1200, 1400
+    # Создание и сохранение пустого черного изображения
+    filename = f'./tmp/level_for_{id_client}.jpg'
+    height, width = 1800, 1400
     template = np.zeros((height, width, 3), np.uint8)
+    cv2.imwrite(filename, template)
 
-    _, flasks = file.items()
-    height_flask, width_flask = 160, 40
-    count_lines = np.trunc(len(flasks) / 6) + 1
-    centers_flasks = []
+    # Установка количества линий с колбами и размеров колбы
+    for _, flasks in file.items():
+        count_flasks = len(flasks)
+    height_flask, width_flask = 400, 100
+    count_lines = np.trunc(count_flasks / 6) + 1
+    flasks_centers = []
+    # Заполнение массива с центрами колб
     try:
-        for x in range(0, width, width / 7):
-            for y in range(0, height, height / (count_lines + 1)):
-                centers_flasks.append([x, y])
-                if len(centers_flasks) == len(flasks):
+        for y in range(int(height / (count_lines + 1)), height, int(height / (count_lines + 1))):
+            for x in range(int(width / 7), width, int(width / 7)):
+                flasks_centers.append([x, y])
+                if len(flasks_centers) == count_flasks:
                     raise BreakAction
     except BreakAction:
         pass
     
-    for _, flask in range(len(file.items())):
-        x1, y1 = centers_flasks[flask][0] - width_flask / 2, centers_flasks[flask][1] - height_flask / 2
-        x2, y2 = centers_flasks[flask][0] + width_flask / 2, centers_flasks[flask][1] + height_flask / 2
-        cv2.rectangle(template, (x1, y1), (x2, y2), (176, 176, 90), 3)
+    cnt_undef = 0
+    # Отрисовка всех колб с цветами и пустыми полями внутри них
+    for colors in range(len(flasks)):
+        x1, y1 = flasks_centers[colors][0] - width_flask / 2, flasks_centers[colors][1] - height_flask / 2
+        x2, y2 = flasks_centers[colors][0] + width_flask / 2, flasks_centers[colors][1] + height_flask / 2
+        flask_rect = cv2.rectangle(template, (int(x1), int(y1)), (int(x2), int(y2)), (176, 176, 90), 6)
+        cv2.imwrite(filename, flask_rect)
 
-        # for colors in range(len(flasks)):
-        
+        for color in range(len(flasks[colors])):
+            circle_x, circle_y = flasks_centers[colors][0], y2 - (y2 - y1) * (2 * color + 1) / 8
+            for variation in variations:
+                if flasks[colors][color] == 'UNDEFINED':
+                    cnt_undef += 1
+                    if cnt_undef == 1:
+                        color_circle = cv2.circle(template, (int(circle_x), int(circle_y)), 47, (0, 255, 0), 6)
+                    else:
+                        color_circle = cv2.circle(template, (int(circle_x), int(circle_y)), 47, (255, 255, 255), 6)
+                    break
+                elif flasks[colors][color] == variation[0]:
+                    color_circle = cv2.circle(template, (int(circle_x), int(circle_y)), 47, variation[2], -1)
+                    break
+            cv2.imwrite(filename, color_circle)
 
+
+def add_empty_flask(json_name):
+    '''Функция для добавления пустой колбы в конец json'''
+    with open(json_name, "r") as this_level:
+        file = json.load(this_level)
+
+    file['bottles'].append(['EMPTY', 'EMPTY', 'EMPTY', 'EMPTY'])
+
+    with open(json_name, "w") as this_level:
+        json.dump(file, this_level, indent=2)

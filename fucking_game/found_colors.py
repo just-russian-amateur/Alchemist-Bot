@@ -108,7 +108,6 @@ def create_color_list(image):
             cv2.RETR_TREE,
             cv2.CHAIN_APPROX_SIMPLE
         )
-        # TODO: реализовать поддержку 2 и более цветов друг за другом
         if len(contours_color) != 0:
             # В случае если контур был найден, определяем координаты и размеры прямоугольника с цветом
             color = []
@@ -125,8 +124,28 @@ def create_color_list(image):
                 if add_flag == True:
                     # Добавляем в список информацию о цвете и его местоположении
                     color_name = variation[0]
-                    colors_info.append([color_name, cnt[0]])
+                    colors_info.append([color_name, cnt[0], cnt[1]])
                     count_colors.append([variation[0]])
+                    
+    # TODO: реализовать поддержку 2 и более цветов друг за другом
+    if len(colors_info) > 1:
+        min_color_rect = min(
+            colors_info,
+            key=lambda
+            item:
+            item[2][0]
+        )[2][0]
+        idx_line = 0
+        while idx_line < len(colors_info):
+            if colors_info[idx_line][2][0] > 2.75 * min_color_rect:
+                for _ in range(2):
+                    colors_info.insert(idx_line, colors_info[idx_line])
+                idx_line += 2
+            elif colors_info[idx_line][2][0] > 1.75 * min_color_rect:
+                colors_info.insert(idx_line, colors_info[idx_line])
+                idx_line += 2
+            else:
+                idx_line += 1
     
     # Добавляем абсолютно пустую колбу, если список пуст
     if len(colors_info) == 0:

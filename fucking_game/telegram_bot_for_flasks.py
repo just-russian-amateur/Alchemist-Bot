@@ -23,7 +23,6 @@ import config
 import asyncio
 import logging
 import os
-import shutil
 
 
 API_TOKEN = '6987578051:AAG4TCXhhdMG1xSX2AjRJqu7Pqp4krpit_8'  # Токен для работы с API
@@ -336,7 +335,7 @@ async def fill(message:Message):
             else:
                 with open(f"./tmp/result_level_{message.from_user.id}.txt", "r") as result:
                     await message.answer(
-                        f'I found a solution for you!\n{result.read()}\nLet me know if you want a solution for another screenshot :)',
+                        f'I found a solution for you!\nPlease note that the flasks are numbered starting from 0, not 1!\n{result.read()}\nLet me know if you want a solution for another screenshot :)',
                         reply_markup=download_buttons
                     )
             # Удаление временных файлов

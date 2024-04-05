@@ -14,10 +14,10 @@ For a description of the Bot API, see this page: https://core.telegram.org/bots/
 
 from aiogram import Bot, Dispatcher, F  # Подключение библиотек
 from aiogram.filters import CommandStart, Command
-from aiogram.types import Message, ReplyKeyboardRemove, ReplyKeyboardMarkup, KeyboardButton, BufferedInputFile, BotCommand, InlineKeyboardButton, InlineKeyboardMarkup
+from aiogram.types import Message, CallbackQuery, BufferedInputFile, BotCommand, InlineKeyboardButton, InlineKeyboardMarkup
 
 from flasks import flasks_solver
-from found_colors import found_colors_in_flasks, replace_in_json, create_image_for_replace, add_empty_flask, create_undef_buttons
+from test_found import found_colors_in_flasks, replace_in_json, create_image_for_replace, add_empty_flask, create_undef_buttons
 import config
 
 import asyncio
@@ -45,93 +45,112 @@ async def send_welcome(message: Message):
     """Приветственная функция"""
     start_button_set = [
         [
-            KeyboardButton(text='Start solving'),
-            KeyboardButton(text='Help')
+            InlineKeyboardButton(text='Start solving', callback_data='start_solving'),
+            InlineKeyboardButton(text='Help', callback_data='help')
         ]
     ]
-    keyboard_buttons = ReplyKeyboardMarkup(
-        keyboard=start_button_set,
-        resize_keyboard=True,
-        one_time_keyboard=True,
-        input_field_placeholder='Click on the button'
-    )
+    keyboard_buttons = InlineKeyboardMarkup(inline_keyboard=start_button_set)
+
     await message.answer(
         f"Hello, {message.from_user.first_name}!\nI am a bot that will help you pour liquid into flasks and, most importantly, do it correctly, in other words, I am your savior :)\nThere is nothing difficult in working with me, but if you are doing this for the first time, then click the help button on the right for instructions :)",
         reply_markup=keyboard_buttons
     )
 
 
-@dp.message(F.text == 'Help')    #   Команда помощи
-@dp.message(Command('help'))
-async def help(message: Message):
-    """Функция помощи"""
+@dp.callback_query(F.data == 'help')    #   Команда помощи
+async def call_help(callback: CallbackQuery):
+    """Функция помощи (кнопка)"""
     after_help_button_set = [
         [
-            KeyboardButton(text='Start solving')
+            InlineKeyboardButton(text='Start solving', callback_data='start_solving')
         ]
     ]
-    keyboard_buttons = ReplyKeyboardMarkup(
-        keyboard=after_help_button_set,
-        resize_keyboard=True,
-        one_time_keyboard=True
-    )
-    if message.text == 'Help' or Command('help'):
+    keyboard_buttons = InlineKeyboardMarkup(inline_keyboard=after_help_button_set)
+
+    if callback.data == 'help':
+        await callback.message.answer(
+            "Welcome to a short passage of information about me :)\nIn order to restart me, you can enter the /start command.\nTo access help, you can use the /help command instead of the button.\n\nNow a few words about functionality:\n\t1. When you upload a screenshot, you need to upload it as a picture, not as a file, that is, in a chat with me, I should see your message as a full-fledged picture in half the screen :)\n\t2. The screenshot does not need to be cropped or compressed in any way, I will do it myself, so just send me the original image :)\n\t3. Upload for me an image with the initial position of the colors in the flasks (that is, 2 empty flasks and the remaining flasks are completely filled), this is the only way I can find a solution :)\nThat's basically all I wanted to tell you about myself, good luck!",
+            reply_markup=keyboard_buttons
+        )
+        await callback.answer()
+    else:
+        await callback.message.answer('Click on the button please :)')
+
+
+@dp.message(Command('help'))
+async def command_help(message: Message):
+    """Функция помощи (команда)"""
+    after_help_button_set = [
+        [
+            InlineKeyboardButton(text='Start solving', callback_data='start_solving')
+        ]
+    ]
+    keyboard_buttons = InlineKeyboardMarkup(inline_keyboard=after_help_button_set)
+
+    if Command('help'):
         await message.answer(
             "Welcome to a short passage of information about me :)\nIn order to restart me, you can enter the /start command.\nTo access help, you can use the /help command instead of the button.\n\nNow a few words about functionality:\n\t1. When you upload a screenshot, you need to upload it as a picture, not as a file, that is, in a chat with me, I should see your message as a full-fledged picture in half the screen :)\n\t2. The screenshot does not need to be cropped or compressed in any way, I will do it myself, so just send me the original image :)\n\t3. Upload for me an image with the initial position of the colors in the flasks (that is, 2 empty flasks and the remaining flasks are completely filled), this is the only way I can find a solution :)\nThat's basically all I wanted to tell you about myself, good luck!",
             reply_markup=keyboard_buttons
         )
     else:
-        await message.answer('Click on the button below please :)')
+        await message.answer('Click on the button please :)')
 
 
-@dp.message(F.text == 'Start solving')    #   Команды выбора режима распознавания
-@dp.message(F.text == 'Upload new image')
-async def solve(message: Message):
+@dp.callback_query(F.data == 'start_solving')    #   Команды выбора режима распознавания
+@dp.callback_query(F.data == 'upload_new_image')
+async def solve(callback: CallbackQuery):
     """Функция загрузки изображения"""
-    if message.text == 'Start solving':
-        await message.answer(
-            "So let's get started :)\nUpload the screenshot as an image, please",
-            reply_markup=ReplyKeyboardRemove()
-        )
+    if callback.data == 'start_solving':
+        await callback.message.answer("So let's get started :)\nUpload the screenshot as an image, please")
         config.start_solve = True
-    elif message.text == 'Upload new image':
-        await message.answer(
-            'Upload a new screenshot as an image, please',
-            reply_markup=ReplyKeyboardRemove()
-        )
+        await callback.answer()
+    elif callback.data == 'upload_new_image':
+        await callback.message.answer('Upload a new screenshot as an image, please')
         config.start_solve = True
+        await callback.answer()
     else:
-        await message.answer('Click on the button below please :)')
+        await callback.message.answer('Click on the button please :)')
 
 
 # @dp.message(Command("share"))    #   Команда поделиться
 # async def share(message: Message):
 #     """Функция для распространения"""
-#     await message.answer(message.text)
+#     await message.answer(F.data)
 
 
 # @dp.message(Command("payment"))    #   Команда покупки попыток
 # async def payment(message: Message):
 #     """Функция для покупки попыток"""
-#     await message.answer(message.text)
+#     await message.answer(F.data)
 
 
-@dp.message(F.text == 'Reload image')
-@dp.message(F.text == 'Add an empty flask')
 @dp.message(F.photo)
-async def download_photoes(message:Message, bot: Bot):
+async def get_photo(message: Message, bot: Bot):
     '''Функция получения и обработки фотографий'''
-    if config.start_solve == True or config.reload_image == True:
-        if config.reload_image == False:
-            config.image_for_load = f'./images/{message.photo[-1].file_id}.jpg'   # Сохраняем на всякий случай путь к картинке
-            await bot.download(
-                message.photo[-1],
-                destination=config.image_for_load
-            )
-            await message.answer("I'll try to recognize colors in the photo")
+    if config.start_solve == True:
+        config.image_for_load = f'./images/{message.photo[-1].file_id}.jpg'   # Сохраняем на всякий случай путь к картинке
+        in_file, out_file = f"./tmp/start_level_{message.from_user.id}.json", f"./tmp/result_level_{message.from_user.id}.txt"
+        level_file = f'./tmp/level_for_{message.from_user.id}.jpg'
+        await bot.download(
+            message.photo[-1],
+            destination=config.image_for_load
+        )
+        await message.answer("I'll try to recognize colors in the photo")
         
-        # Распознаем цвета и добавляем их в список с последующей сериализации в json
-        config.undefined_colors = found_colors_in_flasks(image_for_search=config.image_for_load, id=message.from_user.id)
+        try:
+            # Распознаем цвета и добавляем их в список с последующей сериализации в json
+            config.undefined_colors = found_colors_in_flasks(image_for_search=config.image_for_load, id=message.from_user.id)
+        except:
+            reload_img = [
+                    [
+                        InlineKeyboardButton(text='Upload new image', callback_data='upload_new_image')
+                    ]
+                ]
+            reload_button = InlineKeyboardMarkup(inline_keyboard=reload_img)
+            await message.answer(
+                'Download your flask level please :)',
+                reply_markup=reload_button
+            )
 
         if len(config.undefined_colors) != 0:
             color_buttons_list = []
@@ -139,26 +158,17 @@ async def download_photoes(message:Message, bot: Bot):
             for color in config.undefined_colors.keys():
                 for _ in range(config.undefined_colors[color]):
                     if color == 'LIGHTGREEN':
-                        color_buttons_list.append(KeyboardButton(text='LIGHT GREEN'))
+                        color_buttons_list.append(InlineKeyboardButton(text='LIGHT GREEN', callback_data='LIGHT GREEN'))
                     elif color == 'LIGHTBLUE':
-                        color_buttons_list.append(KeyboardButton(text='LIGHT BLUE'))
+                        color_buttons_list.append(InlineKeyboardButton(text='LIGHT BLUE', callback_data='LIGHT BLUE'))
                     else:
-                        color_buttons_list.append(KeyboardButton(text=color))
+                        color_buttons_list.append(InlineKeyboardButton(text=color, callback_data=color))
             color_buttons = create_undef_buttons(color_buttons_list)
 
-            keyboard_buttons = ReplyKeyboardMarkup(
-                keyboard=color_buttons,
-                resize_keyboard=True,
-                one_time_keyboard=True,
-                input_field_placeholder='Choose a color'
-            )
-
-            if message.text == 'Add an empty flask':
-                # Добавляем пустую колбу
-                add_empty_flask(json_name=f"./tmp/start_level_{message.from_user.id}.json")
+            keyboard_buttons = InlineKeyboardMarkup(inline_keyboard=color_buttons)
 
             # Подготавливаем картинку, в которой подсвечиваем неопределенные области
-            create_image_for_replace(json_name=f"./tmp/start_level_{message.from_user.id}.json", id_client=message.from_user.id)
+            create_image_for_replace(json_name=in_file, id_client=message.from_user.id)
 
             feedback_button_set = [
                 [
@@ -168,7 +178,7 @@ async def download_photoes(message:Message, bot: Bot):
             feedback_button = InlineKeyboardMarkup(inline_keyboard=feedback_button_set)
 
             # Изображение, где подсвечивается первый неопределенный цвет
-            with open(f'./tmp/level_for_{message.from_user.id}.jpg', 'rb') as open_image:
+            with open(level_file, 'rb') as open_image:
                 await message.answer_photo(
                     BufferedInputFile(
                         open_image.read(),
@@ -184,194 +194,305 @@ async def download_photoes(message:Message, bot: Bot):
             config.start_replace = True
         else:
             # Формируем итоговый json
-            create_image_for_replace(json_name=f"./tmp/start_level_{message.from_user.id}.json", id_client=message.from_user.id)
+            create_image_for_replace(json_name=in_file, id_client=message.from_user.id)
             # Итоговое изображение
-            with open(f'./tmp/level_for_{message.from_user.id}.jpg', 'rb') as open_image:
+            await message.delete()
+            with open(level_file, 'rb') as open_image:
                 await message.answer_photo(
                     BufferedInputFile(
                         open_image.read(),
                         filename='solve_flasks'
                     ),
-                    caption="I'll look for a solution from this position. Wait, this may take a while",
-                    reply_markup=ReplyKeyboardRemove()
+                    caption="I'll look for a solution from this position. Wait, this may take a while"
                 )
 
             config.start_replace = False
-            flasks_solver(input_file=f"./tmp/start_level_{message.from_user.id}.json", output_file=f"./tmp/result_level_{message.from_user.id}.txt")
+            flasks_solver(input_file=in_file, output_file=out_file)
 
             download_again = [
                 [
-                    KeyboardButton(text='Upload new image')
+                    InlineKeyboardButton(text='Upload new image', callback_data='upload_new_image')
                 ]
             ]
-            download_buttons = ReplyKeyboardMarkup(
-                keyboard=download_again,
-                resize_keyboard=True,
-                one_time_keyboard=True
-            )
+            download_buttons = InlineKeyboardMarkup(inline_keyboard=download_again)
 
             errors = [
                 [
-                    KeyboardButton(text='Reload image'),
-                    KeyboardButton(text='Add an empty flask'),
-                    KeyboardButton(text='Upload new image')
+                    InlineKeyboardButton(text='Reload image', callback_data='reload_image'),
+                    InlineKeyboardButton(text='Add an empty flask', callback_data='add_an_empty_flask')
+                ],
+                [
+                    InlineKeyboardButton(text='Upload new image', callback_data='upload_new_image')
                 ]
             ]
-            error_buttons = ReplyKeyboardMarkup(
-                keyboard=errors,
-                resize_keyboard=True,
-                one_time_keyboard=True
-            )
+            error_buttons = InlineKeyboardMarkup(inline_keyboard=errors)
 
-            if os.stat(f"./tmp/result_level_{message.from_user.id}.txt").st_size == 0:
+            if os.stat(out_file).st_size == 0 or os.path.isfile(out_file) == False:
                 await message.answer(
                     f'Unfortunately, I was unable to find a solution for this arrangement.\nIf you want to change the order of undefined colors, click "Reload image".\nIf you know all the colors, but the solution still hasn’t been found, then I can add another empty flask, to do this, click “Add an empty flask”\nOr you can upload a new image, to do this, click "Upload new image"',
                     reply_markup=error_buttons
                 )
                 config.reload_image = True
             else:
-                with open(f"./tmp/result_level_{message.from_user.id}.txt", "r") as result:
+                with open(out_file, "r") as result:
                     await message.answer(
                         f'I found a solution for you!\nPlease note that the flasks are numbered starting from 0, not 1!\n{result.read()}\nLet me know if you want a solution for another screenshot :)',
                         reply_markup=download_buttons
                     )
             # Удаление временных файлов
-            os.remove(f"./tmp/result_level_{message.from_user.id}.txt")
-            os.remove(f"./tmp/start_level_{message.from_user.id}.json")
-            os.remove(f"./tmp/level_for_{message.from_user.id}.jpg")
+            os.remove(out_file)
+            os.remove(in_file)
+            os.remove(level_file)
     else:
-        await message.answer('Click on the button below please :)')
+        await message.answer('Click on the button please :)')
     
     config.start_solve = False
+
+
+@dp.callback_query(F.data == 'reload_image')
+@dp.callback_query(F.data == 'add_an_empty_flask')
+async def reload_photo(callback: CallbackQuery):
+    '''Функция получения и обработки фотографий'''
+    if config.reload_image == True:
+        in_file, out_file = f"./tmp/start_level_{callback.from_user.id}.json", f"./tmp/result_level_{callback.from_user.id}.txt"
+        level_file = f'./tmp/level_for_{callback.from_user.id}.jpg'
+        try:
+            # Распознаем цвета и добавляем их в список с последующей сериализации в json
+            config.undefined_colors = found_colors_in_flasks(image_for_search=config.image_for_load, id=callback.from_user.id)
+        except:
+            reload_img = [
+                    [
+                        InlineKeyboardButton(text='Upload new image', callback_data='upload_new_image')
+                    ]
+                ]
+            reload_button = InlineKeyboardMarkup(inline_keyboard=reload_img)
+            await callback.message.answer(
+                'Download your flask level please :)',
+                reply_markup=reload_button
+            )
+            await callback.answer()
+
+        if len(config.undefined_colors) != 0:
+            color_buttons_list = []
+            # Создание списка кнопок с цветмаи, которыми можно будет заменить неопределенные значения
+            for color in config.undefined_colors.keys():
+                for _ in range(config.undefined_colors[color]):
+                    if color == 'LIGHTGREEN':
+                        color_buttons_list.append(InlineKeyboardButton(text='LIGHT GREEN', callback_data='LIGHT GREEN'))
+                    elif color == 'LIGHTBLUE':
+                        color_buttons_list.append(InlineKeyboardButton(text='LIGHT BLUE', callback_data='LIGHT BLUE'))
+                    else:
+                        color_buttons_list.append(InlineKeyboardButton(text=color, callback_data=color))
+            color_buttons = create_undef_buttons(color_buttons_list)
+
+            keyboard_buttons = InlineKeyboardMarkup(inline_keyboard=color_buttons)
+
+            if callback.data == 'add_an_empty_flask':
+                # Добавляем пустую колбу
+                add_empty_flask(json_name=in_file)
+                
+            # Подготавливаем картинку, в которой подсвечиваем неопределенные области
+            create_image_for_replace(json_name=in_file, id_client=callback.from_user.id)
+
+            feedback_button_set = [
+                [
+                    InlineKeyboardButton(text='Feedback to me', url=f"tg://user?id={984089348}")
+                ]
+            ]
+            feedback_button = InlineKeyboardMarkup(inline_keyboard=feedback_button_set)
+
+            # Изображение, где подсвечивается первый неопределенный цвет
+            with open(level_file, 'rb') as open_image:
+                await callback.message.answer_photo(
+                    BufferedInputFile(
+                        open_image.read(),
+                        filename='solve_flasks'
+                    ),
+                    caption="If I recognized some colors incorrectly, please give me feedback by clicking the button below the message (send a photo and describe the problem)",
+                    reply_markup=feedback_button
+                )
+            await callback.message.answer(
+                'Please select from the options provided the color that should be in place of the green circle',
+                reply_markup=keyboard_buttons
+            )
+            config.start_replace = True
+            await callback.answer()
+        else:
+            # Формируем итоговый json
+            create_image_for_replace(json_name=in_file, id_client=callback.from_user.id)
+            # Итоговое изображение
+            await callback.message.delete()
+            with open(level_file, 'rb') as open_image:
+                await callback.message.answer_photo(
+                    BufferedInputFile(
+                        open_image.read(),
+                        filename='solve_flasks'
+                    ),
+                    caption="I'll look for a solution from this position. Wait, this may take a while"
+                )
+
+            config.start_replace = False
+            flasks_solver(input_file=in_file, output_file=out_file)
+
+            download_again = [
+                [
+                    InlineKeyboardButton(text='Upload new image', callback_data='upload_new_image')
+                ]
+            ]
+            download_buttons = InlineKeyboardMarkup(inline_keyboard=download_again)
+
+            errors = [
+                [
+                    InlineKeyboardButton(text='Reload image', callback_data='reload_image'),
+                    InlineKeyboardButton(text='Add an empty flask', callback_data='add_an_empty_flask')
+                ],
+                [
+                    InlineKeyboardButton(text='Upload new image', callback_data='upload_new_image')
+                ]
+            ]
+            error_buttons = InlineKeyboardMarkup(inline_keyboard=errors)
+
+            if os.stat(out_file).st_size == 0 or os.path.isfile(out_file) == False:
+                await callback.message.answer(
+                    f'Unfortunately, I was unable to find a solution for this arrangement.\nIf you want to change the order of undefined colors, click "Reload image".\nIf you know all the colors, but the solution still hasn’t been found, then I can add another empty flask, to do this, click “Add an empty flask”\nOr you can upload a new image, to do this, click "Upload new image"',
+                    reply_markup=error_buttons
+                )
+                config.reload_image = True
+                await callback.answer()
+            else:
+                with open(out_file, "r") as result:
+                    await callback.message.answer(
+                        f'I found a solution for you!\nPlease note that the flasks are numbered starting from 0, not 1!\n{result.read()}\nLet me know if you want a solution for another screenshot :)',
+                        reply_markup=download_buttons
+                    )
+                    await callback.answer()
+            # Удаление временных файлов
+            os.remove(out_file)
+            os.remove(in_file)
+            os.remove(level_file)
+        
+    else:
+        await callback.message.answer('Click on the button please :)')
+    
     config.reload_image = False
 
 
-@dp.message(F.text == "LIGHT BLUE")
-@dp.message(F.text == "ORANGE")
-@dp.message(F.text == "YELLOW")
-@dp.message(F.text == "RED")
-@dp.message(F.text == "LIGHT GREEN")
-@dp.message(F.text == "BLUE")
-@dp.message(F.text == "BURGUNDY")
-@dp.message(F.text == "GREEN")
-@dp.message(F.text == "PINK")
-@dp.message(F.text == "CRIMSON")
-@dp.message(F.text == "CREAM")
-@dp.message(F.text == "PURPLE")
-@dp.message(F.text == "GRAY")
-@dp.message(F.text == "LILAC")
-async def fill(message:Message):
+@dp.callback_query(F.data == "LIGHT BLUE")
+@dp.callback_query(F.data == "ORANGE")
+@dp.callback_query(F.data == "YELLOW")
+@dp.callback_query(F.data == "RED")
+@dp.callback_query(F.data == "LIGHT GREEN")
+@dp.callback_query(F.data == "BLUE")
+@dp.callback_query(F.data == "BURGUNDY")
+@dp.callback_query(F.data == "GREEN")
+@dp.callback_query(F.data == "PINK")
+@dp.callback_query(F.data == "CRIMSON")
+@dp.callback_query(F.data == "CREAM")
+@dp.callback_query(F.data == "PURPLE")
+@dp.callback_query(F.data == "GRAY")
+@dp.callback_query(F.data == "LILAC")
+async def fill(callback: CallbackQuery):
     '''Функция дозаполнения неопределенных цветов вручную'''
     if config.start_replace == True:
+        in_file, out_file = f"./tmp/start_level_{callback.from_user.id}.json", f"./tmp/result_level_{callback.from_user.id}.txt"
+        level_file = f'./tmp/level_for_{callback.from_user.id}.jpg'
         if len(config.undefined_colors) != 0:
             for variation in config.color_variations:
-                if message.text == variation:
+                if callback.data == variation:
                     if variation == 'LIGHT GREEN':
                         config.undefined_colors['LIGHTGREEN'] -= 1
                         if config.undefined_colors['LIGHTGREEN'] == 0:
                             config.undefined_colors.pop('LIGHTGREEN')
-                        replace_in_json(json_name=f"./tmp/start_level_{message.from_user.id}.json", color_name='LIGHTGREEN')
+                        replace_in_json(json_name=in_file, color_name='LIGHTGREEN')
                         break
                     elif variation == 'LIGHT BLUE':
                         config.undefined_colors['LIGHTBLUE'] -= 1
                         if config.undefined_colors['LIGHTBLUE'] == 0:
                             config.undefined_colors.pop('LIGHTBLUE')
-                        replace_in_json(json_name=f"./tmp/start_level_{message.from_user.id}.json", color_name='LIGHTBLUE')
+                        replace_in_json(json_name=in_file, color_name='LIGHTBLUE')
                         break
                     else:
                         config.undefined_colors[variation] -= 1
                         if config.undefined_colors[variation] == 0:
                             config.undefined_colors.pop(variation)
-                        replace_in_json(json_name=f"./tmp/start_level_{message.from_user.id}.json", color_name=variation)
+                        replace_in_json(json_name=in_file, color_name=variation)
                         break
                 
         if len(config.undefined_colors) == 0:
             # Формируем итоговый json
-            create_image_for_replace(json_name=f"./tmp/start_level_{message.from_user.id}.json", id_client=message.from_user.id)
+            create_image_for_replace(json_name=in_file, id_client=callback.from_user.id)
             # Итоговое изображение
-            with open(f'./tmp/level_for_{message.from_user.id}.jpg', 'rb') as open_image:
-                await message.answer_photo(
+            await callback.message.delete()
+            with open(level_file, 'rb') as open_image:
+                await callback.message.answer_photo(
                     BufferedInputFile(
                         open_image.read(),
                         filename='solve_flasks'
                     ),
-                    caption="I'll look for a solution from this position. Wait, this may take a while",
-                    reply_markup=ReplyKeyboardRemove()
+                    caption="I'll look for a solution from this position. Wait, this may take a while"
                 )
 
             config.start_replace = False
-            flasks_solver(input_file=f"./tmp/start_level_{message.from_user.id}.json", output_file=f"./tmp/result_level_{message.from_user.id}.txt")
+            flasks_solver(input_file=in_file, output_file=out_file)
 
             download_again = [
                 [
-                    KeyboardButton(text='Upload new image')
+                    InlineKeyboardButton(text='Upload new image', callback_data='upload_new_image')
                 ]
             ]
-            download_buttons = ReplyKeyboardMarkup(
-                keyboard=download_again,
-                resize_keyboard=True,
-                one_time_keyboard=True
-            )
+            download_buttons = InlineKeyboardMarkup(inline_keyboard=download_again)
 
             errors = [
                 [
-                    KeyboardButton(text='Reload image'),
-                    KeyboardButton(text='Add an empty flask'),
-                    KeyboardButton(text='Upload new image')
+                    InlineKeyboardButton(text='Reload image', callback_data='reload_image'),
+                    InlineKeyboardButton(text='Add an empty flask', callback_data='add_an_empty_flask')
+                ],
+                [
+                    InlineKeyboardButton(text='Upload new image', callback_data='upload_new_image')
                 ]
             ]
-            error_buttons = ReplyKeyboardMarkup(
-                keyboard=errors,
-                resize_keyboard=True,
-                one_time_keyboard=True
-            )
+            error_buttons = InlineKeyboardMarkup(inline_keyboard=errors)
 
-            if os.stat(f"./tmp/result_level_{message.from_user.id}.txt").st_size == 0:
-                await message.answer(
+            if os.stat(out_file).st_size == 0 or os.path.isfile(out_file) == False:
+                await callback.message.answer(
                     f'Unfortunately, I was unable to find a solution for this arrangement.\nIf you want to change the order of undefined colors, click "Reload image".\nIf you know all the colors, but the solution still hasn’t been found, then I can add another empty flask, to do this, click “Add an empty flask”\nOr you can upload a new image, to do this, click "Upload new image"',
                     reply_markup=error_buttons
                 )
                 config.reload_image = True
+                await callback.answer()
             else:
-                with open(f"./tmp/result_level_{message.from_user.id}.txt", "r") as result:
-                    await message.answer(
+                with open(out_file, "r") as result:
+                    await callback.message.answer(
                         f'I found a solution for you!\nPlease note that the flasks are numbered starting from 0, not 1!\n{result.read()}\nLet me know if you want a solution for another screenshot :)',
                         reply_markup=download_buttons
                     )
+                    await callback.answer()
             # Удаление временных файлов
-            os.remove(f"./tmp/result_level_{message.from_user.id}.txt")
-            os.remove(f"./tmp/start_level_{message.from_user.id}.json")
-            os.remove(f"./tmp/level_for_{message.from_user.id}.jpg")
+            os.remove(out_file)
+            os.remove(in_file)
+            os.remove(level_file)
         else:
             color_buttons_list = []
             # Создание списка кнопок с цветмаи, которыми можно будет заменить неопределенные значения
             for color in config.undefined_colors.keys():
                 for _ in range(config.undefined_colors[color]):
                     if color == 'LIGHTGREEN':
-                        color_buttons_list.append(KeyboardButton(text='LIGHT GREEN'))
+                        color_buttons_list.append(InlineKeyboardButton(text='LIGHT GREEN', callback_data='LIGHT GREEN'))
                     elif color == 'LIGHTBLUE':
-                        color_buttons_list.append(KeyboardButton(text='LIGHT BLUE'))
+                        color_buttons_list.append(InlineKeyboardButton(text='LIGHT BLUE', callback_data='LIGHT BLUE'))
                     else:
-                        color_buttons_list.append(KeyboardButton(text=color))
+                        color_buttons_list.append(InlineKeyboardButton(text=color, callback_data=color))
             color_buttons = create_undef_buttons(color_buttons_list)
 
-            keyboard_buttons = ReplyKeyboardMarkup(
-                keyboard=color_buttons,
-                resize_keyboard=True,
-                one_time_keyboard=True,
-                input_field_placeholder='Choose a color'
-            )
+            keyboard_buttons = InlineKeyboardMarkup(inline_keyboard=color_buttons)
 
             # Подготавливаем картинку, в которой подсвечиваем неопределенные области
-            create_image_for_replace(json_name=f"./tmp/start_level_{message.from_user.id}.json", id_client=message.from_user.id)
+            create_image_for_replace(json_name=in_file, id_client=callback.from_user.id)
 
-            await message.answer(
-                "Please fill in the next one",
-                reply_markup=keyboard_buttons
-            )
             # Изображение, где подсвечивается первый неопределенный цвет
-            with open(f'./tmp/level_for_{message.from_user.id}.jpg', 'rb') as open_image:
-                await message.answer_photo(
+            await callback.message.delete()
+            with open(level_file, 'rb') as open_image:
+                await callback.message.answer_photo(
                     BufferedInputFile(
                         open_image.read(),
                         filename='solve_flasks'
@@ -379,8 +500,9 @@ async def fill(message:Message):
                     caption="Please select from the options provided the color that should be in place of the green circle",
                     reply_markup=keyboard_buttons
                 )
+                await callback.answer()
     else:
-        await message.answer('Click on the button below please :)')
+        await callback.message.answer('Click on the button below please :)')
 
 
 async def clue(bot: Bot):

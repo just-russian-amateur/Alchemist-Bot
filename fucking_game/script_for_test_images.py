@@ -50,7 +50,7 @@ def preprocessing_image(image):
     # Пороговая обработка изображения
     thresholder = cv2.threshold(
         blurred,
-        68,
+        68,# 66.6, Возможно заменю
         255,
         cv2.THRESH_BINARY
     )[1]
@@ -65,13 +65,13 @@ def found_rect(filename, contour, my_list, coeff_width, coeff_height, is_flask):
     if is_flask ==True:
         if rect[1][0] >= coeff_height and rect[1][1] >= coeff_height:
             my_list.append(rect)
-            # draw_contours(filename, box, (255, 255, 255))
+            draw_contours(filename, box, (255, 255, 255))
     else:
         if (rect[1][0] >= rect[1][1] and rect[1][1] >= coeff_width and rect[1][0] >= coeff_height) or \
             (rect[1][0] < rect[1][1] and rect[1][0] >= coeff_width and rect[1][1] >= coeff_height):
             # Добавляем прямоугольники с колбами в список
             my_list.append(rect)
-            # draw_contours(filename, box, (255, 255, 255))
+            draw_contours(filename, box, (255, 255, 255))
 
     return my_list, box
 
@@ -252,7 +252,7 @@ def create_json(flasks_list, id_client):
 
 
 if __name__ == '__main__':
-    for i in range(117, 0, -1):
+    for i in range(118, 0, -1):
         with open(f"./fucking_game/out_test/{i}.jpg", "r") as img:
             id = i
             found_colors_in_flasks(img.name, id)

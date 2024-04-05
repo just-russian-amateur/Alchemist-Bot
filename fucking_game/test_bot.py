@@ -67,7 +67,7 @@ async def call_help(callback: CallbackQuery):
     ]
     keyboard_buttons = InlineKeyboardMarkup(inline_keyboard=after_help_button_set)
 
-    if F.data == 'help':
+    if callback.data == 'help':
         await callback.message.answer(
             "Welcome to a short passage of information about me :)\nIn order to restart me, you can enter the /start command.\nTo access help, you can use the /help command instead of the button.\n\nNow a few words about functionality:\n\t1. When you upload a screenshot, you need to upload it as a picture, not as a file, that is, in a chat with me, I should see your message as a full-fledged picture in half the screen :)\n\t2. The screenshot does not need to be cropped or compressed in any way, I will do it myself, so just send me the original image :)\n\t3. Upload for me an image with the initial position of the colors in the flasks (that is, 2 empty flasks and the remaining flasks are completely filled), this is the only way I can find a solution :)\nThat's basically all I wanted to tell you about myself, good luck!",
             reply_markup=keyboard_buttons
@@ -75,7 +75,6 @@ async def call_help(callback: CallbackQuery):
         await callback.answer()
     else:
         await callback.message.answer('Click on the button please :)')
-        await callback.answer()
 
 
 @dp.message(Command('help'))
@@ -101,17 +100,16 @@ async def command_help(message: Message):
 @dp.callback_query(F.data == 'upload_new_image')
 async def solve(callback: CallbackQuery):
     """Функция загрузки изображения"""
-    if F.data == 'start_solving':
+    if callback.data == 'start_solving':
         await callback.message.answer("So let's get started :)\nUpload the screenshot as an image, please")
         config.start_solve = True
         await callback.answer()
-    elif F.data == 'upload_new_image':
+    elif callback.data == 'upload_new_image':
         await callback.message.answer('Upload a new screenshot as an image, please')
         config.start_solve = True
         await callback.answer()
     else:
         await callback.message.answer('Click on the button please :)')
-        await callback.answer()
 
 
 # @dp.message(Command("share"))    #   Команда поделиться
@@ -198,6 +196,7 @@ async def get_photo(message: Message, bot: Bot):
             # Формируем итоговый json
             create_image_for_replace(json_name=in_file, id_client=message.from_user.id)
             # Итоговое изображение
+            await message.delete()
             with open(level_file, 'rb') as open_image:
                 await message.answer_photo(
                     BufferedInputFile(
@@ -220,7 +219,9 @@ async def get_photo(message: Message, bot: Bot):
             errors = [
                 [
                     InlineKeyboardButton(text='Reload image', callback_data='reload_image'),
-                    InlineKeyboardButton(text='Add an empty flask', callback_data='add_an_empty_flask'),
+                    InlineKeyboardButton(text='Add an empty flask', callback_data='add_an_empty_flask')
+                ],
+                [
                     InlineKeyboardButton(text='Upload new image', callback_data='upload_new_image')
                 ]
             ]
@@ -241,7 +242,7 @@ async def get_photo(message: Message, bot: Bot):
             # Удаление временных файлов
             os.remove(out_file)
             os.remove(in_file)
-            os.remove(level_file)        
+            os.remove(level_file)
     else:
         await message.answer('Click on the button please :)')
     
@@ -253,11 +254,11 @@ async def get_photo(message: Message, bot: Bot):
 async def reload_photo(callback: CallbackQuery):
     '''Функция получения и обработки фотографий'''
     if config.reload_image == True:
-        in_file, out_file = f"./tmp/start_level_{callback.message.from_user.id}.json", f"./tmp/result_level_{callback.message.from_user.id}.txt"
-        level_file = f'./tmp/level_for_{callback.message.from_user.id}.jpg'
+        in_file, out_file = f"./tmp/start_level_{callback.from_user.id}.json", f"./tmp/result_level_{callback.from_user.id}.txt"
+        level_file = f'./tmp/level_for_{callback.from_user.id}.jpg'
         try:
             # Распознаем цвета и добавляем их в список с последующей сериализации в json
-            config.undefined_colors = found_colors_in_flasks(image_for_search=config.image_for_load, id=callback.message.from_user.id)
+            config.undefined_colors = found_colors_in_flasks(image_for_search=config.image_for_load, id=callback.from_user.id)
         except:
             reload_img = [
                     [
@@ -286,12 +287,12 @@ async def reload_photo(callback: CallbackQuery):
 
             keyboard_buttons = InlineKeyboardMarkup(inline_keyboard=color_buttons)
 
-            if F.data == 'add_an_empty_flask':
+            if callback.data == 'add_an_empty_flask':
                 # Добавляем пустую колбу
-                add_empty_flask(json_name=level_file)
-
+                add_empty_flask(json_name=in_file)
+                
             # Подготавливаем картинку, в которой подсвечиваем неопределенные области
-            create_image_for_replace(json_name=in_file, id_client=callback.message.from_user.id)
+            create_image_for_replace(json_name=in_file, id_client=callback.from_user.id)
 
             feedback_button_set = [
                 [
@@ -310,7 +311,6 @@ async def reload_photo(callback: CallbackQuery):
                     caption="If I recognized some colors incorrectly, please give me feedback by clicking the button below the message (send a photo and describe the problem)",
                     reply_markup=feedback_button
                 )
-                await callback.answer()
             await callback.message.answer(
                 'Please select from the options provided the color that should be in place of the green circle',
                 reply_markup=keyboard_buttons
@@ -319,8 +319,9 @@ async def reload_photo(callback: CallbackQuery):
             await callback.answer()
         else:
             # Формируем итоговый json
-            create_image_for_replace(json_name=in_file, id_client=callback.message.from_user.id)
+            create_image_for_replace(json_name=in_file, id_client=callback.from_user.id)
             # Итоговое изображение
+            await callback.message.delete()
             with open(level_file, 'rb') as open_image:
                 await callback.message.answer_photo(
                     BufferedInputFile(
@@ -329,7 +330,6 @@ async def reload_photo(callback: CallbackQuery):
                     ),
                     caption="I'll look for a solution from this position. Wait, this may take a while"
                 )
-                await callback.answer()
 
             config.start_replace = False
             flasks_solver(input_file=in_file, output_file=out_file)
@@ -344,7 +344,9 @@ async def reload_photo(callback: CallbackQuery):
             errors = [
                 [
                     InlineKeyboardButton(text='Reload image', callback_data='reload_image'),
-                    InlineKeyboardButton(text='Add an empty flask', callback_data='add_an_empty_flask'),
+                    InlineKeyboardButton(text='Add an empty flask', callback_data='add_an_empty_flask')
+                ],
+                [
                     InlineKeyboardButton(text='Upload new image', callback_data='upload_new_image')
                 ]
             ]
@@ -365,9 +367,9 @@ async def reload_photo(callback: CallbackQuery):
                     )
                     await callback.answer()
             # Удаление временных файлов
-            os.remove(f"./tmp/result_level_{callback.message.from_user.id}.txt")
-            os.remove(f"./tmp/start_level_{callback.message.from_user.id}.json")
-            os.remove(f"./tmp/level_for_{callback.message.from_user.id}.jpg")
+            os.remove(out_file)
+            os.remove(in_file)
+            os.remove(level_file)
         
     else:
         await callback.message.answer('Click on the button please :)')
@@ -392,11 +394,11 @@ async def reload_photo(callback: CallbackQuery):
 async def fill(callback: CallbackQuery):
     '''Функция дозаполнения неопределенных цветов вручную'''
     if config.start_replace == True:
-        in_file, out_file = f"./tmp/start_level_{callback.message.from_user.id}.json", f"./tmp/result_level_{callback.message.from_user.id}.txt"
-        level_file = f'./tmp/level_for_{callback.message.from_user.id}.jpg'
+        in_file, out_file = f"./tmp/start_level_{callback.from_user.id}.json", f"./tmp/result_level_{callback.from_user.id}.txt"
+        level_file = f'./tmp/level_for_{callback.from_user.id}.jpg'
         if len(config.undefined_colors) != 0:
             for variation in config.color_variations:
-                if F.data == variation:
+                if callback.data == variation:
                     if variation == 'LIGHT GREEN':
                         config.undefined_colors['LIGHTGREEN'] -= 1
                         if config.undefined_colors['LIGHTGREEN'] == 0:
@@ -418,8 +420,9 @@ async def fill(callback: CallbackQuery):
                 
         if len(config.undefined_colors) == 0:
             # Формируем итоговый json
-            create_image_for_replace(json_name=in_file, id_client=callback.message.from_user.id)
+            create_image_for_replace(json_name=in_file, id_client=callback.from_user.id)
             # Итоговое изображение
+            await callback.message.delete()
             with open(level_file, 'rb') as open_image:
                 await callback.message.answer_photo(
                     BufferedInputFile(
@@ -428,7 +431,6 @@ async def fill(callback: CallbackQuery):
                     ),
                     caption="I'll look for a solution from this position. Wait, this may take a while"
                 )
-                await callback.answer()
 
             config.start_replace = False
             flasks_solver(input_file=in_file, output_file=out_file)
@@ -443,7 +445,9 @@ async def fill(callback: CallbackQuery):
             errors = [
                 [
                     InlineKeyboardButton(text='Reload image', callback_data='reload_image'),
-                    InlineKeyboardButton(text='Add an empty flask', callback_data='add_an_empty_flask'),
+                    InlineKeyboardButton(text='Add an empty flask', callback_data='add_an_empty_flask')
+                ],
+                [
                     InlineKeyboardButton(text='Upload new image', callback_data='upload_new_image')
                 ]
             ]
@@ -455,12 +459,14 @@ async def fill(callback: CallbackQuery):
                     reply_markup=error_buttons
                 )
                 config.reload_image = True
+                await callback.answer()
             else:
                 with open(out_file, "r") as result:
                     await callback.message.answer(
                         f'I found a solution for you!\nPlease note that the flasks are numbered starting from 0, not 1!\n{result.read()}\nLet me know if you want a solution for another screenshot :)',
                         reply_markup=download_buttons
                     )
+                    await callback.answer()
             # Удаление временных файлов
             os.remove(out_file)
             os.remove(in_file)
@@ -481,10 +487,10 @@ async def fill(callback: CallbackQuery):
             keyboard_buttons = InlineKeyboardMarkup(inline_keyboard=color_buttons)
 
             # Подготавливаем картинку, в которой подсвечиваем неопределенные области
-            create_image_for_replace(json_name=in_file, id_client=callback.message.from_user.id)
+            create_image_for_replace(json_name=in_file, id_client=callback.from_user.id)
 
-            await callback.message.answer("Please fill in the next one")
             # Изображение, где подсвечивается первый неопределенный цвет
+            await callback.message.delete()
             with open(level_file, 'rb') as open_image:
                 await callback.message.answer_photo(
                     BufferedInputFile(
@@ -494,6 +500,7 @@ async def fill(callback: CallbackQuery):
                     caption="Please select from the options provided the color that should be in place of the green circle",
                     reply_markup=keyboard_buttons
                 )
+                await callback.answer()
     else:
         await callback.message.answer('Click on the button below please :)')
 

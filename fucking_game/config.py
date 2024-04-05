@@ -5,6 +5,6 @@ image_for_load = ''   # Сохраняем путь до исходной кар
 undefined_colors = dict()   # Список неопределенных цветов
 # Вариации цветов
 color_variations = [
-    'LIGHT BLUE', 'ORANGE', 'YELLOW', 'RED', 'LIGHT LIGHT', 'BLUE', 'BURGUNDY',
+    'LIGHT BLUE', 'ORANGE', 'YELLOW', 'RED', 'LIGHT GREEN', 'BLUE', 'BURGUNDY',
     'GREEN', 'PINK', 'CRIMSON', 'CREAM', 'PURPLE', 'GRAY', 'LILAC'
 ]

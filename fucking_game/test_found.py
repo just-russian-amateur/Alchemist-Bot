@@ -16,7 +16,7 @@ variations = [
     ('ORANGE', (np.array((0, 165, 203), np.uint8), np.array((19, 255, 255), np.uint8)), (68, 144, 226)),
     ('YELLOW', (np.array((22, 46, 192), np.uint8), np.array((34, 255, 255), np.uint8)), (64, 185, 227)),
     ('RED', (np.array((0, 148, 114), np.uint8), np.array((7, 255, 255), np.uint8)), (30, 43, 173)),
-    ('LIGHTLIGHT', (np.array((41, 0, 160), np.uint8), np.array((65, 255, 255), np.uint8)), (70, 187, 108)),
+    ('LIGHTGREEN', (np.array((41, 0, 160), np.uint8), np.array((65, 255, 255), np.uint8)), (70, 187, 108)),
     ('BLUE', (np.array((103, 181, 135), np.uint8), np.array((120, 255, 255), np.uint8)), (207, 90, 39)),
     ('BURGUNDY', (np.array((158, 135, 84), np.uint8), np.array((255, 255, 127), np.uint8)), (53, 32, 95)),
     ('GREEN', (np.array((86, 121, 86), np.uint8), np.array((96, 255, 255), np.uint8)), (100, 97, 46)),
@@ -108,7 +108,6 @@ def create_color_list(image):
             cv2.RETR_TREE,
             cv2.CHAIN_APPROX_SIMPLE
         )
-        # TODO: реализовать поддержку 2 и более цветов друг за другом
         if len(contours_color) != 0:
             # В случае если контур был найден, определяем координаты и размеры прямоугольника с цветом
             color = []
@@ -125,23 +124,28 @@ def create_color_list(image):
                 if add_flag == True:
                     # Добавляем в список информацию о цвете и его местоположении
                     color_name = variation[0]
-                    colors_info.append([color_name, cnt[0]])
+                    colors_info.append([color_name, cnt[0], cnt[1]])
                     count_colors.append([variation[0]])
                     
-    # TODO: реализовать поддержку 2 и более цветов друг за другом
+    # Поддержка 2 и более цветов друг за другом
     if len(colors_info) > 1:
         min_color_rect = min(
             colors_info,
             key=lambda
             item:
-            item[1][1]
-        )[1][1][0]
-        for idx_line in range(len(colors_info)):
-            if colors_info[idx_line][1][1][0] > 2.75 * min_color_rect:
+            item[2][0]
+        )[2][0]
+        idx_line = 0
+        while idx_line < len(colors_info):
+            if colors_info[idx_line][2][0] > 2.75 * min_color_rect:
                 for _ in range(2):
                     colors_info.insert(idx_line, colors_info[idx_line])
-            elif colors_info[idx_line][1][1][0] > 1.75 * min_color_rect:
+                idx_line += 2
+            elif colors_info[idx_line][2][0] > 1.75 * min_color_rect:
                 colors_info.insert(idx_line, colors_info[idx_line])
+                idx_line += 2
+            else:
+                idx_line += 1
     
     # Добавляем абсолютно пустую колбу, если список пуст
     if len(colors_info) == 0:
@@ -208,7 +212,8 @@ def replace_undefined(flasks_list):
     added_colors = dict()
     for key in colors_dict.keys():
         if colors_dict[key] < 4:
-            added_colors[key] = 4 - colors_dict[key]
+            if key != 'UNDEFINED':
+                added_colors[key] = 4 - colors_dict[key]
     return added_colors
 
 

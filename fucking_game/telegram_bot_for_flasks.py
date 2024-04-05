@@ -138,8 +138,8 @@ async def download_photoes(message:Message, bot: Bot):
             # Создание списка кнопок с цветмаи, которыми можно будет заменить неопределенные значения
             for color in config.undefined_colors.keys():
                 for _ in range(config.undefined_colors[color]):
-                    if color == 'LIGHTLIGHT':
-                        color_buttons_list.append(KeyboardButton(text='LIGHT LIGHT'))
+                    if color == 'LIGHTGREEN':
+                        color_buttons_list.append(KeyboardButton(text='LIGHT GREEN'))
                     elif color == 'LIGHTBLUE':
                         color_buttons_list.append(KeyboardButton(text='LIGHT BLUE'))
                     else:
@@ -250,7 +250,7 @@ async def download_photoes(message:Message, bot: Bot):
 @dp.message(F.text == "ORANGE")
 @dp.message(F.text == "YELLOW")
 @dp.message(F.text == "RED")
-@dp.message(F.text == "LIGHT LIGHT")
+@dp.message(F.text == "LIGHT GREEN")
 @dp.message(F.text == "BLUE")
 @dp.message(F.text == "BURGUNDY")
 @dp.message(F.text == "GREEN")
@@ -266,17 +266,17 @@ async def fill(message:Message):
         if len(config.undefined_colors) != 0:
             for variation in config.color_variations:
                 if message.text == variation:
-                    if variation == 'LIGHT LIGHT':
-                        config.undefined_colors['LIGHTLIGHT'] -= 1
-                        if config.undefined_colors['LIGHTLIGHT'] == 0:
-                            config.undefined_colors.pop('LIGHTLIGHT')
-                        replace_in_json(json_name=f"./tmp/start_level_{message.from_user.id}.json", color_name='LIGHTLIGHT')
+                    if variation == 'LIGHT GREEN':
+                        config.undefined_colors['LIGHTGREEN'] -= 1
+                        if config.undefined_colors['LIGHTGREEN'] == 0:
+                            config.undefined_colors.pop('LIGHTGREEN')
+                        replace_in_json(json_name=f"./tmp/start_level_{message.from_user.id}.json", color_name='LIGHTGREEN')
                         break
                     elif variation == 'LIGHT BLUE':
                         config.undefined_colors['LIGHTBLUE'] -= 1
                         if config.undefined_colors['LIGHTBLUE'] == 0:
                             config.undefined_colors.pop('LIGHTBLUE')
-                        replace_in_json(json_name=f"./tmp/start_level_{message.from_user.id}.json", color_name='LIGHTLIGHT')
+                        replace_in_json(json_name=f"./tmp/start_level_{message.from_user.id}.json", color_name='LIGHTBLUE')
                         break
                     else:
                         config.undefined_colors[variation] -= 1
@@ -347,8 +347,8 @@ async def fill(message:Message):
             # Создание списка кнопок с цветмаи, которыми можно будет заменить неопределенные значения
             for color in config.undefined_colors.keys():
                 for _ in range(config.undefined_colors[color]):
-                    if color == 'LIGHTLIGHT':
-                        color_buttons_list.append(KeyboardButton(text='LIGHT LIGHT'))
+                    if color == 'LIGHTGREEN':
+                        color_buttons_list.append(KeyboardButton(text='LIGHT GREEN'))
                     elif color == 'LIGHTBLUE':
                         color_buttons_list.append(KeyboardButton(text='LIGHT BLUE'))
                     else:

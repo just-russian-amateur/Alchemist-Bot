@@ -267,27 +267,28 @@ async def fill_undef_values(callback: CallbackQuery):
             )
             await callback.answer()
 
-    if len(config.undefined_colors) != 0:
-        for variation in config.color_variations:
-            if callback.data == variation:
-                if variation == 'LIGHT GREEN':
-                    config.undefined_colors['LIGHTGREEN'] -= 1
-                    if config.undefined_colors['LIGHTGREEN'] == 0:
-                        config.undefined_colors.pop('LIGHTGREEN')
-                    replace_in_json(json_name=in_file, color_name='LIGHTGREEN')
-                    break
-                elif variation == 'LIGHT BLUE':
-                    config.undefined_colors['LIGHTBLUE'] -= 1
-                    if config.undefined_colors['LIGHTBLUE'] == 0:
-                        config.undefined_colors.pop('LIGHTBLUE')
-                    replace_in_json(json_name=in_file, color_name='LIGHTBLUE')
-                    break
-                else:
-                    config.undefined_colors[variation] -= 1
-                    if config.undefined_colors[variation] == 0:
-                        config.undefined_colors.pop(variation)
-                    replace_in_json(json_name=in_file, color_name=variation)
-                    break
+    if callback.data != 'reload_image' and callback.data != 'add_an_empty_flask':
+        if len(config.undefined_colors) != 0:
+            for variation in config.color_variations:
+                if callback.data == variation:
+                    if variation == 'LIGHT GREEN':
+                        config.undefined_colors['LIGHTGREEN'] -= 1
+                        if config.undefined_colors['LIGHTGREEN'] == 0:
+                            config.undefined_colors.pop('LIGHTGREEN')
+                        replace_in_json(json_name=in_file, color_name='LIGHTGREEN')
+                        break
+                    elif variation == 'LIGHT BLUE':
+                        config.undefined_colors['LIGHTBLUE'] -= 1
+                        if config.undefined_colors['LIGHTBLUE'] == 0:
+                            config.undefined_colors.pop('LIGHTBLUE')
+                        replace_in_json(json_name=in_file, color_name='LIGHTBLUE')
+                        break
+                    else:
+                        config.undefined_colors[variation] -= 1
+                        if config.undefined_colors[variation] == 0:
+                            config.undefined_colors.pop(variation)
+                        replace_in_json(json_name=in_file, color_name=variation)
+                        break
 
     if len(config.undefined_colors) != 0:
         color_buttons_list = []

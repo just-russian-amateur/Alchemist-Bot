@@ -93,7 +93,7 @@ async def get_photo(message: Message, bot: Bot):
         message.photo[-1],
         destination=config.image_for_load
     )
-    await message.answer("I'll try to recognize colors in the photo😓😓😓")
+    await message.answer("I'll try to recognize colors in the photo")
     
     try:
         # Распознаем цвета и добавляем их в список с последующей сериализации в json

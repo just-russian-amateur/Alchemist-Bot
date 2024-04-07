@@ -45,55 +45,15 @@ async def send_welcome(message: Message):
     """Приветственная функция"""
     start_button_set = [
         [
-            InlineKeyboardButton(text='Start solving', callback_data='start_solving'),
-            InlineKeyboardButton(text='Help', callback_data='help')
+            InlineKeyboardButton(text='🚀Start solving', callback_data='start_solving')
         ]
     ]
     keyboard_buttons = InlineKeyboardMarkup(inline_keyboard=start_button_set)
 
     await message.answer(
-        f"Hello, {message.from_user.first_name}!\nI am a bot that will help you pour liquid into flasks and, most importantly, do it correctly, in other words, I am your savior :)\nThere is nothing difficult in working with me, but if you are doing this for the first time, then click the help button on the right for instructions :)",
+        f"Hello, {message.from_user.first_name}!😁\nNow I'll tell you a little more about myself so that you know how to interact with me correctly. This is very important, because if you follow these few simple rules, you will get more accurate recognition of the colors inside the flasks, as well as the correct solutions for your specific level\nNow a few words about the functionality:\n✔️When you upload a screenshot, you need to upload it as a picture, not as a file, that is, in a chat with me, I should see your message as a full-fledged picture, about half the screen\n✔️The screenshot does not need to be cropped or compressed in any way, I will do it myself, so just send me the original image\n✔️If you usually use pattern mode, please turn it off before taking a screenshot and sending it to me, I'm not good at recognizing shapes inside colored rectangles, so I won't be able to recognize your level accurately (maybe I'll learn this in the future!)\n✔️Upload me an image with the initial position of the colors in the flasks (that is, 2 empty flasks and the rest are completely filled), this is the only way I can find a solution\nThat's probably all the subtleties that I wanted to tell you about working with me, good luck!🤞🤞🤞\n\nTo restart me, you can enter the /start command.",
         reply_markup=keyboard_buttons
     )
-
-
-@dp.callback_query(F.data == 'help')    # Команда помощи
-async def call_help(callback: CallbackQuery):
-    """Функция помощи (кнопка)"""
-    after_help_button_set = [
-        [
-            InlineKeyboardButton(text='Start solving', callback_data='start_solving')
-        ]
-    ]
-    keyboard_buttons = InlineKeyboardMarkup(inline_keyboard=after_help_button_set)
-
-    if callback.data == 'help':
-        await callback.message.answer(
-            "Welcome to a short passage of information about me :)\nIn order to restart me, you can enter the /start command.\nTo access help, you can use the /help command instead of the button.\n\nNow a few words about functionality:\n\t1. When you upload a screenshot, you need to upload it as a picture, not as a file, that is, in a chat with me, I should see your message as a full-fledged picture in half the screen :)\n\t2. The screenshot does not need to be cropped or compressed in any way, I will do it myself, so just send me the original image :)\n\t3. Upload for me an image with the initial position of the colors in the flasks (that is, 2 empty flasks and the remaining flasks are completely filled), this is the only way I can find a solution :)\nThat's basically all I wanted to tell you about myself, good luck!",
-            reply_markup=keyboard_buttons
-        )
-        await callback.answer()
-    else:
-        await callback.message.answer('Click on the button please :)')
-
-
-@dp.message(Command('help'))    # Команда помощи
-async def command_help(message: Message):
-    """Функция помощи (команда)"""
-    after_help_button_set = [
-        [
-            InlineKeyboardButton(text='Start solving', callback_data='start_solving')
-        ]
-    ]
-    keyboard_buttons = InlineKeyboardMarkup(inline_keyboard=after_help_button_set)
-
-    if Command('help'):
-        await message.answer(
-            "Welcome to a short passage of information about me :)\nIn order to restart me, you can enter the /start command.\nTo access help, you can use the /help command instead of the button.\n\nNow a few words about functionality:\n\t1. When you upload a screenshot, you need to upload it as a picture, not as a file, that is, in a chat with me, I should see your message as a full-fledged picture in half the screen :)\n\t2. The screenshot does not need to be cropped or compressed in any way, I will do it myself, so just send me the original image :)\n\t3. Upload for me an image with the initial position of the colors in the flasks (that is, 2 empty flasks and the remaining flasks are completely filled), this is the only way I can find a solution :)\nThat's basically all I wanted to tell you about myself, good luck!",
-            reply_markup=keyboard_buttons
-        )
-    else:
-        await message.answer('Click on the button please :)')
 
 
 @dp.callback_query(F.data.in_([
@@ -102,7 +62,7 @@ async def command_help(message: Message):
 async def solve(callback: CallbackQuery):
     """Функция загрузки изображения"""
     if callback.data == 'start_solving':
-        await callback.message.answer("So let's get started :)\nUpload the screenshot as an image, please")
+        await callback.message.answer("So let's get started😎\nUpload the screenshot as an image, please")
         await callback.answer()
     elif callback.data == 'upload_new_image':
         await callback.message.answer('Upload a new screenshot as an image, please')
@@ -133,7 +93,7 @@ async def get_photo(message: Message, bot: Bot):
         message.photo[-1],
         destination=config.image_for_load
     )
-    await message.answer("I'll try to recognize colors in the photo")
+    await message.answer("I'll try to recognize colors in the photo😓😓😓")
     
     try:
         # Распознаем цвета и добавляем их в список с последующей сериализации в json
@@ -141,12 +101,12 @@ async def get_photo(message: Message, bot: Bot):
     except:
         reload_img = [
                 [
-                    InlineKeyboardButton(text='Upload new image', callback_data='upload_new_image')
+                    InlineKeyboardButton(text='📩🖼️Upload new image', callback_data='upload_new_image')
                 ]
             ]
         reload_button = InlineKeyboardMarkup(inline_keyboard=reload_img)
         await message.answer(
-            'Download your flask level please :)',
+            'Something went wrong...🤷‍♂️ Please upload another picture',
             reply_markup=reload_button
         )
 
@@ -170,7 +130,7 @@ async def get_photo(message: Message, bot: Bot):
 
         feedback_button_set = [
             [
-                InlineKeyboardButton(text='Feedback to me', url=f"tg://user?id={984089348}")
+                InlineKeyboardButton(text='Feedback to me🙃', url=f"tg://user?id={984089348}")
             ]
         ]
         feedback_button = InlineKeyboardMarkup(inline_keyboard=feedback_button_set)
@@ -182,7 +142,7 @@ async def get_photo(message: Message, bot: Bot):
                     open_image.read(),
                     filename='solve_flasks'
                 ),
-                caption="If I recognized some colors incorrectly, please give me feedback by clicking the button below the message (send a photo and describe the problem)",
+                caption="Please check if I recognized everything correctly? If I misrecognized some colors or you noticed some other error, then feel free to let me know about the problem\nTo do this, click the button below the message (send a photo with which the error occurred and describe the problem)🙂",
                 reply_markup=feedback_button
             )
         await message.answer(
@@ -207,15 +167,15 @@ async def get_photo(message: Message, bot: Bot):
 
         download_again = [
             [
-                InlineKeyboardButton(text='Upload new image', callback_data='upload_new_image')
+                InlineKeyboardButton(text='📩🖼️Upload new image', callback_data='upload_new_image')
             ]
         ]
         download_buttons = InlineKeyboardMarkup(inline_keyboard=download_again)
 
         errors = [
             [
-                InlineKeyboardButton(text='Reload image', callback_data='reload_image'),
-                InlineKeyboardButton(text='Add an empty flask', callback_data='add_an_empty_flask')
+                InlineKeyboardButton(text='🔄️🖼️Reload image', callback_data='reload_image'),
+                InlineKeyboardButton(text='➕🧪Add an empty flask', callback_data='add_an_empty_flask')
             ],
             [
                 InlineKeyboardButton(text='Upload new image', callback_data='upload_new_image')
@@ -225,13 +185,13 @@ async def get_photo(message: Message, bot: Bot):
 
         if os.stat(out_file).st_size == 0 or os.path.isfile(out_file) == False:
             await message.answer(
-                f'Unfortunately, I was unable to find a solution for this arrangement.\nIf you want to change the order of undefined colors, click "Reload image".\nIf you know all the colors, but the solution still hasn’t been found, then I can add another empty flask, to do this, click “Add an empty flask”\nOr you can upload a new image, to do this, click "Upload new image"',
+                f"😖😖😖Unfortunately, I was unable to find a solution for this arrangement.\nIf you want to change the order of undefined colors, click 'Reload image'.\nIf you know all the colors, but the solution still hasn't been found, then I can add another empty flask, to do this, click 'Add an empty flask'\nOr you can upload a new image, to do this, click 'Upload new image'",
                 reply_markup=error_buttons
             )
         else:
             with open(out_file, "r") as result:
                 await message.answer(
-                    f'I found a solution for you!\nPlease note that the flasks are numbered starting from 0, not 1!\n{result.read()}\nLet me know if you want a solution for another screenshot :)',
+                    f'Yay!🥳🥳🥳I found a solution for you!!!🥳🥳🥳\nPlease note that the flasks are numbered starting from 0, not 1!\n{result.read()}\nLet me know if you want a solution for another screenshot🙂',
                     reply_markup=download_buttons
                 )
         # Удаление временных файлов
@@ -257,12 +217,12 @@ async def fill_undef_values(callback: CallbackQuery):
         except:
             reload_img = [
                     [
-                        InlineKeyboardButton(text='Upload new image', callback_data='upload_new_image')
+                        InlineKeyboardButton(text='📩🖼️Upload new image', callback_data='upload_new_image')
                     ]
                 ]
             reload_button = InlineKeyboardMarkup(inline_keyboard=reload_img)
             await callback.message.answer(
-                'Download your flask level please :)',
+                'Something went wrong...🤷‍♂️ Please upload another picture',
                 reply_markup=reload_button
             )
             await callback.answer()
@@ -315,7 +275,7 @@ async def fill_undef_values(callback: CallbackQuery):
         if callback.data == 'reload_image' or callback.data == 'add_an_empty_flask':
             feedback_button_set = [
                 [
-                    InlineKeyboardButton(text='Feedback to me', url=f"tg://user?id={984089348}")
+                    InlineKeyboardButton(text='Feedback to me🙃', url=f"tg://user?id={984089348}")
                 ]
             ]
             feedback_button = InlineKeyboardMarkup(inline_keyboard=feedback_button_set)
@@ -327,7 +287,7 @@ async def fill_undef_values(callback: CallbackQuery):
                         open_image.read(),
                         filename='solve_flasks'
                     ),
-                    caption="If I recognized some colors incorrectly, please give me feedback by clicking the button below the message (send a photo and describe the problem)",
+                    caption="Please check if I recognized everything correctly? If I misrecognized some colors or you noticed some other error, then feel free to let me know about the problem\nTo do this, click the button below the message (send a photo with which the error occurred and describe the problem)🙂",
                     reply_markup=feedback_button
                 )
             await callback.message.answer(
@@ -367,31 +327,31 @@ async def fill_undef_values(callback: CallbackQuery):
 
         download_again = [
             [
-                InlineKeyboardButton(text='Upload new image', callback_data='upload_new_image')
+                InlineKeyboardButton(text='📩🖼️Upload new image', callback_data='upload_new_image')
             ]
         ]
         download_buttons = InlineKeyboardMarkup(inline_keyboard=download_again)
 
         errors = [
             [
-                InlineKeyboardButton(text='Reload image', callback_data='reload_image'),
-                InlineKeyboardButton(text='Add an empty flask', callback_data='add_an_empty_flask')
+                InlineKeyboardButton(text='🔄️🖼️Reload image', callback_data='reload_image'),
+                InlineKeyboardButton(text='➕🧪Add an empty flask', callback_data='add_an_empty_flask')
             ],
             [
-                InlineKeyboardButton(text='Upload new image', callback_data='upload_new_image')
+                InlineKeyboardButton(text='📩🖼️Upload new image', callback_data='upload_new_image')
             ]
         ]
         error_buttons = InlineKeyboardMarkup(inline_keyboard=errors)
 
         if os.stat(out_file).st_size == 0 or os.path.isfile(out_file) == False:
             await callback.message.answer(
-                f'Unfortunately, I was unable to find a solution for this arrangement.\nIf you want to change the order of undefined colors, click "Reload image".\nIf you know all the colors, but the solution still hasn’t been found, then I can add another empty flask, to do this, click “Add an empty flask”\nOr you can upload a new image, to do this, click "Upload new image"',
+                f'😖😖😖Unfortunately, I was unable to find a solution for this arrangement.\nIf you want to change the order of undefined colors, click "Reload image".\nIf you know all the colors, but the solution still hasn’t been found, then I can add another empty flask, to do this, click “Add an empty flask”\nOr you can upload a new image, to do this, click "Upload new image"',
                 reply_markup=error_buttons
             )
         else:
             with open(out_file, "r") as result:
                 await callback.message.answer(
-                    f'I found a solution for you!\nPlease note that the flasks are numbered starting from 0, not 1!\n{result.read()}\nLet me know if you want a solution for another screenshot :)',
+                    f'Yay!🥳🥳🥳I found a solution for you!!!🥳🥳🥳\nPlease note that the flasks are numbered starting from 0, not 1!\n{result.read()}\nLet me know if you want a solution for another screenshot :)',
                     reply_markup=download_buttons
                 )
         # Удаление временных файлов
@@ -401,11 +361,13 @@ async def fill_undef_values(callback: CallbackQuery):
 
 
 async def clue(bot: Bot):
+    # Реализация меню команд
     bot_commands = [
-        BotCommand(command='/start', description='Restart bot'),
-        BotCommand(command='/help', description='Call for help on working with the bot')
+        BotCommand(command='/start', description='Restarting me and receiving instructions for working with me')
     ]
     await bot.set_my_commands(bot_commands)
+    # Реализация описания бота
+    await bot.set_my_description("Hello, I'm the Alchemist!🧪🧑‍🔬🧪🧑‍🔬🧪🧑‍🔬\nI can help you transfer the different colored liquids into your flasks so that you get flasks with liquids filtered by color.\nI can work with pictures so you don't have to fill the flasks completely by hand, and I can also change the level a little by adding an empty flask if your level cannot be solved with two empty flasks😊")
 
 
 async def main():

@@ -368,6 +368,7 @@ async def clue(bot: Bot):
     await bot.set_my_commands(bot_commands)
     # Реализация описания бота
     await bot.set_my_description("Hello, I'm the Alchemist!🧪🧑‍🔬🧪🧑‍🔬🧪🧑‍🔬\nI can help you transfer the different colored liquids into your flasks so that you get flasks with liquids filtered by color.\nI can work with pictures so you don't have to fill the flasks completely by hand, and I can also change the level a little by adding an empty flask if your level cannot be solved with two empty flasks😊")
+    await bot.set_my_short_description("Alchemist - telegram bot for solving your levels for games with transfusion of colored liquids")
 
 
 async def main():

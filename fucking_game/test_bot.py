@@ -15,7 +15,6 @@ For a description of the Bot API, see this page: https://core.telegram.org/bots/
 from aiogram import Bot, Dispatcher, F  # Подключение библиотек
 from aiogram.filters import CommandStart
 from aiogram.types import Message, CallbackQuery, BufferedInputFile, BotCommand, InlineKeyboardButton, InlineKeyboardMarkup
-from aiogram.types import Message, CallbackQuery, BufferedInputFile, BotCommand, InlineKeyboardButton, InlineKeyboardMarkup
 from aiogram.fsm.context import FSMContext
 from aiogram.fsm.state import StatesGroup, State
 

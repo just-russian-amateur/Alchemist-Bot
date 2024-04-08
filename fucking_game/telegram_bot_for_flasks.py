@@ -19,7 +19,7 @@ from aiogram.fsm.context import FSMContext
 from aiogram.fsm.state import StatesGroup, State
 
 from flasks import flasks_solver
-from test_found import found_colors_in_flasks, replace_in_json, create_image_for_replace, add_empty_flask, create_undef_buttons
+from found_colors import found_colors_in_flasks, replace_in_json, create_image_for_replace, add_empty_flask, create_undef_buttons
 import config
 
 import asyncio
@@ -127,7 +127,7 @@ async def get_photo(message: Message, bot: Bot, state: FSMContext):
     
     try:
         # Распознаем цвета и добавляем их в список с последующей сериализации в json
-        config.undefined_colors = found_colors_in_flasks(image_for_search=config.image_for_load, id=message.from_user.id)
+        config.undefined_colors = found_colors_in_flasks(image_for_search=config.image_for_load, id=message.from_user.id, reload_image=False)
     except:
         reload_img = [
                 [
@@ -139,6 +139,7 @@ async def get_photo(message: Message, bot: Bot, state: FSMContext):
             'Something went wrong...🤷‍♂️ Please upload another picture',
             reply_markup=reload_button
         )
+        await state.set_state(SolveFlasks.start_solving)
 
     if len(config.undefined_colors) != 0:
         color_buttons_list = []
@@ -259,7 +260,7 @@ async def fill_undef_values(callback: CallbackQuery, state: FSMContext):
     if callback.data == 'reload_image' or callback.data == 'add_an_empty_flask':
         try:
             # Распознаем цвета и добавляем их в список с последующей сериализации в json
-            config.undefined_colors = found_colors_in_flasks(image_for_search=config.image_for_load, id=callback.from_user.id)
+            config.undefined_colors = found_colors_in_flasks(image_for_search=config.image_for_load, id=callback.from_user.id, reload_image=True)
         except:
             reload_img = [
                     [
@@ -272,6 +273,7 @@ async def fill_undef_values(callback: CallbackQuery, state: FSMContext):
                 reply_markup=reload_button
             )
             await callback.answer()
+            await state.set_state(SolveFlasks.start_solving)
 
     if callback.data != 'reload_image' and callback.data != 'add_an_empty_flask':
         if len(config.undefined_colors) != 0:

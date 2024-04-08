@@ -217,13 +217,13 @@ def replace_undefined(flasks_list):
     return added_colors
 
 
-def found_colors_in_flasks(image_for_search, id):
+def found_colors_in_flasks(image_for_search, id, reload_image):
     '''Основная функция для распознавания цветов на картинке и добавления их в массив'''
     # Чтение изображения в цветном формате
     original_image = cv2.imread(image_for_search)
     # Получение параметров размера изображения и вывод параметров обрезки
     height, width, _ = original_image.shape
-    if config.reload_image == False:
+    if reload_image == False:
         cropped_height = [round(height * 0.125), round(height * 0.875)]
     else:
         cropped_height = [0, height]

@@ -6,8 +6,8 @@ import os
 '''Здесь юудет реализован непосредственно алгоритм для решения колб (скорее всего метод ветвей и границ)'''
 def flasks_solver(input_file, output_file):
     if os.name == 'nt':
-        args = f'./fucking_game/solver_flasks.exe {input_file} {output_file}'
+        args = f'{os.path.dirname(os.path.abspath(__file__))}/solver_flasks.exe {input_file} {output_file}'
         subprocess.call(args)
     elif os.name == 'posix':
-        args = f'./fucking_game/solver_flasks {input_file} {output_file}'
+        args = f'{os.path.dirname(os.path.abspath(__file__))}/solver_flasks {input_file} {output_file}'
         subprocess.call(args, shell=True)

@@ -13,8 +13,11 @@ For a description of the Bot API, see this page: https://core.telegram.org/bots/
 """
 
 from aiogram import Bot, Dispatcher, F  # Подключение библиотек
-from aiogram.filters import CommandStart, Command
+from aiogram.filters import CommandStart
 from aiogram.types import Message, CallbackQuery, BufferedInputFile, BotCommand, InlineKeyboardButton, InlineKeyboardMarkup
+from aiogram.types import Message, CallbackQuery, BufferedInputFile, BotCommand, InlineKeyboardButton, InlineKeyboardMarkup
+from aiogram.fsm.context import FSMContext
+from aiogram.fsm.state import StatesGroup, State
 
 from flasks import flasks_solver
 from test_found import found_colors_in_flasks, replace_in_json, create_image_for_replace, add_empty_flask, create_undef_buttons
@@ -40,9 +43,19 @@ dp = Dispatcher()
 """
 
 
+class SolveFlasks(StatesGroup):
+    '''Класс для машины состояний'''
+    start_solving = State()
+    reload_image = State()
+    add_an_empty_flask = State()
+    send_photo = State()
+    set_color = State()
+
+
 @dp.message(CommandStart())  # Команда для начала работы с ботом
-async def send_welcome(message: Message):
+async def send_welcome(message: Message,  state: FSMContext):
     """Приветственная функция"""
+    await state.clear()
     start_button_set = [
         [
             InlineKeyboardButton(text='🚀Start solving', callback_data='start_solving')
@@ -51,15 +64,22 @@ async def send_welcome(message: Message):
     keyboard_buttons = InlineKeyboardMarkup(inline_keyboard=start_button_set)
 
     await message.answer(
-        f"Hello, {message.from_user.first_name}!😁\nNow I'll tell you a little more about myself so that you know how to interact with me correctly. This is very important, because if you follow these few simple rules, you will get more accurate recognition of the colors inside the flasks, as well as the correct solutions for your specific level\nNow a few words about the functionality:\n✔️When you upload a screenshot, you need to upload it as a picture, not as a file, that is, in a chat with me, I should see your message as a full-fledged picture, about half the screen\n✔️The screenshot does not need to be cropped or compressed in any way, I will do it myself, so just send me the original image\n✔️If you usually use pattern mode, please turn it off before taking a screenshot and sending it to me, I'm not good at recognizing shapes inside colored rectangles, so I won't be able to recognize your level accurately (maybe I'll learn this in the future!)\n✔️Upload me an image with the initial position of the colors in the flasks (that is, 2 empty flasks and the rest are completely filled), this is the only way I can find a solution\nThat's probably all the subtleties that I wanted to tell you about working with me, good luck!🤞🤞🤞\n\nTo restart me, you can enter the /start command.",
+        f"Hello, <b>{message.from_user.first_name}</b>!😁\nNow I'll tell you a little more about myself so that you know how to interact with me correctly. This is very important, because if you follow these few simple rules, you will get more accurate recognition of the colors inside the flasks, as well as the correct solutions for your specific level\nNow a few words about the functionality:\n✔️When you upload a screenshot, you need to upload it as a picture, not as a file, that is, in a chat with me, I should see your message as a full-fledged picture, about half the screen\n✔️The screenshot does not need to be cropped or compressed in any way, I will do it myself, so just send me the original image\n✔️<u><b>IF YOU USUALLY USE PATTERN MODE, PLEASE TURN IT OFF BEFORE TAKING A SCREENSHOT</b></u> and sending it to me, I'm not good at recognizing shapes inside colored rectangles, so I won't be able to recognize your level accurately (maybe I'll learn this in the future!)\n✔️Upload me an image with the initial position of the colors in the flasks (that is, 2 empty flasks and the rest are completely filled), this is the only way I can find a solution\nThat's probably all the subtleties that I wanted to tell you about working with me, good luck!🤞🤞🤞\n\nTo restart me, you can enter the /start command.",
+        parse_mode='HTML',
         reply_markup=keyboard_buttons
     )
+    await state.set_state(SolveFlasks.start_solving)
 
 
-@dp.callback_query(F.data.in_([
-    'start_solving', 'upload_new_image'
-]))    #   Команды выбора режима распознавания
-async def solve(callback: CallbackQuery):
+@dp.callback_query(
+    SolveFlasks.start_solving,
+    F.data.in_(
+        [
+            'start_solving', 'upload_new_image'
+        ]
+    )
+)    #   Команды выбора режима распознавания
+async def solve(callback: CallbackQuery, state: FSMContext):
     """Функция загрузки изображения"""
     if callback.data == 'start_solving':
         await callback.message.answer("So let's get started😎\nUpload the screenshot as an image, please")
@@ -67,8 +87,16 @@ async def solve(callback: CallbackQuery):
     elif callback.data == 'upload_new_image':
         await callback.message.answer('Upload a new screenshot as an image, please')
         await callback.answer()
-    else:
-        await callback.message.answer('Click on the button please :)')
+    await state.set_state(SolveFlasks.send_photo)
+
+
+@dp.message(SolveFlasks.start_solving)
+async def start_solving_incorrectly(message: Message):
+    '''Функция для отслеживания любых действий кроме нажатия кнопки'''
+    msg = await message.answer('To get started, click the "🚀Start solving" button, please')
+    await asyncio.sleep(10)
+    await message.delete()
+    await msg.delete()
 
 
 # @dp.message(Command("share"))    #   Команда поделиться
@@ -83,8 +111,11 @@ async def solve(callback: CallbackQuery):
 #     await message.answer(F.data)
 
 
-@dp.message(F.photo)
-async def get_photo(message: Message, bot: Bot):
+@dp.message(
+    SolveFlasks.send_photo,
+    F.photo
+)
+async def get_photo(message: Message, bot: Bot, state: FSMContext):
     '''Функция получения и обработки фотографий'''
     config.image_for_load = f'./images/{message.photo[-1].file_id}.jpg'   # Сохраняем на всякий случай путь к картинке
     in_file, out_file = f"./tmp/start_level_{message.from_user.id}.json", f"./tmp/result_level_{message.from_user.id}.txt"
@@ -149,6 +180,7 @@ async def get_photo(message: Message, bot: Bot):
             'Please select from the options provided the color that should be in place of the green circle',
             reply_markup=keyboard_buttons
         )
+        await state.set_state(SolveFlasks.set_color)
     else:
         # Формируем итоговый json
         create_image_for_replace(json_name=in_file, id_client=message.from_user.id)
@@ -178,14 +210,14 @@ async def get_photo(message: Message, bot: Bot):
                 InlineKeyboardButton(text='➕🧪Add an empty flask', callback_data='add_an_empty_flask')
             ],
             [
-                InlineKeyboardButton(text='Upload new image', callback_data='upload_new_image')
+                InlineKeyboardButton(text='📩🖼️Upload new image', callback_data='upload_new_image')
             ]
         ]
         error_buttons = InlineKeyboardMarkup(inline_keyboard=errors)
 
         if os.stat(out_file).st_size == 0 or os.path.isfile(out_file) == False:
             await message.answer(
-                f"😖😖😖Unfortunately, I was unable to find a solution for this arrangement.\nIf you want to change the order of undefined colors, click 'Reload image'.\nIf you know all the colors, but the solution still hasn't been found, then I can add another empty flask, to do this, click 'Add an empty flask'\nOr you can upload a new image, to do this, click 'Upload new image'",
+                f"😖😖😖Unfortunately, I was unable to find a solution for this arrangement.\nIf you want to change the order of undefined colors, click '🔄️🖼️Reload image'.\nIf you know all the colors, but the solution still hasn't been found, then I can add another empty flask, to do this, click '➕🧪Add an empty flask'\nOr you can upload a new image, to do this, click '📩🖼️Upload new image'",
                 reply_markup=error_buttons
             )
         else:
@@ -198,14 +230,29 @@ async def get_photo(message: Message, bot: Bot):
         os.remove(out_file)
         os.remove(in_file)
         os.remove(level_file)
+        await state.clear()
+
+
+@dp.message(SolveFlasks.send_photo)
+async def sending_photo_incorrectly(message: Message):
+    '''Функция для отслеживания любых действий кроме отправки фото'''
+    msg = await message.answer('Send a photo please')
+    await asyncio.sleep(10)
+    await message.delete()
+    await msg.delete()
     
 
-@dp.callback_query(F.data.in_([
-    "LIGHT BLUE", "ORANGE", "YELLOW", "RED", "LIGHT GREEN", "BLUE", "BURGUNDY",
-    "GREEN", "PINK", "CRIMSON", "CREAM", "PURPLE", "GRAY","LILAC",
-    'reload_image', 'add_an_empty_flask'
-]))
-async def fill_undef_values(callback: CallbackQuery):
+@dp.callback_query(
+    SolveFlasks.set_color,
+    F.data.in_(
+        [
+            "LIGHT BLUE", "ORANGE", "YELLOW", "RED", "LIGHT GREEN", "BLUE", "BURGUNDY",
+            "GREEN", "PINK", "CRIMSON", "CREAM", "PURPLE", "GRAY","LILAC",
+            'reload_image', 'add_an_empty_flask'
+        ]
+    )
+)
+async def fill_undef_values(callback: CallbackQuery, state: FSMContext):
     '''Функция дозаполнения неопределенных цветов вручную'''
     in_file, out_file = f"./tmp/start_level_{callback.from_user.id}.json", f"./tmp/result_level_{callback.from_user.id}.txt"
     level_file = f'./tmp/level_for_{callback.from_user.id}.jpg'
@@ -345,7 +392,7 @@ async def fill_undef_values(callback: CallbackQuery):
 
         if os.stat(out_file).st_size == 0 or os.path.isfile(out_file) == False:
             await callback.message.answer(
-                f'😖😖😖Unfortunately, I was unable to find a solution for this arrangement.\nIf you want to change the order of undefined colors, click "Reload image".\nIf you know all the colors, but the solution still hasn’t been found, then I can add another empty flask, to do this, click “Add an empty flask”\nOr you can upload a new image, to do this, click "Upload new image"',
+                f'😖😖😖Unfortunately, I was unable to find a solution for this arrangement.\nIf you want to change the order of undefined colors, click "🔄️🖼️Reload image".\nIf you know all the colors, but the solution still hasn’t been found, then I can add another empty flask, to do this, click “➕🧪Add an empty flask”\nOr you can upload a new image, to do this, click "📩🖼️Upload new image"',
                 reply_markup=error_buttons
             )
         else:
@@ -358,6 +405,16 @@ async def fill_undef_values(callback: CallbackQuery):
         os.remove(out_file)
         os.remove(in_file)
         os.remove(level_file)
+        await state.clear()
+
+
+@dp.message(SolveFlasks.send_photo)
+async def filling_incorrectly(message: Message):
+    '''Функция для отслеживания любых действий кроме заполнения цветом'''
+    msg = await message.answer('Please select a color from above')
+    await asyncio.sleep(10)
+    await message.delete()
+    await msg.delete()
 
 
 async def clue(bot: Bot):

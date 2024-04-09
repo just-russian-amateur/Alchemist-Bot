@@ -24,10 +24,11 @@ async def start_solving(callback: CallbackQuery, state: FSMContext):
     if callback.data == 'start_solving':
         await callback.message.answer("So let's get started😎\nUpload the screenshot as an image, please")
         await callback.answer()
+        await state.set_state(sf.SolveFlasks.send_photo)
     elif callback.data == 'upload_new_image':
         await callback.message.answer('Upload a new screenshot as an image, please')
         await callback.answer()
-    await state.set_state(sf.SolveFlasks.send_photo)
+        await state.set_state(sf.SolveFlasks.send_photo)
 
 
 @rtr.message(sf.SolveFlasks.start_solving)

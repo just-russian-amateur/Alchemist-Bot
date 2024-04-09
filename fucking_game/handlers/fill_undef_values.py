@@ -22,12 +22,18 @@ rtr = Router()
         [
             "LIGHT BLUE", "ORANGE", "YELLOW", "RED", "LIGHT GREEN", "BLUE", "BURGUNDY",
             "GREEN", "PINK", "CRIMSON", "CREAM", "PURPLE", "GRAY","LILAC",
-            'reload_image', 'add_an_empty_flask'
+            'reload_image', 'add_an_empty_flask', 'upload_new_image'
         ]
     )
 )
 async def fill_undef_values(callback: CallbackQuery, state: FSMContext):
     '''Функция дозаполнения неопределенных цветов вручную'''
+    if callback.data == 'upload_new_image':
+        await callback.message.answer('Upload a new screenshot as an image, please')
+        await callback.answer()
+        await state.set_state(sf.SolveFlasks.send_photo)
+        return
+
     in_file, out_file = f"./tmp/start_level_{callback.from_user.id}.json", f"./tmp/result_level_{callback.from_user.id}.txt"
     level_file = f'./tmp/level_for_{callback.from_user.id}.jpg'
 
@@ -125,17 +131,18 @@ async def fill_undef_values(callback: CallbackQuery, state: FSMContext):
                 f'😖😖😖Unfortunately, I was unable to find a solution for this arrangement.\nIf you want to change the order of undefined colors, click "🔄️🖼️Reload image".\nIf you know all the colors, but the solution still hasn’t been found, then I can add another empty flask, to do this, click “➕🧪Add an empty flask”\nOr you can upload a new image, to do this, click "📩🖼️Upload new image"',
                 reply_markup=no_result()
             )
+            await state.set_state(sf.SolveFlasks.set_color)
         else:
             with open(out_file, "r") as result:
                 await callback.message.answer(
                     f'Yay!🥳🥳🥳I found a solution for you!!!🥳🥳🥳\nPlease note that the flasks are numbered starting from 0, not 1!\n{result.read()}\nLet me know if you want a solution for another screenshot :)',
                     reply_markup=upload_new()
                 )
+            await state.set_state(sf.SolveFlasks.start_solving)
         # Удаление временных файлов
         os.remove(out_file)
         os.remove(in_file)
         os.remove(level_file)
-        await state.clear()
 
 
 @rtr.message(sf.SolveFlasks.send_photo)

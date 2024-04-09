@@ -22,9 +22,14 @@ rtr = Router()
 )
 async def get_photo(message: Message, bot: Bot, state: FSMContext):
     '''Функция получения и обработки фотографий'''
-    config.image_for_load = f'./images/{message.photo[-1].file_id}.jpg'   # Сохраняем на всякий случай путь к картинке
-    in_file, out_file = f"./tmp/start_level_{message.from_user.id}.json", f"./tmp/result_level_{message.from_user.id}.txt"
-    level_file = f'./tmp/level_for_{message.from_user.id}.jpg'
+    this_path = f'./{message.from_user.id}'
+    if not os.path.isdir(f'{this_path}/images'):
+        os.mkdir(f'{this_path}/images')
+    if not os.path.isdir(f'{this_path}/tmp'):
+        os.mkdir(f'{this_path}/tmp')
+    config.image_for_load = f'{this_path}/images/{message.photo[-1].file_id}.jpg'   # Сохраняем на всякий случай путь к картинке
+    in_file, out_file = f"{this_path}/tmp/start_level_{message.from_user.id}.json", f"{this_path}/tmp/result_level_{message.from_user.id}.txt"
+    level_file = f'{this_path}/tmp/level_for_{message.from_user.id}.jpg'
     await bot.download(
         message.photo[-1],
         destination=config.image_for_load

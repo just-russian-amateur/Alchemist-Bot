@@ -280,7 +280,7 @@ def found_colors_in_flasks(image_for_search, id, reload_image):
 
 def create_json(flasks_list, id_client):
     '''Создание и заполнение json файла с распознанными цветами'''
-    with open(f"./tmp/start_level_{id_client}.json", "w") as this_level:
+    with open(f"./{id_client}/tmp/start_level_{id_client}.json", "w") as this_level:
         json.dump({"bottles": flasks_list}, this_level, indent=2)
 
 
@@ -309,7 +309,7 @@ def create_image_for_replace(json_name, id_client):
         file = json.load(this_level)
     
     # Создание и сохранение пустого черного изображения
-    filename = f'./tmp/level_for_{id_client}.jpg'
+    filename = f'./{id_client}/tmp/level_for_{id_client}.jpg'
     height, width = 1800, 1400
     template = np.zeros((height, width, 3), np.uint8)
     cv2.imwrite(filename, template)

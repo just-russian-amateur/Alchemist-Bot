@@ -34,8 +34,9 @@ async def fill_undef_values(callback: CallbackQuery, state: FSMContext):
         await state.set_state(sf.SolveFlasks.send_photo)
         return
 
-    in_file, out_file = f"./tmp/start_level_{callback.from_user.id}.json", f"./tmp/result_level_{callback.from_user.id}.txt"
-    level_file = f'./tmp/level_for_{callback.from_user.id}.jpg'
+    this_path = f'./{callback.from_user.id}'
+    in_file, out_file = f"{this_path}/tmp/start_level_{callback.from_user.id}.json", f"{this_path}/tmp/result_level_{callback.from_user.id}.txt"
+    level_file = f'{this_path}/tmp/level_for_{callback.from_user.id}.jpg'
 
     if callback.data == 'reload_image' or callback.data == 'add_an_empty_flask':
         try:

@@ -4,8 +4,6 @@ import numpy as np
 import json
 import os
 
-import config
-
 
 class BreakAction(Exception):
     pass
@@ -67,11 +65,11 @@ def found_rect(contour, my_list, coeff_width, coeff_height, is_flask):
     return my_list, box
 
 
-def crop_rects(contours, cropped_image):
+def crop_rects(contours, cropped_image, id_client):
     '''Функция для выделения каждой отдельной колбы или цвета в ней для распознавания цветов'''
     flasks_info = []
     for cnt in contours:
-        filename = f'./images/flask_{cnt}.jpg'
+        filename = f'./{id_client}/tmp/flask_{cnt}.jpg'
         # Взаимодействие с колбой
         if cnt[2] > 45:
             height_flask = [round(cnt[0][1] - cnt[1][0] / 2), round(cnt[0][1] + cnt[1][0] / 2)]
@@ -217,7 +215,7 @@ def replace_undefined(flasks_list):
     return added_colors
 
 
-def found_colors_in_flasks(image_for_search, id, reload_image):
+def found_colors_in_flasks(image_for_search, id_client, reload_image):
     '''Основная функция для распознавания цветов на картинке и добавления их в массив'''
     # Чтение изображения в цветном формате
     original_image = cv2.imread(image_for_search)
@@ -247,7 +245,7 @@ def found_colors_in_flasks(image_for_search, id, reload_image):
         # Определение границ прямоугольников и добавление цвета прямоугольника в список
         flasks, _ = found_rect(contour, flasks, coeff_width_flask, coeff_height_flask, is_flask=False)
     flasks = sorted_flasks(flasks)
-    images_of_flasks = crop_rects(flasks, cropped_image)
+    images_of_flasks = crop_rects(flasks, cropped_image, id_client)
 
     flasks_list = []    # Список цветов в колбах
     for images_contour in images_of_flasks:
@@ -273,7 +271,7 @@ def found_colors_in_flasks(image_for_search, id, reload_image):
     for flask_info in images_of_flasks:
         os.remove(flask_info[0])
 
-    create_json(flasks_list, id)
+    create_json(flasks_list, id_client)
 
     return replace_undefined(flasks_list)
 

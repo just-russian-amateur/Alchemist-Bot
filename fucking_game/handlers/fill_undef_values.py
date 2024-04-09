@@ -41,7 +41,7 @@ async def fill_undef_values(callback: CallbackQuery, state: FSMContext):
     if callback.data == 'reload_image' or callback.data == 'add_an_empty_flask':
         try:
             # Распознаем цвета и добавляем их в список с последующей сериализации в json
-            config.undefined_colors = found_colors_in_flasks(image_for_search=config.image_for_load, id=callback.from_user.id, reload_image=True)
+            config.undefined_colors = found_colors_in_flasks(image_for_search=config.image_for_load, id_client=callback.from_user.id, reload_image=True)
         except:
             await callback.message.answer(
                 'Something went wrong...🤷‍♂️ Please upload another picture',

@@ -38,7 +38,7 @@ async def get_photo(message: Message, bot: Bot, state: FSMContext):
     
     try:
         # Распознаем цвета и добавляем их в список с последующей сериализации в json
-        config.undefined_colors = found_colors_in_flasks(image_for_search=config.image_for_load, id=message.from_user.id, reload_image=False)
+        config.undefined_colors = found_colors_in_flasks(image_for_search=config.image_for_load, id_client=message.from_user.id, reload_image=False)
     except:
         await message.answer(
             'Something went wrong...🤷‍♂️ Please upload another picture',

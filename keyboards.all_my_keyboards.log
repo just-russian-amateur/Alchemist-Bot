@@ -22,3 +22,14 @@ Traceback (most recent call last):
 TypeError: unhashable type: 'list'
 keyboards.all_my_keyboards	2024-04-10 17:06:01,634	CRITICAL	Р’С‹РІРѕРґ РїСЂРёРІРµС‚СЃС‚РІРёСЏ
 NoneType: None
+keyboards.all_my_keyboards	2024-04-10 18:36:53,880	CRITICAL	Вывод приветствия
+NoneType: None
+keyboards.all_my_keyboards	2024-04-10 18:36:59,901	WARNING	Изображение не подходит для распознавания
+Traceback (most recent call last):
+  File "C:\Users\Lapte\Documents\flasks\fucking_game\handlers\get_photo.py", line 50, in get_photo
+    undef_colors = found_colors_in_flasks(image_for_search=image_for_load, id_client=message.from_user.id, reload_image=False)
+  File "C:\Users\Lapte\Documents\flasks\fucking_game\found_colors.py", line 275, in found_colors_in_flasks
+    return replace_undefined(flasks_list)
+  File "C:\Users\Lapte\Documents\flasks\fucking_game\found_colors.py", line 202, in replace_undefined
+    flasks_list = np.asarray(flasks_list)
+ValueError: setting an array element with a sequence. The requested array has an inhomogeneous shape after 1 dimensions. The detected shape was (17,) + inhomogeneous part.

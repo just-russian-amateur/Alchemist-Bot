@@ -2,3 +2,5 @@ handlers.get_photo	2024-04-10 16:58:21,810	CRITICAL	РџРѕР»СЊР·РѕРІР°С‚РµР»СЊ %(m
 NoneType: None
 handlers.get_photo	2024-04-10 17:01:46,129	CRITICAL	РџРѕР»СЊР·РѕРІР°С‚РµР»СЊ %(message.from_user.id)s РѕС‚РїСЂР°РІРёР» С„РѕС‚Рѕ
 NoneType: None
+handlers.get_photo	2024-04-10 18:36:59,655	CRITICAL	Пользователь %(message.from_user.id)s отправил фото
+NoneType: None

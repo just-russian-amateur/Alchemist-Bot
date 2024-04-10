@@ -1,5 +1,4 @@
 from aiogram.types import InlineKeyboardButton, InlineKeyboardMarkup
-import config
 
 
 def create_undef_buttons(color_buttons_list):
@@ -47,11 +46,11 @@ def error_image():
     return kb
 
 
-def colors():
+def colors(undef_colors):
     color_buttons_list = []
     # Создание списка кнопок с цветмаи, которыми можно будет заменить неопределенные значения
-    for color in config.undefined_colors.keys():
-        for _ in range(config.undefined_colors[color]):
+    for color in undef_colors.keys():
+        for _ in range(undef_colors[color]):
             if color == 'LIGHTGREEN':
                 color_buttons_list.append(InlineKeyboardButton(text='LIGHT GREEN', callback_data='LIGHT GREEN'))
             elif color == 'LIGHTBLUE':

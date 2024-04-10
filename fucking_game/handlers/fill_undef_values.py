@@ -34,46 +34,53 @@ async def fill_undef_values(callback: CallbackQuery, state: FSMContext):
         await state.set_state(sf.SolveFlasks.send_photo)
         return
 
-    this_path = f'./{callback.from_user.id}'
-    in_file, out_file = f"{this_path}/tmp/start_level_{callback.from_user.id}.json", f"{this_path}/tmp/result_level_{callback.from_user.id}.txt"
-    level_file = f'{this_path}/tmp/level_for_{callback.from_user.id}.jpg'
+    # Получаем данные с путями к папкам
+    paths = await state.get_data()
+    image_for_load = paths['original_image']
+    in_file, out_file = paths['input_file'], paths['output_file']
+    lvl_file = paths['level_file']
 
     if callback.data == 'reload_image' or callback.data == 'add_an_empty_flask':
         try:
             # Распознаем цвета и добавляем их в список с последующей сериализации в json
-            config.undefined_colors = found_colors_in_flasks(image_for_search=config.image_for_load, id_client=callback.from_user.id, reload_image=True)
+            undef_colors = found_colors_in_flasks(image_for_search=image_for_load, id_client=callback.from_user.id, reload_image=True)
         except:
+            # Если есть любое прерывание во время распознавания, то просим пользователя загрузить новое фото
+            # (генерация прерывания говорит о том, что фото не является скриншотом колб или не соответствует условиям)
             await callback.message.answer(
                 'Something went wrong...🤷‍♂️ Please upload another picture',
                 reply_markup=error_image()
             )
             await callback.answer()
             await state.set_state(sf.SolveFlasks.start_solving)
+    else:
+        undef_colors = paths['undefined_colors']
 
     if callback.data != 'reload_image' and callback.data != 'add_an_empty_flask':
-        if len(config.undefined_colors) != 0:
+        # Удаление цвета нажатой кнопки из словаря и замена неопределенного цвета цветом кнопки
+        if len(undef_colors) != 0:
             for variation in config.color_variations:
                 if callback.data == variation:
                     if variation == 'LIGHT GREEN':
-                        config.undefined_colors['LIGHTGREEN'] -= 1
-                        if config.undefined_colors['LIGHTGREEN'] == 0:
-                            config.undefined_colors.pop('LIGHTGREEN')
+                        undef_colors['LIGHTGREEN'] -= 1
+                        if undef_colors['LIGHTGREEN'] == 0:
+                            undef_colors.pop('LIGHTGREEN')
                         replace_in_json(json_name=in_file, color_name='LIGHTGREEN')
                         break
                     elif variation == 'LIGHT BLUE':
-                        config.undefined_colors['LIGHTBLUE'] -= 1
-                        if config.undefined_colors['LIGHTBLUE'] == 0:
-                            config.undefined_colors.pop('LIGHTBLUE')
+                        undef_colors['LIGHTBLUE'] -= 1
+                        if undef_colors['LIGHTBLUE'] == 0:
+                            undef_colors.pop('LIGHTBLUE')
                         replace_in_json(json_name=in_file, color_name='LIGHTBLUE')
                         break
                     else:
-                        config.undefined_colors[variation] -= 1
-                        if config.undefined_colors[variation] == 0:
-                            config.undefined_colors.pop(variation)
+                        undef_colors[variation] -= 1
+                        if undef_colors[variation] == 0:
+                            undef_colors.pop(variation)
                         replace_in_json(json_name=in_file, color_name=variation)
                         break
 
-    if len(config.undefined_colors) != 0:
+    if len(undef_colors) != 0:
         if callback.data == 'add_an_empty_flask':
             # Добавляем пустую колбу
             add_empty_flask(json_name=in_file)
@@ -83,7 +90,7 @@ async def fill_undef_values(callback: CallbackQuery, state: FSMContext):
 
         if callback.data == 'reload_image' or callback.data == 'add_an_empty_flask':
             # Изображение, где подсвечивается первый неопределенный цвет
-            with open(level_file, 'rb') as open_image:
+            with open(lvl_file, 'rb') as open_image:
                 await callback.message.answer_photo(
                     BufferedInputFile(
                         open_image.read(),
@@ -94,20 +101,20 @@ async def fill_undef_values(callback: CallbackQuery, state: FSMContext):
                 )
             await callback.message.answer(
                 'Please select from the options provided the color that should be in place of the green circle',
-                reply_markup=colors()
+                reply_markup=colors(undef_colors)
             )
             await callback.answer()
         else:
             # Изображение, где подсвечивается первый неопределенный цвет
             await callback.message.delete()
-            with open(level_file, 'rb') as open_image:
+            with open(lvl_file, 'rb') as open_image:
                 await callback.message.answer_photo(
                     BufferedInputFile(
                         open_image.read(),
                         filename='solve_flasks'
                     ),
                     caption="Please select from the options provided the color that should be in place of the green circle",
-                    reply_markup=colors()
+                    reply_markup=colors(undef_colors)
                 )
                 await callback.answer()
     else:
@@ -115,7 +122,7 @@ async def fill_undef_values(callback: CallbackQuery, state: FSMContext):
         create_image_for_replace(json_name=in_file, id_client=callback.from_user.id)
         # Итоговое изображение
         await callback.message.delete()
-        with open(level_file, 'rb') as open_image:
+        with open(lvl_file, 'rb') as open_image:
             await callback.message.answer_photo(
                 BufferedInputFile(
                     open_image.read(),
@@ -125,8 +132,10 @@ async def fill_undef_values(callback: CallbackQuery, state: FSMContext):
             )
             await callback.answer()
 
+        # Запускаем файл для решения уровня
         flasks_solver(input_file=in_file, output_file=out_file)
 
+        # В случае, если файл пустой или не был создан сообщаем, что решение не найдено, иначе выводим решение
         if os.stat(out_file).st_size == 0 or os.path.isfile(out_file) == False:
             await callback.message.answer(
                 f'😖😖😖Unfortunately, I was unable to find a solution for this arrangement.\nIf you want to change the order of undefined colors, click "🔄️🖼️Reload image".\nIf you know all the colors, but the solution still hasn’t been found, then I can add another empty flask, to do this, click “➕🧪Add an empty flask”\nOr you can upload a new image, to do this, click "📩🖼️Upload new image"',
@@ -143,7 +152,7 @@ async def fill_undef_values(callback: CallbackQuery, state: FSMContext):
         # Удаление временных файлов
         os.remove(out_file)
         os.remove(in_file)
-        os.remove(level_file)
+        os.remove(lvl_file)
 
 
 @rtr.message(sf.SolveFlasks.send_photo)

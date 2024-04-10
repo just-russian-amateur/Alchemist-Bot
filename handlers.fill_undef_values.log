@@ -64,3 +64,25 @@ handlers.fill_undef_values	2024-04-10 19:14:17,277	CRITICAL	Изображение для поль
 NoneType: None
 handlers.fill_undef_values	2024-04-10 19:14:22,791	CRITICAL	Пользователь %(callback.from_user.id)s заполнил все пустоты
 NoneType: None
+handlers.fill_undef_values	2024-04-10 19:50:43,433	CRITICAL	Изображение для пользователя %(callback.from_user.id)s дополнено и отправлено для дальнейшего редактирования
+NoneType: None
+handlers.fill_undef_values	2024-04-10 19:50:43,449	CRITICAL	Изображение для пользователя %(callback.from_user.id)s дополнено и отправлено для дальнейшего редактирования
+NoneType: None
+handlers.fill_undef_values	2024-04-10 19:50:44,045	CRITICAL	Изображение для пользователя %(callback.from_user.id)s дополнено и отправлено для дальнейшего редактирования
+NoneType: None
+handlers.fill_undef_values	2024-04-10 19:50:51,460	CRITICAL	Изображение для пользователя %(callback.from_user.id)s дополнено и отправлено для дальнейшего редактирования
+NoneType: None
+handlers.fill_undef_values	2024-04-10 19:50:51,733	CRITICAL	Изображение для пользователя %(callback.from_user.id)s дополнено и отправлено для дальнейшего редактирования
+NoneType: None
+handlers.fill_undef_values	2024-04-10 19:50:51,961	CRITICAL	Изображение для пользователя %(callback.from_user.id)s дополнено и отправлено для дальнейшего редактирования
+NoneType: None
+handlers.fill_undef_values	2024-04-10 19:50:58,530	CRITICAL	Пользователь %(callback.from_user.id)s заполнил все пустоты
+NoneType: None
+handlers.fill_undef_values	2024-04-10 19:51:10,570	CRITICAL	Изображение для пользователя %(callback.from_user.id)s дополнено и отправлено для дальнейшего редактирования
+NoneType: None
+handlers.fill_undef_values	2024-04-10 19:51:10,570	CRITICAL	Изображение для пользователя %(callback.from_user.id)s дополнено и отправлено для дальнейшего редактирования
+NoneType: None
+handlers.fill_undef_values	2024-04-10 19:51:12,306	CRITICAL	Пользователь %(callback.from_user.id)s заполнил все пустоты
+NoneType: None
+handlers.fill_undef_values	2024-04-10 19:51:12,729	CRITICAL	Пользователь %(callback.from_user.id)s заполнил все пустоты
+NoneType: None

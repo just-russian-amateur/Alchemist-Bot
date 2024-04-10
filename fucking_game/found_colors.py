@@ -41,7 +41,7 @@ def preprocessing_image(image):
     # Пороговая обработка изображения
     thresholder = cv2.threshold(
         blurred,
-        68.5,
+        68,
         255,
         cv2.THRESH_BINARY
     )[1]
@@ -144,13 +144,9 @@ def create_color_list(image):
                 idx_line += 2
             else:
                 idx_line += 1
-    
-    # Добавляем абсолютно пустую колбу, если список пуст
-    if len(colors_info) == 0:
-        for i in range(4):
-            colors_info.append(['EMPTY', (0, i)])
 
-    if len(colors_info) < 4:
+    # Не учитываем пустые списки (пустые колбы будут добавляться отдельно)
+    if len(colors_info) < 4 and len(colors_info) > 0:
         # Добавляем неопределившиеся значения список цветов в колбе
         for i in range(4 - len(colors_info)):
             colors_info.append(['UNDEFINED', (0, height)])
@@ -252,21 +248,26 @@ def found_colors_in_flasks(image_for_search, id_client, reload_image):
         # Находим контуры цветов внутри каждой колбы
         internal_colors = []
         colors_list = create_color_list(images_contour[0])
-        for colors_contours in colors_list:
-            internal_colors.append((colors_contours[0], colors_contours[1]))
-        internal_colors = sorted(
-            internal_colors,
-            key=lambda
-            item:
-            item[1][1],
-            reverse=True
-        )
+        if len(colors_list) != 0:
+            for colors_contours in colors_list:
+                internal_colors.append((colors_contours[0], colors_contours[1]))
+            internal_colors = sorted(
+                internal_colors,
+                key=lambda
+                item:
+                item[1][1],
+                reverse=True
+            )
         
-        colors = []
-        for color in internal_colors:
-            colors.append(color[0])
-        flasks_list.append(colors)
+            colors = []
+            for color in internal_colors:
+                colors.append(color[0])
+            flasks_list.append(colors)
     
+    # Вручную добавляем 2 пустые колбы
+    for _ in range(2):
+        flasks_list.append(['EMPTY', 'EMPTY', 'EMPTY', 'EMPTY'])
+
     # Удаление всех временных файлов для экономии места
     for flask_info in images_of_flasks:
         os.remove(flask_info[0])

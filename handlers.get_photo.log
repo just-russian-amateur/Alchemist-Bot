@@ -36,3 +36,35 @@ handlers.get_photo	2024-04-10 19:00:58,196	CRITICAL	»зображение дл€ пользовател€
 NoneType: None
 handlers.get_photo	2024-04-10 19:00:58,500	CRITICAL	»зображение дл€ пользовател€ %(message.from_user.id)s успешно создано и готово дл€ редактировани€
 NoneType: None
+handlers.get_photo	2024-04-10 19:10:01,401	CRITICAL	ѕользователь %(message.from_user.id)s отправил фото
+NoneType: None
+handlers.get_photo	2024-04-10 19:10:03,145	CRITICAL	ѕользователь %(message.from_user.id)s отправил фото
+NoneType: None
+handlers.get_photo	2024-04-10 19:10:04,804	CRITICAL	»зображение дл€ пользовател€ %(message.from_user.id)s успешно создано и готово дл€ редактировани€
+NoneType: None
+handlers.get_photo	2024-04-10 19:10:05,010	CRITICAL	»зображение дл€ пользовател€ %(message.from_user.id)s успешно создано и готово дл€ редактировани€
+NoneType: None
+handlers.get_photo	2024-04-10 19:14:00,060	CRITICAL	ѕользователь %(message.from_user.id)s отправил фото
+NoneType: None
+handlers.get_photo	2024-04-10 19:14:01,765	CRITICAL	ѕользователь %(message.from_user.id)s отправил фото
+NoneType: None
+handlers.get_photo	2024-04-10 19:14:03,527	CRITICAL	»зображение дл€ пользовател€ %(message.from_user.id)s успешно создано и готово дл€ редактировани€
+NoneType: None
+handlers.get_photo	2024-04-10 19:14:03,680	CRITICAL	»зображение дл€ пользовател€ %(message.from_user.id)s успешно создано и готово дл€ редактировани€
+NoneType: None
+handlers.get_photo	2024-04-10 19:17:53,787	CRITICAL	ѕользователь %(message.from_user.id)s отправил фото
+NoneType: None
+handlers.get_photo	2024-04-10 19:17:55,729	CRITICAL	»зображение дл€ пользовател€ %(message.from_user.id)s успешно создано и готово дл€ редактировани€
+NoneType: None
+handlers.get_photo	2024-04-10 19:18:35,879	CRITICAL	ѕользователь %(message.from_user.id)s отправил фото
+NoneType: None
+handlers.get_photo	2024-04-10 19:18:37,941	CRITICAL	»зображение дл€ пользовател€ %(message.from_user.id)s успешно создано и готово дл€ редактировани€
+NoneType: None
+handlers.get_photo	2024-04-10 19:20:26,208	CRITICAL	ѕользователь %(message.from_user.id)s отправил фото
+NoneType: None
+handlers.get_photo	2024-04-10 19:20:28,178	CRITICAL	»зображение дл€ пользовател€ %(message.from_user.id)s успешно создано и готово дл€ редактировани€
+NoneType: None
+handlers.get_photo	2024-04-10 19:38:27,849	CRITICAL	ѕользователь %(message.from_user.id)s отправил фото
+NoneType: None
+handlers.get_photo	2024-04-10 19:38:30,232	CRITICAL	»зображение дл€ пользовател€ %(message.from_user.id)s успешно создано и готово дл€ редактировани€
+NoneType: None

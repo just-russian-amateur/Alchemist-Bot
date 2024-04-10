@@ -26,3 +26,19 @@ handlers.start_solving	2024-04-10 19:00:45,079	CRITICAL	Пользователь %(callback.
 NoneType: None
 handlers.start_solving	2024-04-10 19:00:45,212	CRITICAL	Пользователь %(callback.from_user.id)s приступил к загрузке первого изображения
 NoneType: None
+handlers.start_solving	2024-04-10 19:09:53,377	CRITICAL	Пользователь %(callback.from_user.id)s приступил к загрузке первого изображения
+NoneType: None
+handlers.start_solving	2024-04-10 19:09:53,448	CRITICAL	Пользователь %(callback.from_user.id)s приступил к загрузке первого изображения
+NoneType: None
+handlers.start_solving	2024-04-10 19:13:53,598	CRITICAL	Пользователь %(callback.from_user.id)s приступил к загрузке первого изображения
+NoneType: None
+handlers.start_solving	2024-04-10 19:13:53,676	CRITICAL	Пользователь %(callback.from_user.id)s приступил к загрузке первого изображения
+NoneType: None
+handlers.start_solving	2024-04-10 19:17:41,976	CRITICAL	Пользователь %(callback.from_user.id)s приступил к загрузке первого изображения
+NoneType: None
+handlers.start_solving	2024-04-10 19:18:27,216	CRITICAL	Пользователь %(callback.from_user.id)s приступил к загрузке первого изображения
+NoneType: None
+handlers.start_solving	2024-04-10 19:20:19,625	CRITICAL	Пользователь %(callback.from_user.id)s приступил к загрузке первого изображения
+NoneType: None
+handlers.start_solving	2024-04-10 19:38:21,764	CRITICAL	Пользователь %(callback.from_user.id)s приступил к загрузке первого изображения
+NoneType: None

@@ -41,7 +41,7 @@ def preprocessing_image(image):
     # Пороговая обработка изображения
     thresholder = cv2.threshold(
         blurred,
-        68,
+        68.5,
         255,
         cv2.THRESH_BINARY
     )[1]

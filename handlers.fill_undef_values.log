@@ -1,0 +1,40 @@
+handlers.fill_undef_values	2024-04-10 18:56:05,859	CRITICAL	Изображение для пользователя %(callback.from_user.id)s дополнено и отправлено для дальнейшего редактирования
+NoneType: None
+handlers.fill_undef_values	2024-04-10 18:56:10,305	CRITICAL	Изображение для пользователя %(callback.from_user.id)s дополнено и отправлено для дальнейшего редактирования
+NoneType: None
+handlers.fill_undef_values	2024-04-10 18:56:14,711	CRITICAL	Пользователь %(callback.from_user.id)s заполнил все пустоты
+NoneType: None
+handlers.fill_undef_values	2024-04-10 18:57:52,531	CRITICAL	Изображение для пользователя %(callback.from_user.id)s дополнено и отправлено для дальнейшего редактирования
+NoneType: None
+handlers.fill_undef_values	2024-04-10 18:57:52,657	CRITICAL	Изображение для пользователя %(callback.from_user.id)s дополнено и отправлено для дальнейшего редактирования
+NoneType: None
+handlers.fill_undef_values	2024-04-10 18:58:00,343	CRITICAL	Изображение для пользователя %(callback.from_user.id)s дополнено и отправлено для дальнейшего редактирования
+NoneType: None
+handlers.fill_undef_values	2024-04-10 18:58:00,484	CRITICAL	Изображение для пользователя %(callback.from_user.id)s дополнено и отправлено для дальнейшего редактирования
+NoneType: None
+handlers.fill_undef_values	2024-04-10 18:58:06,278	CRITICAL	Пользователь %(callback.from_user.id)s заполнил все пустоты
+NoneType: None
+handlers.fill_undef_values	2024-04-10 18:58:26,321	CRITICAL	Изображение для пользователя %(callback.from_user.id)s дополнено и отправлено для дальнейшего редактирования
+NoneType: None
+handlers.fill_undef_values	2024-04-10 19:00:03,581	CRITICAL	Изображение для пользователя %(callback.from_user.id)s дополнено и отправлено для дальнейшего редактирования
+NoneType: None
+handlers.fill_undef_values	2024-04-10 19:00:07,710	CRITICAL	Изображение для пользователя %(callback.from_user.id)s дополнено и отправлено для дальнейшего редактирования
+NoneType: None
+handlers.fill_undef_values	2024-04-10 19:00:12,077	CRITICAL	Изображение для пользователя %(callback.from_user.id)s дополнено и отправлено для дальнейшего редактирования
+NoneType: None
+handlers.fill_undef_values	2024-04-10 19:00:15,275	CRITICAL	Пользователь %(callback.from_user.id)s заполнил все пустоты
+NoneType: None
+handlers.fill_undef_values	2024-04-10 19:01:03,855	CRITICAL	Изображение для пользователя %(callback.from_user.id)s дополнено и отправлено для дальнейшего редактирования
+NoneType: None
+handlers.fill_undef_values	2024-04-10 19:01:04,198	CRITICAL	Изображение для пользователя %(callback.from_user.id)s дополнено и отправлено для дальнейшего редактирования
+NoneType: None
+handlers.fill_undef_values	2024-04-10 19:01:08,659	CRITICAL	Изображение для пользователя %(callback.from_user.id)s дополнено и отправлено для дальнейшего редактирования
+NoneType: None
+handlers.fill_undef_values	2024-04-10 19:01:11,057	CRITICAL	Изображение для пользователя %(callback.from_user.id)s дополнено и отправлено для дальнейшего редактирования
+NoneType: None
+handlers.fill_undef_values	2024-04-10 19:01:14,807	CRITICAL	Пользователь %(callback.from_user.id)s заполнил все пустоты
+NoneType: None
+handlers.fill_undef_values	2024-04-10 19:01:26,678	CRITICAL	Изображение для пользователя %(callback.from_user.id)s дополнено и отправлено для дальнейшего редактирования
+NoneType: None
+handlers.fill_undef_values	2024-04-10 19:01:27,665	CRITICAL	Пользователь %(callback.from_user.id)s заполнил все пустоты
+NoneType: None

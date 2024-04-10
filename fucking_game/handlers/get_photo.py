@@ -57,7 +57,6 @@ async def get_photo(message: Message, bot: Bot, state: FSMContext):
             reply_markup=error_image()
         )
         await state.set_state(sf.SolveFlasks.start_solving)
-        return
 
     if len(undef_colors) != 0:
         # Подготавливаем картинку, в которой подсвечиваем неопределенные области

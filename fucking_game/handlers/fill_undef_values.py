@@ -55,7 +55,6 @@ async def fill_undef_values(callback: CallbackQuery, state: FSMContext):
             )
             await callback.answer()
             await state.set_state(sf.SolveFlasks.start_solving)
-            return
     else:
         undef_colors = paths['undefined_colors']
 

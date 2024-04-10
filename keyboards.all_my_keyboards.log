@@ -33,3 +33,144 @@ Traceback (most recent call last):
   File "C:\Users\Lapte\Documents\flasks\fucking_game\found_colors.py", line 202, in replace_undefined
     flasks_list = np.asarray(flasks_list)
 ValueError: setting an array element with a sequence. The requested array has an inhomogeneous shape after 1 dimensions. The detected shape was (17,) + inhomogeneous part.
+keyboards.all_my_keyboards	2024-04-10 18:38:16,841	CRITICAL	Вывод приветствия
+NoneType: None
+keyboards.all_my_keyboards	2024-04-10 18:38:22,213	WARNING	Изображение не подходит для распознавания
+Traceback (most recent call last):
+  File "C:\Users\Lapte\Documents\flasks\fucking_game\handlers\get_photo.py", line 50, in get_photo
+    undef_colors = found_colors_in_flasks(image_for_search=image_for_load, id_client=message.from_user.id, reload_image=False)
+  File "C:\Users\Lapte\Documents\flasks\fucking_game\found_colors.py", line 275, in found_colors_in_flasks
+    return replace_undefined(flasks_list)
+  File "C:\Users\Lapte\Documents\flasks\fucking_game\found_colors.py", line 202, in replace_undefined
+    flasks_list = np.asarray(flasks_list)
+ValueError: setting an array element with a sequence. The requested array has an inhomogeneous shape after 1 dimensions. The detected shape was (17,) + inhomogeneous part.
+keyboards.all_my_keyboards	2024-04-10 18:39:02,481	CRITICAL	Вывод приветствия
+NoneType: None
+keyboards.all_my_keyboards	2024-04-10 18:39:07,872	WARNING	Изображение не подходит для распознавания
+Traceback (most recent call last):
+  File "C:\Users\Lapte\Documents\flasks\fucking_game\handlers\get_photo.py", line 50, in get_photo
+    undef_colors = found_colors_in_flasks(image_for_search=image_for_load, id_client=message.from_user.id, reload_image=False)
+  File "C:\Users\Lapte\Documents\flasks\fucking_game\found_colors.py", line 275, in found_colors_in_flasks
+    return replace_undefined(flasks_list)
+  File "C:\Users\Lapte\Documents\flasks\fucking_game\found_colors.py", line 202, in replace_undefined
+    flasks_list = np.asarray(flasks_list)
+ValueError: setting an array element with a sequence. The requested array has an inhomogeneous shape after 1 dimensions. The detected shape was (17,) + inhomogeneous part.
+keyboards.all_my_keyboards	2024-04-10 18:39:35,874	CRITICAL	Вывод приветствия
+NoneType: None
+keyboards.all_my_keyboards	2024-04-10 18:39:41,028	WARNING	Изображение не подходит для распознавания
+Traceback (most recent call last):
+  File "C:\Users\Lapte\Documents\flasks\fucking_game\handlers\get_photo.py", line 50, in get_photo
+    undef_colors = found_colors_in_flasks(image_for_search=image_for_load, id_client=message.from_user.id, reload_image=False)
+  File "C:\Users\Lapte\Documents\flasks\fucking_game\found_colors.py", line 275, in found_colors_in_flasks
+    return replace_undefined(flasks_list)
+  File "C:\Users\Lapte\Documents\flasks\fucking_game\found_colors.py", line 202, in replace_undefined
+    flasks_list = np.asarray(flasks_list)
+ValueError: setting an array element with a sequence. The requested array has an inhomogeneous shape after 1 dimensions. The detected shape was (17,) + inhomogeneous part.
+keyboards.all_my_keyboards	2024-04-10 18:40:19,709	CRITICAL	Вывод приветствия
+NoneType: None
+keyboards.all_my_keyboards	2024-04-10 18:55:38,508	CRITICAL	Вывод приветствия
+NoneType: None
+keyboards.all_my_keyboards	2024-04-10 18:55:57,078	CRITICAL	Расстановка кнопок в правильном порядке
+NoneType: None
+keyboards.all_my_keyboards	2024-04-10 18:55:57,078	CRITICAL	Составлен список неопределенных кнопок
+NoneType: None
+keyboards.all_my_keyboards	2024-04-10 18:56:05,576	CRITICAL	Расстановка кнопок в правильном порядке
+NoneType: None
+keyboards.all_my_keyboards	2024-04-10 18:56:05,576	CRITICAL	Составлен список неопределенных кнопок
+NoneType: None
+keyboards.all_my_keyboards	2024-04-10 18:56:10,037	CRITICAL	Расстановка кнопок в правильном порядке
+NoneType: None
+keyboards.all_my_keyboards	2024-04-10 18:56:10,037	CRITICAL	Составлен список неопределенных кнопок
+NoneType: None
+keyboards.all_my_keyboards	2024-04-10 18:56:35,388	CRITICAL	Результат не найден
+NoneType: None
+keyboards.all_my_keyboards	2024-04-10 18:57:27,557	CRITICAL	Вывод приветствия
+NoneType: None
+keyboards.all_my_keyboards	2024-04-10 18:57:27,676	CRITICAL	Вывод приветствия
+NoneType: None
+keyboards.all_my_keyboards	2024-04-10 18:57:44,552	CRITICAL	Расстановка кнопок в правильном порядке
+NoneType: None
+keyboards.all_my_keyboards	2024-04-10 18:57:44,552	CRITICAL	Составлен список неопределенных кнопок
+NoneType: None
+keyboards.all_my_keyboards	2024-04-10 18:57:46,319	CRITICAL	Расстановка кнопок в правильном порядке
+NoneType: None
+keyboards.all_my_keyboards	2024-04-10 18:57:46,320	CRITICAL	Составлен список неопределенных кнопок
+NoneType: None
+keyboards.all_my_keyboards	2024-04-10 18:57:52,265	CRITICAL	Расстановка кнопок в правильном порядке
+NoneType: None
+keyboards.all_my_keyboards	2024-04-10 18:57:52,265	CRITICAL	Составлен список неопределенных кнопок
+NoneType: None
+keyboards.all_my_keyboards	2024-04-10 18:57:52,359	CRITICAL	Расстановка кнопок в правильном порядке
+NoneType: None
+keyboards.all_my_keyboards	2024-04-10 18:57:52,359	CRITICAL	Составлен список неопределенных кнопок
+NoneType: None
+keyboards.all_my_keyboards	2024-04-10 18:58:00,138	CRITICAL	Расстановка кнопок в правильном порядке
+NoneType: None
+keyboards.all_my_keyboards	2024-04-10 18:58:00,139	CRITICAL	Составлен список неопределенных кнопок
+NoneType: None
+keyboards.all_my_keyboards	2024-04-10 18:58:00,218	CRITICAL	Расстановка кнопок в правильном порядке
+NoneType: None
+keyboards.all_my_keyboards	2024-04-10 18:58:00,218	CRITICAL	Составлен список неопределенных кнопок
+NoneType: None
+keyboards.all_my_keyboards	2024-04-10 18:58:05,794	CRITICAL	Расстановка кнопок в правильном порядке
+NoneType: None
+keyboards.all_my_keyboards	2024-04-10 18:58:05,794	CRITICAL	Составлен список неопределенных кнопок
+NoneType: None
+keyboards.all_my_keyboards	2024-04-10 18:58:26,321	CRITICAL	Результат не найден
+NoneType: None
+keyboards.all_my_keyboards	2024-04-10 18:59:51,414	CRITICAL	Вывод приветствия
+NoneType: None
+keyboards.all_my_keyboards	2024-04-10 18:59:59,991	CRITICAL	Расстановка кнопок в правильном порядке
+NoneType: None
+keyboards.all_my_keyboards	2024-04-10 18:59:59,991	CRITICAL	Составлен список неопределенных кнопок
+NoneType: None
+keyboards.all_my_keyboards	2024-04-10 19:00:03,144	CRITICAL	Расстановка кнопок в правильном порядке
+NoneType: None
+keyboards.all_my_keyboards	2024-04-10 19:00:03,144	CRITICAL	Составлен список неопределенных кнопок
+NoneType: None
+keyboards.all_my_keyboards	2024-04-10 19:00:07,295	CRITICAL	Расстановка кнопок в правильном порядке
+NoneType: None
+keyboards.all_my_keyboards	2024-04-10 19:00:07,296	CRITICAL	Составлен список неопределенных кнопок
+NoneType: None
+keyboards.all_my_keyboards	2024-04-10 19:00:11,451	CRITICAL	Расстановка кнопок в правильном порядке
+NoneType: None
+keyboards.all_my_keyboards	2024-04-10 19:00:11,451	CRITICAL	Составлен список неопределенных кнопок
+NoneType: None
+keyboards.all_my_keyboards	2024-04-10 19:00:15,309	CRITICAL	Результат не найден
+NoneType: None
+keyboards.all_my_keyboards	2024-04-10 19:00:42,836	CRITICAL	Вывод приветствия
+NoneType: None
+keyboards.all_my_keyboards	2024-04-10 19:00:42,930	CRITICAL	Вывод приветствия
+NoneType: None
+keyboards.all_my_keyboards	2024-04-10 19:00:57,997	CRITICAL	Расстановка кнопок в правильном порядке
+NoneType: None
+keyboards.all_my_keyboards	2024-04-10 19:00:58,013	CRITICAL	Составлен список неопределенных кнопок
+NoneType: None
+keyboards.all_my_keyboards	2024-04-10 19:00:58,266	CRITICAL	Расстановка кнопок в правильном порядке
+NoneType: None
+keyboards.all_my_keyboards	2024-04-10 19:00:58,266	CRITICAL	Составлен список неопределенных кнопок
+NoneType: None
+keyboards.all_my_keyboards	2024-04-10 19:01:03,402	CRITICAL	Расстановка кнопок в правильном порядке
+NoneType: None
+keyboards.all_my_keyboards	2024-04-10 19:01:03,402	CRITICAL	Составлен список неопределенных кнопок
+NoneType: None
+keyboards.all_my_keyboards	2024-04-10 19:01:03,546	CRITICAL	Расстановка кнопок в правильном порядке
+NoneType: None
+keyboards.all_my_keyboards	2024-04-10 19:01:03,546	CRITICAL	Составлен список неопределенных кнопок
+NoneType: None
+keyboards.all_my_keyboards	2024-04-10 19:01:08,150	CRITICAL	Расстановка кнопок в правильном порядке
+NoneType: None
+keyboards.all_my_keyboards	2024-04-10 19:01:08,150	CRITICAL	Составлен список неопределенных кнопок
+NoneType: None
+keyboards.all_my_keyboards	2024-04-10 19:01:08,298	CRITICAL	Расстановка кнопок в правильном порядке
+NoneType: None
+keyboards.all_my_keyboards	2024-04-10 19:01:08,298	CRITICAL	Составлен список неопределенных кнопок
+NoneType: None
+keyboards.all_my_keyboards	2024-04-10 19:01:14,682	CRITICAL	Расстановка кнопок в правильном порядке
+NoneType: None
+keyboards.all_my_keyboards	2024-04-10 19:01:14,682	CRITICAL	Составлен список неопределенных кнопок
+NoneType: None
+keyboards.all_my_keyboards	2024-04-10 19:01:25,517	CRITICAL	Результат не найден
+NoneType: None
+keyboards.all_my_keyboards	2024-04-10 19:01:27,700	CRITICAL	Результат не найден
+NoneType: None

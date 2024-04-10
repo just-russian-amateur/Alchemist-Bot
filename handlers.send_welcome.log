@@ -6,3 +6,23 @@ handlers.send_welcome	2024-04-10 17:06:01,620	CRITICAL	РџРѕР»СЊР·РѕРІР°С‚РµР»РµР
 NoneType: None
 handlers.send_welcome	2024-04-10 18:36:53,878	CRITICAL	Пользователем %(message.from_user.id) был запущен или перезапущен бот
 NoneType: None
+handlers.send_welcome	2024-04-10 18:38:16,841	CRITICAL	Пользователем %(message.from_user.id) был запущен или перезапущен бот
+NoneType: None
+handlers.send_welcome	2024-04-10 18:39:02,481	CRITICAL	Пользователем %(message.from_user.id) был запущен или перезапущен бот
+NoneType: None
+handlers.send_welcome	2024-04-10 18:39:35,872	CRITICAL	Пользователем %(message.from_user.id) был запущен или перезапущен бот
+NoneType: None
+handlers.send_welcome	2024-04-10 18:40:19,709	CRITICAL	Пользователем %(message.from_user.id) был запущен или перезапущен бот
+NoneType: None
+handlers.send_welcome	2024-04-10 18:55:38,493	CRITICAL	Пользователем %(message.from_user.id) был запущен или перезапущен бот
+NoneType: None
+handlers.send_welcome	2024-04-10 18:57:27,557	CRITICAL	Пользователем %(message.from_user.id) был запущен или перезапущен бот
+NoneType: None
+handlers.send_welcome	2024-04-10 18:57:27,676	CRITICAL	Пользователем %(message.from_user.id) был запущен или перезапущен бот
+NoneType: None
+handlers.send_welcome	2024-04-10 18:59:51,399	CRITICAL	Пользователем %(message.from_user.id) был запущен или перезапущен бот
+NoneType: None
+handlers.send_welcome	2024-04-10 19:00:42,836	CRITICAL	Пользователем %(message.from_user.id) был запущен или перезапущен бот
+NoneType: None
+handlers.send_welcome	2024-04-10 19:00:42,930	CRITICAL	Пользователем %(message.from_user.id) был запущен или перезапущен бот
+NoneType: None

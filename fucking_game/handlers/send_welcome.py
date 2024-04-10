@@ -5,18 +5,20 @@ from aiogram.fsm.context import FSMContext
 
 import classes.solve_flasks as sf
 from keyboards.all_my_keyboards import start_keyboard
+from config_logger import ConfigLogger
 
-import logging
 import os
 
 
 rtr = Router()
+logger = ConfigLogger(__name__)
 
 
 @rtr.message(CommandStart())  # Команда для начала работы с ботом
 async def send_welcome(message: Message,  state: FSMContext):
     """Приветственная функция"""
     await state.clear()
+    logger.log_info('Пользователем %(message.from_user.id) был запущен или перезапущен бот')
     # Создаем папку с именем пользователя, который использует бота, если ее не существовало
     if not os.path.isdir(f'./{message.from_user.id}'):
         os.mkdir(f'./{message.from_user.id}')

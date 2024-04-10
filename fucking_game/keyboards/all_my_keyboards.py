@@ -1,4 +1,8 @@
 from aiogram.types import InlineKeyboardButton, InlineKeyboardMarkup
+from config_logger import ConfigLogger
+
+
+logger = ConfigLogger(__name__)
 
 
 def create_undef_buttons(color_buttons_list):
@@ -20,6 +24,8 @@ def create_undef_buttons(color_buttons_list):
             color_buttons.append(button_line)
         else:
             button_line.append(color_buttons_list[i])
+
+    logger.log_info('Расстановка кнопок в правильном порядке')
     
     return color_buttons
 
@@ -32,6 +38,8 @@ def start_keyboard():
     ]
     kb = InlineKeyboardMarkup(inline_keyboard=start_button)
 
+    logger.log_info('Вывод приветствия')
+
     return kb
 
 
@@ -42,6 +50,8 @@ def error_image():
         ]
     ]
     kb = InlineKeyboardMarkup(inline_keyboard=reload_img)
+
+    logger.log_warning('Изображение не подходит для распознавания')
 
     return kb
 
@@ -59,6 +69,8 @@ def colors(undef_colors):
                 color_buttons_list.append(InlineKeyboardButton(text=color, callback_data=color))
     color_buttons = create_undef_buttons(color_buttons_list)
     kb = InlineKeyboardMarkup(inline_keyboard=color_buttons)
+
+    logger.log_info('Составлен список неопределенных кнопок')
 
     return kb
 
@@ -82,6 +94,8 @@ def upload_new():
     ]
     kb = InlineKeyboardMarkup(inline_keyboard=upload_new_button)
 
+    logger.log_info('Результат успешно найден')
+
     return kb
 
 
@@ -96,5 +110,7 @@ def no_result():
         ]
     ]
     kb = InlineKeyboardMarkup(inline_keyboard=no_result_button)
+
+    logger.log_info('Результат не найден')
 
     return kb

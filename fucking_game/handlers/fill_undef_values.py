@@ -7,13 +7,14 @@ from found_colors import found_colors_in_flasks, replace_in_json, create_image_f
 import config
 import classes.solve_flasks as sf
 from keyboards.all_my_keyboards import error_image, colors, feedback, upload_new, no_result
+from config_logger import ConfigLogger
 
 import asyncio
-import logging
 import os
 
 
 rtr = Router()
+logger = ConfigLogger(__name__)
 
 
 @rtr.callback_query(
@@ -41,6 +42,7 @@ async def fill_undef_values(callback: CallbackQuery, state: FSMContext):
     lvl_file = paths['level_file']
 
     if callback.data == 'reload_image' or callback.data == 'add_an_empty_flask':
+        logger.log_info('Изображение от пользователя %(callback.from_user.id)s отправлено на перезагрузку с/без добавления пустой колбы')
         try:
             # Распознаем цвета и добавляем их в список с последующей сериализации в json
             undef_colors = found_colors_in_flasks(image_for_search=image_for_load, id_client=callback.from_user.id, reload_image=True)
@@ -53,6 +55,7 @@ async def fill_undef_values(callback: CallbackQuery, state: FSMContext):
             )
             await callback.answer()
             await state.set_state(sf.SolveFlasks.start_solving)
+            return
     else:
         undef_colors = paths['undefined_colors']
 
@@ -84,6 +87,7 @@ async def fill_undef_values(callback: CallbackQuery, state: FSMContext):
         if callback.data == 'add_an_empty_flask':
             # Добавляем пустую колбу
             add_empty_flask(json_name=in_file)
+            logger.log_info('В изображение пользователя %(callback.from_user.id)s была добавлена пустая колба')
 
         # Подготавливаем картинку, в которой подсвечиваем неопределенные области
         create_image_for_replace(json_name=in_file, id_client=callback.from_user.id)
@@ -104,6 +108,7 @@ async def fill_undef_values(callback: CallbackQuery, state: FSMContext):
                 reply_markup=colors(undef_colors)
             )
             await callback.answer()
+            logger.log_info('Изображение для пользователя %(callback.from_user.id)s перезагружено для дальнейшего редактирования')
         else:
             # Изображение, где подсвечивается первый неопределенный цвет
             await callback.message.delete()
@@ -117,6 +122,7 @@ async def fill_undef_values(callback: CallbackQuery, state: FSMContext):
                     reply_markup=colors(undef_colors)
                 )
                 await callback.answer()
+            logger.log_info('Изображение для пользователя %(callback.from_user.id)s дополнено и отправлено для дальнейшего редактирования')
     else:
         # Формируем итоговый json
         create_image_for_replace(json_name=in_file, id_client=callback.from_user.id)
@@ -132,6 +138,7 @@ async def fill_undef_values(callback: CallbackQuery, state: FSMContext):
             )
             await callback.answer()
 
+        logger.log_info('Пользователь %(callback.from_user.id)s заполнил все пустоты')
         # Запускаем файл для решения уровня
         flasks_solver(input_file=in_file, output_file=out_file)
 
@@ -158,6 +165,7 @@ async def fill_undef_values(callback: CallbackQuery, state: FSMContext):
 @rtr.message(sf.SolveFlasks.send_photo)
 async def filling_incorrectly(message: Message):
     '''Функция для отслеживания любых действий кроме заполнения цветом'''
+    logger.log_info('Пользователь %(message.from_user.id)s проигнорировал кнопки')
     msg = await message.answer('Please select a color from above')
     await asyncio.sleep(10)
     await message.delete()

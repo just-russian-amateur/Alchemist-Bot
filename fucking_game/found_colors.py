@@ -144,13 +144,8 @@ def create_color_list(image):
                 idx_line += 2
             else:
                 idx_line += 1
-    
-    # Добавляем абсолютно пустую колбу, если список пуст
-    if len(colors_info) == 0:
-        for i in range(4):
-            colors_info.append(['EMPTY', (0, i)])
 
-    if len(colors_info) < 4:
+    if len(colors_info) < 4 and len(colors_info) > 0:
         # Добавляем неопределившиеся значения список цветов в колбе
         for i in range(4 - len(colors_info)):
             colors_info.append(['UNDEFINED', (0, height)])
@@ -266,6 +261,10 @@ def found_colors_in_flasks(image_for_search, id_client, reload_image):
         for color in internal_colors:
             colors.append(color[0])
         flasks_list.append(colors)
+        
+    # Добавляем 2 пустых колбы
+    for _ in range(2):
+        flasks_list.append(['EMPTY', 'EMPTY', 'EMPTY', 'EMPTY'])
     
     # Удаление всех временных файлов для экономии места
     for flask_info in images_of_flasks:

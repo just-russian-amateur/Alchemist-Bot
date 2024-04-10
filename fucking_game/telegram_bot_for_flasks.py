@@ -4,7 +4,6 @@ from aiogram.types import BotCommand
 from handlers import send_welcome, start_solving, get_photo, fill_undef_values
 
 import asyncio
-import logging
 
 
 """
@@ -54,5 +53,5 @@ async def main():
 
 
 if __name__ == '__main__':
-    """Запуск, логгирование и прочие вещи"""
+    """Запуск"""
     asyncio.run(main())

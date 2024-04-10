@@ -1,0 +1,4 @@
+handlers.get_photo	2024-04-10 16:58:21,810	CRITICAL	Пользователь %(message.from_user.id)s отправил фото
+NoneType: None
+handlers.get_photo	2024-04-10 17:01:46,129	CRITICAL	Пользователь %(message.from_user.id)s отправил фото
+NoneType: None

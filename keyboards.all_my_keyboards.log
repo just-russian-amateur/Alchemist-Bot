@@ -1,0 +1,24 @@
+keyboards.all_my_keyboards	2024-04-10 16:58:12,221	CRITICAL	Вывод приветствия
+NoneType: None
+keyboards.all_my_keyboards	2024-04-10 16:58:22,207	WARNING	Изображение не подходит для распознавания
+Traceback (most recent call last):
+  File "/home/laptev/Документы/Projects/flasks/fucking_game/handlers/get_photo.py", line 50, in get_photo
+    undef_colors = found_colors_in_flasks(image_for_search=image_for_load, id_client=message.from_user.id, reload_image=False)
+  File "/home/laptev/Документы/Projects/flasks/fucking_game/found_colors.py", line 275, in found_colors_in_flasks
+    return replace_undefined(flasks_list)
+  File "/home/laptev/Документы/Projects/flasks/fucking_game/found_colors.py", line 204, in replace_undefined
+    colors_dict = dict(zip(colors, counts))
+TypeError: unhashable type: 'list'
+keyboards.all_my_keyboards	2024-04-10 17:01:37,820	CRITICAL	Вывод приветствия
+NoneType: None
+keyboards.all_my_keyboards	2024-04-10 17:01:46,182	WARNING	Изображение не подходит для распознавания
+Traceback (most recent call last):
+  File "/home/laptev/Документы/Projects/flasks/fucking_game/handlers/get_photo.py", line 50, in get_photo
+    undef_colors = found_colors_in_flasks(image_for_search=image_for_load, id_client=message.from_user.id, reload_image=False)
+  File "/home/laptev/Документы/Projects/flasks/fucking_game/found_colors.py", line 275, in found_colors_in_flasks
+    return replace_undefined(flasks_list)
+  File "/home/laptev/Документы/Projects/flasks/fucking_game/found_colors.py", line 204, in replace_undefined
+    colors_dict = dict(zip(colors, counts))
+TypeError: unhashable type: 'list'
+keyboards.all_my_keyboards	2024-04-10 17:06:01,634	CRITICAL	Вывод приветствия
+NoneType: None

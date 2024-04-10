@@ -6,13 +6,14 @@ from flasks import flasks_solver
 from found_colors import found_colors_in_flasks, create_image_for_replace
 import classes.solve_flasks as sf
 from keyboards.all_my_keyboards import error_image, colors, feedback, upload_new, no_result
+from config_logger import ConfigLogger
 
 import asyncio
-import logging
 import os
 
 
 rtr = Router()
+logger = ConfigLogger(__name__)
 
 
 @rtr.message(
@@ -42,6 +43,7 @@ async def get_photo(message: Message, bot: Bot, state: FSMContext):
         destination=image_for_load
     )
     await message.answer("I'll try to recognize colors in the photo")
+    logger.log_info('Пользователь %(message.from_user.id)s отправил фото')
     
     try:
         # Распознаем цвета и добавляем их в список с последующей сериализации в json
@@ -55,6 +57,7 @@ async def get_photo(message: Message, bot: Bot, state: FSMContext):
             reply_markup=error_image()
         )
         await state.set_state(sf.SolveFlasks.start_solving)
+        return
 
     if len(undef_colors) != 0:
         # Подготавливаем картинку, в которой подсвечиваем неопределенные области
@@ -74,6 +77,7 @@ async def get_photo(message: Message, bot: Bot, state: FSMContext):
             'Please select from the options provided the color that should be in place of the green circle',
             reply_markup=colors(undef_colors)
         )
+        logger.log_info('Изображение для пользователя %(message.from_user.id)s успешно создано и готово для редактирования')
         await state.set_state(sf.SolveFlasks.set_color)
     else:
         # Формируем итоговый json
@@ -88,7 +92,7 @@ async def get_photo(message: Message, bot: Bot, state: FSMContext):
                 ),
                 caption="I'll look for a solution from this position. Wait, this may take a while"
             )
-
+        logger.log_info('Пользователь %(message.from_user.id)s заполнил все пустоты')
         # Запускаем файл для решения уровня
         flasks_solver(input_file=in_file, output_file=out_file)
 
@@ -115,6 +119,7 @@ async def get_photo(message: Message, bot: Bot, state: FSMContext):
 @rtr.message(sf.SolveFlasks.send_photo)
 async def sending_photo_incorrectly(message: Message):
     '''Функция для отслеживания любых действий кроме отправки фото'''
+    logger.log_info('Пользователь %(message.from_user.id)s отправил что-то кроме фото')
     msg = await message.answer('Send a photo please')
     await asyncio.sleep(10)
     await message.delete()

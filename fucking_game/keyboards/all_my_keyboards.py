@@ -51,8 +51,6 @@ def error_image():
     ]
     kb = InlineKeyboardMarkup(inline_keyboard=reload_img)
 
-    logger.log_warning('Изображение не подходит для распознавания')
-
     return kb
 
 

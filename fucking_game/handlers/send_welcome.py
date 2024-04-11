@@ -17,7 +17,7 @@ logger = amc.ConfigLogger(__name__)
 async def send_welcome(message: Message,  state: FSMContext):
     """Приветственная функция"""
     await state.clear()
-    logger.log_info('Пользователем %(message.from_user.id) был запущен или перезапущен бот')
+    logger.log_info(f'Пользователем {message.from_user.id} был запущен или перезапущен бот')
     # Создаем папку с именем пользователя, который использует бота, если ее не существовало
     if not os.path.isdir(f'./{message.from_user.id}'):
         os.mkdir(f'./{message.from_user.id}')

@@ -1,10 +1,14 @@
 from aiogram import Bot, Dispatcher  # Подключение библиотек
 from aiogram.types import BotCommand
+from aiogram.exceptions import TelegramNetworkError
 
 from handlers import send_welcome, start_solving, get_photo, fill_undef_values
 import config
+import classes.all_my_classes as amc
 
 import asyncio
+import shutil
+import os
 
 
 """
@@ -41,15 +45,33 @@ async def clue(bot: Bot):
 
 async def main():
     """Главная функция с инициализацией бота"""
-    """Инициализация диспетчера"""
+    # Создание папки для логов
+    if not os.path.isdir('./logs'):
+        os.mkdir('./logs')
+
+    logger = amc.ConfigLogger(__name__)
+    # Определяем количество свободного пространства на диске в Гб
+    if os.name == 'nt':
+        free_space = shutil.disk_usage('C:/').free / 10**9
+    elif os.name == 'posix':
+        free_space = shutil.disk_usage('/dev/sda').free / 10**9
+
+    # Логгируем предупреждение, если свободного места меньше 5 Гб
+    if free_space < 5:
+        logger.log_warning(f'Заканчивается свободное место на диске, осталось свободно: {free_space} Гб')
+
+    # Инициализация диспетчера
     dp = Dispatcher()
     bot = Bot(token=config.API_TOKEN)
 
     dp.startup.register(clue)
     dp.include_routers(send_welcome.rtr, start_solving.rtr, get_photo.rtr, fill_undef_values.rtr)
     
-    await bot.delete_webhook(drop_pending_updates=True)
-    await dp.start_polling(bot)
+    try:
+        await bot.delete_webhook(drop_pending_updates=True)
+        await dp.start_polling(bot)
+    except TelegramNetworkError:
+        logger.log_error('Ошибка подключения клиента к API')
 
 
 if __name__ == '__main__':

@@ -1,6 +1,7 @@
 from aiogram import Router, F  # Подключение библиотек
 from aiogram.types import Message, CallbackQuery, BufferedInputFile
 from aiogram.fsm.context import FSMContext
+from aiogram.exceptions import TelegramBadRequest
 
 from flasks import flasks_solver
 from found_colors import found_colors_in_flasks, replace_in_json, create_image_for_replace, add_empty_flask
@@ -41,7 +42,7 @@ async def fill_undef_values(callback: CallbackQuery, state: FSMContext):
     lvl_file = paths['level_file']
 
     if callback.data == 'reload_image' or callback.data == 'add_an_empty_flask':
-        logger.log_info('Изображение от пользователя %(callback.from_user.id)s отправлено на перезагрузку с/без добавления пустой колбы')
+        logger.log_info(f'Изображение от пользователя {callback.from_user.id} отправлено на перезагрузку с/без добавления пустой колбы')
         try:
             # Распознаем цвета и добавляем их в список с последующей сериализации в json
             undef_colors = found_colors_in_flasks(image_for_search=image_for_load, id_client=callback.from_user.id, reload_image=True)
@@ -52,6 +53,7 @@ async def fill_undef_values(callback: CallbackQuery, state: FSMContext):
                 'Something went wrong...🤷‍♂️ Please upload another picture',
                 reply_markup=error_image()
             )
+            logger.log_error('Изображение не подходит для распознавания')
             await callback.answer()
             await state.set_state(amc.SolveFlasks.start_solving)
     else:
@@ -85,7 +87,7 @@ async def fill_undef_values(callback: CallbackQuery, state: FSMContext):
         if callback.data == 'add_an_empty_flask':
             # Добавляем пустую колбу
             add_empty_flask(json_name=in_file)
-            logger.log_info('В изображение пользователя %(callback.from_user.id)s была добавлена пустая колба')
+            logger.log_info(f'В изображение пользователя {callback.from_user.id} была добавлена пустая колба')
 
         # Подготавливаем картинку, в которой подсвечиваем неопределенные области
         create_image_for_replace(json_name=in_file, id_client=callback.from_user.id)
@@ -106,7 +108,7 @@ async def fill_undef_values(callback: CallbackQuery, state: FSMContext):
                 reply_markup=colors(undef_colors)
             )
             await callback.answer()
-            logger.log_info('Изображение для пользователя %(callback.from_user.id)s перезагружено для дальнейшего редактирования')
+            logger.log_info(f'Изображение для пользователя {callback.from_user.id} перезагружено для дальнейшего редактирования')
         else:
             # Изображение, где подсвечивается первый неопределенный цвет
             await callback.message.delete()
@@ -119,8 +121,8 @@ async def fill_undef_values(callback: CallbackQuery, state: FSMContext):
                     caption="Please select from the options provided the color that should be in place of the green circle",
                     reply_markup=colors(undef_colors)
                 )
-                await callback.answer()
-            logger.log_info('Изображение для пользователя %(callback.from_user.id)s дополнено и отправлено для дальнейшего редактирования')
+            await callback.answer()
+            logger.log_info(f'Изображение для пользователя {callback.from_user.id} дополнено и отправлено для дальнейшего редактирования')
     else:
         # Формируем итоговый json
         create_image_for_replace(json_name=in_file, id_client=callback.from_user.id)
@@ -134,11 +136,14 @@ async def fill_undef_values(callback: CallbackQuery, state: FSMContext):
                 ),
                 caption="I'll look for a solution from this position. Wait, this may take a while"
             )
-            await callback.answer()
+        await callback.answer()
 
-        logger.log_info('Пользователь %(callback.from_user.id)s заполнил все пустоты')
-        # Запускаем файл для решения уровня
-        flasks_solver(input_file=in_file, output_file=out_file)
+        logger.log_info(f'Пользователь {callback.from_user.id} заполнил все пустоты')
+        try:
+            # Запускаем файл для решения уровня
+            flasks_solver(input_file=in_file, output_file=out_file)
+        except TelegramBadRequest:
+            logger.log_error('Превышено время ожидания ответа на начало поиска решения')
 
         # В случае, если файл пустой или не был создан сообщаем, что решение не найдено, иначе выводим решение
         if os.stat(out_file).st_size == 0 or os.path.isfile(out_file) == False:
@@ -163,7 +168,7 @@ async def fill_undef_values(callback: CallbackQuery, state: FSMContext):
 @rtr.message(amc.SolveFlasks.send_photo)
 async def filling_incorrectly(message: Message):
     '''Функция для отслеживания любых действий кроме заполнения цветом'''
-    logger.log_info('Пользователь %(message.from_user.id)s проигнорировал кнопки')
+    logger.log_info(f'Пользователь {message.from_user.id} проигнорировал кнопки')
     msg = await message.answer('Please select a color from above')
     await asyncio.sleep(10)
     await message.delete()

@@ -22,12 +22,12 @@ logger = amc.ConfigLogger(__name__)
 async def start_solving(callback: CallbackQuery, state: FSMContext):
     """Функция загрузки изображения"""
     if callback.data == 'start_solving':
-        logger.log_info('Пользователь %(callback.from_user.id)s приступил к загрузке первого изображения')
+        logger.log_info(f'Пользователь {callback.from_user.id} приступил к загрузке первого изображения')
         await callback.message.answer("So let's get started😎\nUpload the screenshot as an image, please")
         await callback.answer()
         await state.set_state(amc.SolveFlasks.send_photo)
     elif callback.data == 'upload_new_image':
-        logger.log_info('Пользователь %(callback.from_user.id)s приступил к загрузке нового изображения')
+        logger.log_info(f'Пользователь {callback.from_user.id} приступил к загрузке нового изображения')
         await callback.message.answer('Upload a new screenshot as an image, please')
         await callback.answer()
         await state.set_state(amc.SolveFlasks.send_photo)
@@ -36,7 +36,7 @@ async def start_solving(callback: CallbackQuery, state: FSMContext):
 @rtr.message(amc.SolveFlasks.start_solving)
 async def start_solving_incorrectly(message: Message):
     '''Функция для отслеживания любых действий кроме нажатия кнопки'''
-    logger.log_info('Пользователь %(message.from_user.id)s ввел неверную команду перед загрузкой изображения')
+    logger.log_info(f'Пользователь {message.from_user.id} ввел неверную команду перед загрузкой изображения')
     msg = await message.answer('To get started, click the "🚀Start solving" button, please')
     await asyncio.sleep(10)
     await message.delete()

@@ -1,6 +1,7 @@
 from aiogram import Bot, Router, F  # Подключение библиотек
 from aiogram.types import Message, BufferedInputFile
 from aiogram.fsm.context import FSMContext
+from aiogram.exceptions import TelegramBadRequest
 
 from flasks import flasks_solver
 from found_colors import found_colors_in_flasks, create_image_for_replace
@@ -42,7 +43,7 @@ async def get_photo(message: Message, bot: Bot, state: FSMContext):
         destination=image_for_load
     )
     await message.answer("I'll try to recognize colors in the photo")
-    logger.log_info('Пользователь %(message.from_user.id)s отправил фото')
+    logger.log_info(f'Пользователь {message.from_user.id} отправил фото')
     
     try:
         # Распознаем цвета и добавляем их в список с последующей сериализации в json
@@ -55,6 +56,7 @@ async def get_photo(message: Message, bot: Bot, state: FSMContext):
             'Something went wrong...🤷‍♂️ Please upload another picture',
             reply_markup=error_image()
         )
+        logger.log_error('Изображение не подходит для распознавания')
         await state.set_state(amc.SolveFlasks.start_solving)
 
     if len(undef_colors) != 0:
@@ -75,7 +77,7 @@ async def get_photo(message: Message, bot: Bot, state: FSMContext):
             'Please select from the options provided the color that should be in place of the green circle',
             reply_markup=colors(undef_colors)
         )
-        logger.log_info('Изображение для пользователя %(message.from_user.id)s успешно создано и готово для редактирования')
+        logger.log_info(f'Изображение для пользователя {message.from_user.id} успешно создано и готово для редактирования')
         await state.set_state(amc.SolveFlasks.set_color)
     else:
         # Формируем итоговый json
@@ -90,9 +92,12 @@ async def get_photo(message: Message, bot: Bot, state: FSMContext):
                 ),
                 caption="I'll look for a solution from this position. Wait, this may take a while"
             )
-        logger.log_info('Пользователь %(message.from_user.id)s заполнил все пустоты')
-        # Запускаем файл для решения уровня
-        flasks_solver(input_file=in_file, output_file=out_file)
+        logger.log_info(f'Пользователь {message.from_user.id} заполнил все пустоты')
+        try:
+            # Запускаем файл для решения уровня
+            flasks_solver(input_file=in_file, output_file=out_file)
+        except TelegramBadRequest:
+            logger.log_error('Превышено время ожидания ответа на начало поиска решения')
 
         # В случае, если файл пустой или не был создан сообщаем, что решение не найдено, иначе выводим решение
         if os.stat(out_file).st_size == 0 or os.path.isfile(out_file) == False:
@@ -117,7 +122,7 @@ async def get_photo(message: Message, bot: Bot, state: FSMContext):
 @rtr.message(amc.SolveFlasks.send_photo)
 async def sending_photo_incorrectly(message: Message):
     '''Функция для отслеживания любых действий кроме отправки фото'''
-    logger.log_info('Пользователь %(message.from_user.id)s отправил что-то кроме фото')
+    logger.log_info(f'Пользователь {message.from_user.id} отправил что-то кроме фото')
     msg = await message.answer('Send a photo please')
     await asyncio.sleep(10)
     await message.delete()

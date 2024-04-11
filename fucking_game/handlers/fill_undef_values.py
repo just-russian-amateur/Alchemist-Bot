@@ -165,11 +165,11 @@ async def fill_undef_values(callback: CallbackQuery, state: FSMContext):
         os.remove(lvl_file)
 
 
-@rtr.message(amc.SolveFlasks.send_photo)
+@rtr.message(amc.SolveFlasks.set_color)
 async def filling_incorrectly(message: Message):
     '''Функция для отслеживания любых действий кроме заполнения цветом'''
     logger.log_info(f'Пользователь {message.from_user.id} проигнорировал кнопки')
-    msg = await message.answer('Please select a color from above')
+    msg = await message.answer('Please select a color from above or choose what to do with the image')
     await asyncio.sleep(10)
     await message.delete()
     await msg.delete()

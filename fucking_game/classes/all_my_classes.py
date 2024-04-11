@@ -1,11 +1,15 @@
 from aiogram.fsm.state import StatesGroup, State
 import logging
 from logging.handlers import RotatingFileHandler
+import os
 
 
 class ConfigLogger:
     '''Класс логгирования'''
     def __init__(self, filename) -> None:
+        # Создание папки для логов
+        if not os.path.isdir('./logs'):
+            os.mkdir('./logs')
         self.logger = logging.getLogger(filename)
         self.logger.setLevel(logging.INFO)
         handler = logging.FileHandler(f'./logs/{filename}.log', 'a')

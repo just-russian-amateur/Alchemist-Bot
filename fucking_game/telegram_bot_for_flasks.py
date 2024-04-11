@@ -45,17 +45,13 @@ async def clue(bot: Bot):
 
 async def main():
     """Главная функция с инициализацией бота"""
-    # Создание папки для логов
-    if not os.path.isdir('./logs'):
-        os.mkdir('./logs')
-
-    logger = amc.ConfigLogger(__name__)
     # Определяем количество свободного пространства на диске в Гб
     if os.name == 'nt':
         free_space = shutil.disk_usage('C:/').free / 10**9
     elif os.name == 'posix':
         free_space = shutil.disk_usage('/dev/sda').free / 10**9
 
+    logger = amc.ConfigLogger(__name__)
     # Логгируем предупреждение, если свободного места меньше 5 Гб
     if free_space < 5:
         logger.log_warning(f'Заканчивается свободное место на диске, осталось свободно: {free_space} Гб')

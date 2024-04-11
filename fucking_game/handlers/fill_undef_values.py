@@ -5,20 +5,19 @@ from aiogram.fsm.context import FSMContext
 from flasks import flasks_solver
 from found_colors import found_colors_in_flasks, replace_in_json, create_image_for_replace, add_empty_flask
 import config
-import classes.solve_flasks as sf
+import classes.all_my_classes as amc
 from keyboards.all_my_keyboards import error_image, colors, feedback, upload_new, no_result
-from config_logger import ConfigLogger
 
 import asyncio
 import os
 
 
 rtr = Router()
-logger = ConfigLogger(__name__)
+logger = amc.ConfigLogger(__name__)
 
 
 @rtr.callback_query(
-    sf.SolveFlasks.set_color,
+    amc.SolveFlasks.set_color,
     F.data.in_(
         [
             "LIGHT BLUE", "ORANGE", "YELLOW", "RED", "LIGHT GREEN", "BLUE", "BURGUNDY",
@@ -32,7 +31,7 @@ async def fill_undef_values(callback: CallbackQuery, state: FSMContext):
     if callback.data == 'upload_new_image':
         await callback.message.answer('Upload a new screenshot as an image, please')
         await callback.answer()
-        await state.set_state(sf.SolveFlasks.send_photo)
+        await state.set_state(amc.SolveFlasks.send_photo)
         return
 
     # Получаем данные с путями к папкам
@@ -54,7 +53,7 @@ async def fill_undef_values(callback: CallbackQuery, state: FSMContext):
                 reply_markup=error_image()
             )
             await callback.answer()
-            await state.set_state(sf.SolveFlasks.start_solving)
+            await state.set_state(amc.SolveFlasks.start_solving)
     else:
         undef_colors = paths['undefined_colors']
 
@@ -147,21 +146,21 @@ async def fill_undef_values(callback: CallbackQuery, state: FSMContext):
                 f'😖😖😖Unfortunately, I was unable to find a solution for this arrangement.\nIf you want to change the order of undefined colors, click "🔄️🖼️Reload image".\nIf you know all the colors, but the solution still hasn’t been found, then I can add another empty flask, to do this, click “➕🧪Add an empty flask”\nOr you can upload a new image, to do this, click "📩🖼️Upload new image"',
                 reply_markup=no_result()
             )
-            await state.set_state(sf.SolveFlasks.set_color)
+            await state.set_state(amc.SolveFlasks.set_color)
         else:
             with open(out_file, "r") as result:
                 await callback.message.answer(
                     f'Yay!🥳🥳🥳I found a solution for you!!!🥳🥳🥳\nPlease note that the flasks are numbered starting from 0, not 1!\n{result.read()}\nLet me know if you want a solution for another screenshot :)',
                     reply_markup=upload_new()
                 )
-            await state.set_state(sf.SolveFlasks.start_solving)
+            await state.set_state(amc.SolveFlasks.start_solving)
         # Удаление временных файлов
         os.remove(out_file)
         os.remove(in_file)
         os.remove(lvl_file)
 
 
-@rtr.message(sf.SolveFlasks.send_photo)
+@rtr.message(amc.SolveFlasks.send_photo)
 async def filling_incorrectly(message: Message):
     '''Функция для отслеживания любых действий кроме заполнения цветом'''
     logger.log_info('Пользователь %(message.from_user.id)s проигнорировал кнопки')

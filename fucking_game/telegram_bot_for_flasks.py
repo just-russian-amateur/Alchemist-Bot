@@ -2,6 +2,7 @@ from aiogram import Bot, Dispatcher  # Подключение библиотек
 from aiogram.types import BotCommand
 
 from handlers import send_welcome, start_solving, get_photo, fill_undef_values
+import config
 
 import asyncio
 
@@ -40,10 +41,9 @@ async def clue(bot: Bot):
 
 async def main():
     """Главная функция с инициализацией бота"""
-    API_TOKEN = '6987578051:AAG4TCXhhdMG1xSX2AjRJqu7Pqp4krpit_8'  # Токен для работы с API
     """Инициализация диспетчера"""
     dp = Dispatcher()
-    bot = Bot(token=API_TOKEN)
+    bot = Bot(token=config.API_TOKEN)
 
     dp.startup.register(clue)
     dp.include_routers(send_welcome.rtr, start_solving.rtr, get_photo.rtr, fill_undef_values.rtr)

@@ -4,20 +4,19 @@ from aiogram.fsm.context import FSMContext
 
 from flasks import flasks_solver
 from found_colors import found_colors_in_flasks, create_image_for_replace
-import classes.solve_flasks as sf
+import classes.all_my_classes as amc
 from keyboards.all_my_keyboards import error_image, colors, feedback, upload_new, no_result
-from config_logger import ConfigLogger
 
 import asyncio
 import os
 
 
 rtr = Router()
-logger = ConfigLogger(__name__)
+logger = amc.ConfigLogger(__name__)
 
 
 @rtr.message(
-    sf.SolveFlasks.send_photo,
+    amc.SolveFlasks.send_photo,
     F.photo
 )
 async def get_photo(message: Message, bot: Bot, state: FSMContext):
@@ -56,7 +55,7 @@ async def get_photo(message: Message, bot: Bot, state: FSMContext):
             'Something went wrong...🤷‍♂️ Please upload another picture',
             reply_markup=error_image()
         )
-        await state.set_state(sf.SolveFlasks.start_solving)
+        await state.set_state(amc.SolveFlasks.start_solving)
 
     if len(undef_colors) != 0:
         # Подготавливаем картинку, в которой подсвечиваем неопределенные области
@@ -77,7 +76,7 @@ async def get_photo(message: Message, bot: Bot, state: FSMContext):
             reply_markup=colors(undef_colors)
         )
         logger.log_info('Изображение для пользователя %(message.from_user.id)s успешно создано и готово для редактирования')
-        await state.set_state(sf.SolveFlasks.set_color)
+        await state.set_state(amc.SolveFlasks.set_color)
     else:
         # Формируем итоговый json
         create_image_for_replace(json_name=in_file, id_client=message.from_user.id)
@@ -101,21 +100,21 @@ async def get_photo(message: Message, bot: Bot, state: FSMContext):
                 f"😖😖😖Unfortunately, I was unable to find a solution for this arrangement.\nIf you want to change the order of undefined colors, click '🔄️🖼️Reload image'.\nIf you know all the colors, but the solution still hasn't been found, then I can add another empty flask, to do this, click '➕🧪Add an empty flask'\nOr you can upload a new image, to do this, click '📩🖼️Upload new image'",
                 reply_markup=no_result()
             )
-            await state.set_state(sf.SolveFlasks.set_color)
+            await state.set_state(amc.SolveFlasks.set_color)
         else:
             with open(out_file, "r") as result:
                 await message.answer(
                     f'Yay!🥳🥳🥳I found a solution for you!!!🥳🥳🥳\nPlease note that the flasks are numbered starting from 0, not 1!\n{result.read()}\nLet me know if you want a solution for another screenshot🙂',
                     reply_markup=upload_new()
                 )
-            await state.set_state(sf.SolveFlasks.start_solving)
+            await state.set_state(amc.SolveFlasks.start_solving)
         # Удаление временных файлов
         os.remove(out_file)
         os.remove(in_file)
         os.remove(lvl_file)
 
 
-@rtr.message(sf.SolveFlasks.send_photo)
+@rtr.message(amc.SolveFlasks.send_photo)
 async def sending_photo_incorrectly(message: Message):
     '''Функция для отслеживания любых действий кроме отправки фото'''
     logger.log_info('Пользователь %(message.from_user.id)s отправил что-то кроме фото')

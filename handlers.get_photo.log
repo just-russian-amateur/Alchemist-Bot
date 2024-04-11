@@ -136,3 +136,7 @@ handlers.get_photo	2024-04-10 21:03:00,353	CRITICAL	Пользователь %(message.from_
 NoneType: None
 handlers.get_photo	2024-04-10 21:03:02,478	CRITICAL	Изображение для пользователя %(message.from_user.id)s успешно создано и готово для редактирования
 NoneType: None
+handlers.get_photo	2024-04-11 09:26:50,338	CRITICAL	РџРѕР»СЊР·РѕРІР°С‚РµР»СЊ %(message.from_user.id)s РѕС‚РїСЂР°РІРёР» С„РѕС‚Рѕ
+NoneType: None
+handlers.get_photo	2024-04-11 09:26:54,043	CRITICAL	РР·РѕР±СЂР°Р¶РµРЅРёРµ РґР»СЏ РїРѕР»СЊР·РѕРІР°С‚РµР»СЏ %(message.from_user.id)s СѓСЃРїРµС€РЅРѕ СЃРѕР·РґР°РЅРѕ Рё РіРѕС‚РѕРІРѕ РґР»СЏ СЂРµРґР°РєС‚РёСЂРѕРІР°РЅРёСЏ
+NoneType: None

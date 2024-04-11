@@ -82,3 +82,5 @@ handlers.start_solving	2024-04-10 20:58:05,666	CRITICAL	Пользователь %(callback.
 NoneType: None
 handlers.start_solving	2024-04-10 21:02:49,377	CRITICAL	Пользователь %(callback.from_user.id)s приступил к загрузке первого изображения
 NoneType: None
+handlers.start_solving	2024-04-11 09:26:44,677	CRITICAL	РџРѕР»СЊР·РѕРІР°С‚РµР»СЊ %(callback.from_user.id)s РїСЂРёСЃС‚СѓРїРёР» Рє Р·Р°РіСЂСѓР·РєРµ РїРµСЂРІРѕРіРѕ РёР·РѕР±СЂР°Р¶РµРЅРёСЏ
+NoneType: None

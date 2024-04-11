@@ -1,7 +1,9 @@
+from aiogram.fsm.state import StatesGroup, State
 import logging
 
 
 class ConfigLogger:
+    '''Класс логгирования'''
     def __init__(self, filename) -> None:
         self.logger = logging.getLogger(filename)
         self.logger.setLevel(logging.INFO)
@@ -36,4 +38,10 @@ class ConfigLogger:
 
     def log_info(self, message):
         self.log_message('critical', message)
-        
+
+
+class SolveFlasks(StatesGroup):
+    '''Класс для машины состояний'''
+    start_solving = State()
+    send_photo = State()
+    set_color = State()

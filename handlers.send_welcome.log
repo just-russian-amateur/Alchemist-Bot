@@ -82,3 +82,5 @@ handlers.send_welcome	2024-04-10 20:58:04,575	CRITICAL	Пользователем %(message.f
 NoneType: None
 handlers.send_welcome	2024-04-10 21:02:48,231	CRITICAL	Пользователем %(message.from_user.id) был запущен или перезапущен бот
 NoneType: None
+handlers.send_welcome	2024-04-11 09:26:42,861	CRITICAL	РџРѕР»СЊР·РѕРІР°С‚РµР»РµРј %(message.from_user.id) Р±С‹Р» Р·Р°РїСѓС‰РµРЅ РёР»Рё РїРµСЂРµР·Р°РїСѓС‰РµРЅ Р±РѕС‚
+NoneType: None

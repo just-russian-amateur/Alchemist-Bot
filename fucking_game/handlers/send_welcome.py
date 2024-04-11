@@ -3,15 +3,14 @@ from aiogram.filters import CommandStart
 from aiogram.types import Message
 from aiogram.fsm.context import FSMContext
 
-import classes.solve_flasks as sf
+import classes.all_my_classes as amc
 from keyboards.all_my_keyboards import start_keyboard
-from config_logger import ConfigLogger
 
 import os
 
 
 rtr = Router()
-logger = ConfigLogger(__name__)
+logger = amc.ConfigLogger(__name__)
 
 
 @rtr.message(CommandStart())  # Команда для начала работы с ботом
@@ -28,4 +27,4 @@ async def send_welcome(message: Message,  state: FSMContext):
         parse_mode='HTML',
         reply_markup=start_keyboard()
     )
-    await state.set_state(sf.SolveFlasks.start_solving)
+    await state.set_state(amc.SolveFlasks.start_solving)

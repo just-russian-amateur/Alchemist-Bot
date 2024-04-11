@@ -1,8 +1,8 @@
 from aiogram.types import InlineKeyboardButton, InlineKeyboardMarkup
-from config_logger import ConfigLogger
+import classes.all_my_classes as amc
 
 
-logger = ConfigLogger(__name__)
+logger = amc.ConfigLogger(__name__)
 
 
 def create_undef_buttons(color_buttons_list):

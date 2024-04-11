@@ -18,18 +18,62 @@ def send_result_to_txt(result, steps):
             for step in steps:
                 result_level.write(f'{step}\n')
         return True
+
+
+def check_solving(position):
+    '''Функция проверки получения решения'''
+    full_color = 0
+    for flask in position:
+        # После очередного перемещения проходим по списку колб
+        if flask[0] == flask[1] == flask[2] == flask[3]:
+            full_color += 1
+        else:
+            return
+
+    if full_color == len(position):
+        # Количество одноцветных колб совпадает с количеством колб
+        return True
     
+    return False
 
-def move_colors(position):
-    '''Функция перемещения цвета в текущей позиции'''
+
+def possible_moves(position):
+    '''Функция для определения всех возможных перемещений для конкретной ситуации'''
+    moves = []
+    
+    # Перебираем все комбинации колб, исключая случай совпадения первой и второй колбы
+    for flask_1 in range(len(position)):
+        for flask_2 in range(len(position)):
+            if flask_1 != flask_2:
+                moves.append(flask_1, flask_2)
+
+    return moves
+
+
+def apply_move(position, move):
+    '''Функция для применения перемещения к текущему положению для получения нового'''
     pass
-    # return new_position
+    # return next_position
 
 
-def write_step():
-    '''Функция записи шагов решения'''
-    pass
-    # return steps_list
+def transfusion_of_liquids(position, visited_states, steps_list):
+    '''Функция перемещения цвета в текущей позиции и записи последовательности шагов'''
+    if position in visited_states:
+        return False, []
+    
+    visited_states.append(position)
+    if check_solving(position):
+        return True, steps_list
+    
+    for move in possible_moves(position):
+        next_position = apply_move(position, move)
+        is_solved, steps_list = transfusion_of_liquids(next_position, visited_states, steps_list)  # Делаем первое перемещение
+        if is_solved == True:
+            # steps_list.append(next_position)
+            return True, steps_list
+
+    visited_states.pop()
+    return False, []
 
 
 def transfusion_manage(task, result):
@@ -37,35 +81,12 @@ def transfusion_manage(task, result):
     # Вызываем функцию для считывания файлов из json
     start_position = get_level_from_json(task)
     
-    is_attempt_completed = False
-    more_moves = True
-    buffer = []
-    intermediate = move_colors(start_position)  # Делаем первое перемещение
-    while is_attempt_completed == False:
-        full_color = 0
-        for flask in intermediate:
-            # После очередного перемещения проходим по списку колб
-            if flask[0] == flask[1] == flask[2] == flask[3]:
-                full_color += 1
-            else:
-                return
+    visited_states = []
+    steps_list = []
 
-        if full_color == len(start_position):
-            # Количество одноцветных колб совпадает с количеством колб
-            steps_list = write_step()
-            is_attempt_completed = True
-        else:
-            if more_moves == True:
-                # Если есть путь для перемещения, то делаем следующее перемешение...
-                buffer.append(intermediate)
-                intermediate = move_colors(intermediate)
-            else:
-                # ...если такого пути нет, то возвращаемся на шаг назад или выходим из цикла если возвращаться некуда
-                if len(steps_list) == 0:
-                    # Решения нет
-                    is_attempt_completed = True
-                else:
-                    steps_list.pop()
-                    intermediate = buffer.pop()
-
-    return send_result_to_txt(result, steps_list)
+    is_solved, steps_list = transfusion_of_liquids(start_position, visited_states, steps_list, result)  # Делаем первое перемещение
+    if is_solved == True:
+        send_result_to_txt(result, steps_list)
+        return True
+    
+    return False

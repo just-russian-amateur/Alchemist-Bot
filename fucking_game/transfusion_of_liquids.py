@@ -75,7 +75,7 @@ def possible_moves(position):
                     target_upper_color = ((idx_target_flask, 0), 'EMPTY')
                     empty_flask = True
                 # Переливание возможно только если верхние цвета совпадают или если переливаем в пустую колбу
-                if solve_upper_color[1] == target_upper_color[1] or empty_flask == True:
+                if solve_upper_color[1] == target_upper_color[1] or empty_flask:
                     moves.append((solve_upper_color, target_upper_color))
 
     return moves
@@ -97,14 +97,14 @@ def apply_move(position, move):
     return position, step
 
 
+def go_back_move(position, move):
+    '''Функция отмены перемещения'''
+    pass
+
+
 def transfusion_of_liquids(position, visited_states, steps_list):
     '''Функция перемещения цвета в текущей позиции и записи последовательности шагов'''
-    # Если текущая позиция уже была посещена ранее, то решения нет
-    if position in visited_states:
-        return False
-    
-    # Добавляем текущую позицию в список посещенных и проверяем решена ли задача
-    visited_states.append(position)
+    # Проверяем решена ли задача
     if check_solving(position):
         return True
     
@@ -112,14 +112,20 @@ def transfusion_of_liquids(position, visited_states, steps_list):
     for move in possible_moves(position):
         # Применяем действие
         next_position, step = apply_move(position, move)
+
+        # Если текущая позиция уже была посещена ранее, то решения нет
+        if next_position in visited_states:
+            go_back_move(next_position, move)
+            continue
+        # Добавляем текущую позицию в список посещенных
+        visited_states.append(next_position)
+
         is_solved = transfusion_of_liquids(next_position, visited_states, steps_list)  # Делаем перемещение
         # Если решение найдено, то добавляем шаг в список шагов??????
-        if is_solved == True:
-            steps_list.append(step)
+        if is_solved:
             return True
+        go_back_move(next_position, move)
 
-    # Удаляем текущую позицию из посещенных, если дальше некуда переливать
-    visited_states.pop()
     return False
 
 
@@ -129,11 +135,12 @@ def transfusion_manage(task, result):
     start_position = get_level_from_json(task)
     
     visited_states = []
+    visited_states.append(start_position)
     steps_list = []
 
     # Возвращаем флаг решения и список шагов, если решение есть
     is_solved = transfusion_of_liquids(start_position, visited_states, steps_list)  # Делаем первое перемещение
-    if is_solved == True:
+    if is_solved:
         send_result_to_txt(result, steps_list)
         return True
     

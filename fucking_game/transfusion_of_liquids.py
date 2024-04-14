@@ -17,7 +17,8 @@ def send_result_to_txt(result, steps):
         with open(result, 'w') as result_level:
             for step in steps:
                 result_level.write(f'{step}\n')
-        return True
+    
+    return True
 
 
 def check_solving(position):
@@ -28,7 +29,7 @@ def check_solving(position):
         if flask[0] == flask[1] == flask[2] == flask[3]:
             full_color += 1
         else:
-            return
+            break
 
     if full_color == len(position):
         # Количество одноцветных колб совпадает с количеством колб
@@ -45,16 +46,15 @@ def possible_moves(position):
     
     # Перебираем все колбы из которых можно перелить
     for idx_solve_flask in range(count_flasks):
-        empty_flask = False
         # Перебираем все цвета, начиная с верхнего (последний в списке)
-        solve_upper_color = ((0, 0), 'EMPTY')
+        solve_upper_color = ((idx_solve_flask, 0), 'EMPTY')  # Пустая колба
         for idx_color in range(count_colors - 1, -1, -1):
             # Получаем необходимую информацию о самом верхнем цвете
             if position[idx_solve_flask][idx_color] != 'EMPTY':
                 solve_upper_color = ((idx_solve_flask, idx_color), position[idx_solve_flask][idx_color])
                 break
         # Из пустой колбы ничего перелить нельзя
-        if solve_upper_color[0][1] == 0:
+        if solve_upper_color[1] == 'EMPTY':
             continue
 
         # Перебираем все колбы в которые можно перелить
@@ -62,7 +62,7 @@ def possible_moves(position):
             # Переливать колбу саму в себя нельзя
             if idx_solve_flask != idx_target_flask:
                 # Перебираем все цвета, начиная с верхнего (последний в списке)
-                target_upper_color = ((0, 0), 'EMPTY')
+                target_upper_color = ((idx_target_flask, 0), 'EMPTY')
                 for idx_color in range(count_colors - 1, -1, -1):
                     if position[idx_target_flask][idx_color] != 'EMPTY':
                         target_upper_color = ((idx_target_flask, idx_color), position[idx_target_flask][idx_color])
@@ -70,12 +70,8 @@ def possible_moves(position):
                 # В полную колбу ничего перелить нельзя
                 if target_upper_color[0][1] == count_colors - 1:
                     continue
-                # Также можно перелить в абсолютно пустую колбу
-                elif target_upper_color[0][1] == 0:
-                    target_upper_color = ((idx_target_flask, 0), 'EMPTY')
-                    empty_flask = True
                 # Переливание возможно только если верхние цвета совпадают или если переливаем в пустую колбу
-                if solve_upper_color[1] == target_upper_color[1] or empty_flask:
+                if solve_upper_color[1] == target_upper_color[1] or target_upper_color[1] == 'EMPTY':
                     moves.append((solve_upper_color, target_upper_color))
 
     return moves
@@ -99,7 +95,14 @@ def apply_move(position, move):
 
 def go_back_move(position, move):
     '''Функция отмены перемещения'''
-    pass
+    # Получение данных о колбах, которые задействуются
+    solve_flask, target_flask = move
+
+    # Замена цвета в целевой колбе на пустое и заполнение места в решающей колбе
+    position[solve_flask[0][0]][solve_flask[0][1]] = solve_flask[1]
+    position[target_flask[0][0]][target_flask[0][1]] = target_flask[1]
+
+    return position
 
 
 def transfusion_of_liquids(position, visited_states, steps_list):
@@ -112,19 +115,25 @@ def transfusion_of_liquids(position, visited_states, steps_list):
     for move in possible_moves(position):
         # Применяем действие
         next_position, step = apply_move(position, move)
+        # Преобразуем новую текущую позицию в неизменяемый объект (кортеж)
+        steps_list.append(step)
+        next_position_tuple = tuple(tuple(flask) for flask in next_position)
 
-        # Если текущая позиция уже была посещена ранее, то решения нет
-        if next_position in visited_states:
+        # Если текущая позиция уже была посещена ранее, то возвращаем движение назад
+        if next_position_tuple in visited_states:
             go_back_move(next_position, move)
+            steps_list.pop()
             continue
+
         # Добавляем текущую позицию в список посещенных
-        visited_states.append(next_position)
+        visited_states.add(next_position_tuple)
 
         is_solved = transfusion_of_liquids(next_position, visited_states, steps_list)  # Делаем перемещение
-        # Если решение найдено, то добавляем шаг в список шагов??????
+        # Если решение найдено, то завершаем перемещения
         if is_solved:
             return True
         go_back_move(next_position, move)
+        steps_list.pop()
 
     return False
 
@@ -134,8 +143,7 @@ def transfusion_manage(task, result):
     # Вызываем функцию для считывания файлов из json
     start_position = get_level_from_json(task)
     
-    visited_states = []
-    visited_states.append(start_position)
+    visited_states = set()
     steps_list = []
 
     # Возвращаем флаг решения и список шагов, если решение есть
@@ -148,4 +156,4 @@ def transfusion_manage(task, result):
 
 
 if __name__ == "__main__":
-    transfusion_manage('./fucking_game/config_files/myLevel.json', 'result.txt')
+    transfusion_manage('./fucking_game/config_files/myLevel2.json', 'result.txt')

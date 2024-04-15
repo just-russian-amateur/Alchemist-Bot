@@ -71,7 +71,10 @@ def possible_moves(position):
                 if target_upper_color[0][1] == count_colors - 1:
                     continue
                 # Переливание возможно только если верхние цвета совпадают или если переливаем в пустую колбу
-                if solve_upper_color[1] == target_upper_color[1] or target_upper_color[1] == 'EMPTY':
+                if solve_upper_color[1] == target_upper_color[1]:
+                    target_upper_color = ((target_upper_color[0][0], target_upper_color[0][1] + 1), 'EMPTY')
+                    moves.append((solve_upper_color, target_upper_color))
+                elif target_upper_color[1] == 'EMPTY':
                     moves.append((solve_upper_color, target_upper_color))
 
     return moves
@@ -83,10 +86,7 @@ def apply_move(position, move):
     solve_flask, target_flask = move
     
     # Замена цвета в решающей колбе на пустое и заполнение места в целевой колбе 
-    if target_flask[1] == 'EMPTY':
-        position[target_flask[0][0]][target_flask[0][1]] = solve_flask[1]
-    else:
-        position[target_flask[0][0]][target_flask[0][1] + 1] = solve_flask[1]
+    position[target_flask[0][0]][target_flask[0][1]] = solve_flask[1]
     position[solve_flask[0][0]][solve_flask[0][1]] = 'EMPTY'
     step = f'{solve_flask[0][0]} -> {target_flask[0][0]}'
 
@@ -156,4 +156,4 @@ def transfusion_manage(task, result):
 
 
 if __name__ == "__main__":
-    transfusion_manage('./fucking_game/config_files/myLevel2.json', 'result.txt')
+    transfusion_manage('./fucking_game/config_files/myLevel.json', 'result.txt')

@@ -1,4 +1,5 @@
 import json
+import sys
 
 
 def get_level_from_json(level):
@@ -47,34 +48,48 @@ def possible_moves(position):
     # Перебираем все колбы из которых можно перелить
     for idx_solve_flask in range(count_flasks):
         # Перебираем все цвета, начиная с верхнего (последний в списке)
-        solve_upper_color = ((idx_solve_flask, 0), 'EMPTY')  # Пустая колба
+        mono_color_height = 0
+        solve_upper_color = ((idx_solve_flask, 0), ('EMPTY', mono_color_height))  # Пустая колба
         for idx_color in range(count_colors - 1, -1, -1):
             # Получаем необходимую информацию о самом верхнем цвете
             if position[idx_solve_flask][idx_color] != 'EMPTY':
-                solve_upper_color = ((idx_solve_flask, idx_color), position[idx_solve_flask][idx_color])
+                mono_color_height += 1
+                solve_upper_color = ((idx_solve_flask, idx_color), (position[idx_solve_flask][idx_color], mono_color_height))
                 break
         # Из пустой колбы ничего перелить нельзя
-        if solve_upper_color[1] == 'EMPTY':
+        if solve_upper_color[1][0] == 'EMPTY':
             continue
+        # Проверка того, что следующие плоки такого же цвета (переливаться будет сразу весь цвет и это влияет на решение)
+        for idx_color in range(solve_upper_color[0][1] - 1, -1, -1):
+            if position[idx_solve_flask][idx_color] == solve_upper_color[1][0]:
+                mono_color_height += 1
+            else:
+                break
+        solve_upper_color = ((solve_upper_color[0][0], solve_upper_color[0][1]), (solve_upper_color[1][0], mono_color_height))
 
         # Перебираем все колбы в которые можно перелить
         for idx_target_flask in range(count_flasks):
             # Переливать колбу саму в себя нельзя
             if idx_solve_flask != idx_target_flask:
                 # Перебираем все цвета, начиная с верхнего (последний в списке)
-                target_upper_color = ((idx_target_flask, 0), 'EMPTY')
+                count_empty_slots = 0
+                target_upper_color = ((idx_target_flask, 0), ('EMPTY', count_empty_slots))
                 for idx_color in range(count_colors - 1, -1, -1):
                     if position[idx_target_flask][idx_color] != 'EMPTY':
-                        target_upper_color = ((idx_target_flask, idx_color), position[idx_target_flask][idx_color])
+                        target_upper_color = ((idx_target_flask, idx_color), (position[idx_target_flask][idx_color], count_empty_slots))
                         break
+                    else:
+                        count_empty_slots += 1
+                if count_empty_slots > 0:
+                    target_upper_color = ((target_upper_color[0][0], target_upper_color[0][1]), (target_upper_color[1][0], count_empty_slots))
                 # В полную колбу ничего перелить нельзя
                 if target_upper_color[0][1] == count_colors - 1:
                     continue
-                # Переливание возможно только если верхние цвета совпадают или если переливаем в пустую колбу
-                if solve_upper_color[1] == target_upper_color[1]:
-                    target_upper_color = ((target_upper_color[0][0], target_upper_color[0][1] + 1), 'EMPTY')
+                # Переливание возможно только если верхние цвета совпадают или если переливаем в пустую колбу и места в целевой колбе достаточно
+                if solve_upper_color[1][0] == target_upper_color[1][0] and target_upper_color[1][1] >= solve_upper_color[1][1]:
+                    target_upper_color = ((target_upper_color[0][0], target_upper_color[0][1] + 1), ('EMPTY', target_upper_color[1][1]))
                     moves.append((solve_upper_color, target_upper_color))
-                elif target_upper_color[1] == 'EMPTY':
+                elif target_upper_color[1][0] == 'EMPTY':
                     moves.append((solve_upper_color, target_upper_color))
 
     return moves
@@ -86,8 +101,9 @@ def apply_move(position, move):
     solve_flask, target_flask = move
     
     # Замена цвета в решающей колбе на пустое и заполнение места в целевой колбе 
-    position[target_flask[0][0]][target_flask[0][1]] = solve_flask[1]
-    position[solve_flask[0][0]][solve_flask[0][1]] = 'EMPTY'
+    for cnt in range(solve_flask[1][1]):
+        position[target_flask[0][0]][target_flask[0][1] + cnt] = solve_flask[1][0]
+        position[solve_flask[0][0]][solve_flask[0][1] - cnt] = 'EMPTY'
     step = f'{solve_flask[0][0]} -> {target_flask[0][0]}'
 
     return position, step
@@ -99,8 +115,9 @@ def go_back_move(position, move):
     solve_flask, target_flask = move
 
     # Замена цвета в целевой колбе на пустое и заполнение места в решающей колбе
-    position[solve_flask[0][0]][solve_flask[0][1]] = solve_flask[1]
-    position[target_flask[0][0]][target_flask[0][1]] = target_flask[1]
+    for cnt in range(solve_flask[1][1]):
+        position[solve_flask[0][0]][solve_flask[0][1] - cnt] = solve_flask[1][0]
+        position[target_flask[0][0]][target_flask[0][1] + cnt] = target_flask[1][0]
 
     return position
 
@@ -146,6 +163,7 @@ def transfusion_manage(task, result):
     visited_states = set()
     steps_list = []
 
+    sys.setrecursionlimit(200000)
     # Возвращаем флаг решения и список шагов, если решение есть
     is_solved = transfusion_of_liquids(start_position, visited_states, steps_list)  # Делаем первое перемещение
     if is_solved:

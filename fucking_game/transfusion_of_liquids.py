@@ -49,12 +49,18 @@ def possible_moves(position):
     for idx_solve_flask in range(count_flasks):
         # Перебираем все цвета, начиная с верхнего (последний в списке)
         mono_color_height = 0
-        solve_upper_color = ((idx_solve_flask, 0), ('EMPTY', mono_color_height))  # Пустая колба
+        solve_upper_color = (
+            (idx_solve_flask, 0),
+            ('EMPTY', mono_color_height)
+        )  # Пустая колба
         for idx_color in range(count_colors - 1, -1, -1):
             # Получаем необходимую информацию о самом верхнем цвете
             if position[idx_solve_flask][idx_color] != 'EMPTY':
                 mono_color_height += 1
-                solve_upper_color = ((idx_solve_flask, idx_color), (position[idx_solve_flask][idx_color], mono_color_height))
+                solve_upper_color = (
+                    (idx_solve_flask, idx_color),
+                    (position[idx_solve_flask][idx_color], mono_color_height)
+                )
                 break
         # Из пустой колбы ничего перелить нельзя
         if solve_upper_color[1][0] == 'EMPTY':
@@ -65,7 +71,10 @@ def possible_moves(position):
                 mono_color_height += 1
             else:
                 break
-        solve_upper_color = ((solve_upper_color[0][0], solve_upper_color[0][1]), (solve_upper_color[1][0], mono_color_height))
+        solve_upper_color = (
+            (solve_upper_color[0][0], solve_upper_color[0][1]),
+            (solve_upper_color[1][0], mono_color_height)
+        )
 
         # Перебираем все колбы в которые можно перелить
         for idx_target_flask in range(count_flasks):
@@ -73,24 +82,39 @@ def possible_moves(position):
             if idx_solve_flask != idx_target_flask:
                 # Перебираем все цвета, начиная с верхнего (последний в списке)
                 count_empty_slots = 0
-                target_upper_color = ((idx_target_flask, 0), ('EMPTY', count_empty_slots))
+                target_upper_color = (
+                    (idx_target_flask, 0),
+                    ('EMPTY', count_empty_slots)
+                )
                 for idx_color in range(count_colors - 1, -1, -1):
                     if position[idx_target_flask][idx_color] != 'EMPTY':
-                        target_upper_color = ((idx_target_flask, idx_color), (position[idx_target_flask][idx_color], count_empty_slots))
+                        target_upper_color = (
+                            (idx_target_flask, idx_color),
+                            (position[idx_target_flask][idx_color], count_empty_slots)
+                        )
                         break
                     else:
                         count_empty_slots += 1
                 if count_empty_slots > 0:
-                    target_upper_color = ((target_upper_color[0][0], target_upper_color[0][1]), (target_upper_color[1][0], count_empty_slots))
+                    target_upper_color = (
+                        (target_upper_color[0][0], target_upper_color[0][1]),
+                        (target_upper_color[1][0], count_empty_slots)
+                    )
                 # В полную колбу ничего перелить нельзя
                 if target_upper_color[0][1] == count_colors - 1:
                     continue
-                # Переливание возможно только если верхние цвета совпадают или если переливаем в пустую колбу и места в целевой колбе достаточно
-                if solve_upper_color[1][0] == target_upper_color[1][0] and target_upper_color[1][1] >= solve_upper_color[1][1]:
-                    target_upper_color = ((target_upper_color[0][0], target_upper_color[0][1] + 1), ('EMPTY', target_upper_color[1][1]))
-                    moves.append((solve_upper_color, target_upper_color))
-                elif target_upper_color[1][0] == 'EMPTY':
-                    moves.append((solve_upper_color, target_upper_color))
+                if not (target_upper_color[1][0] == 'EMPTY' and
+                        len(set(position[idx_solve_flask])) == 2 and
+                        'EMPTY' in position[idx_solve_flask]):
+                    # Переливание возможно только если верхние цвета совпадают или если переливаем в пустую колбу и места в целевой колбе достаточно
+                    if solve_upper_color[1][0] == target_upper_color[1][0] and target_upper_color[1][1] >= solve_upper_color[1][1]:
+                        target_upper_color = (
+                            (target_upper_color[0][0], target_upper_color[0][1] + 1),
+                            ('EMPTY', target_upper_color[1][1])
+                        )
+                        moves.append((solve_upper_color, target_upper_color))
+                    elif target_upper_color[1][0] == 'EMPTY':
+                        moves.append((solve_upper_color, target_upper_color))
 
     return moves
 

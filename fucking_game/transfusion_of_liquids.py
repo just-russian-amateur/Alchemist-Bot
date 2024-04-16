@@ -1,5 +1,4 @@
 import json
-import sys
 
 
 def get_level_from_json(level):
@@ -103,6 +102,7 @@ def possible_moves(position):
                 # В полную колбу ничего перелить нельзя
                 if target_upper_color[0][1] == count_colors - 1:
                     continue
+                # Исключение переливания одного цвета в пустую колбу (бесполезное действие)
                 if not (target_upper_color[1][0] == 'EMPTY' and
                         len(set(position[idx_solve_flask])) == 2 and
                         'EMPTY' in position[idx_solve_flask]):
@@ -146,37 +146,76 @@ def go_back_move(position, move):
     return position
 
 
-def transfusion_of_liquids(position, visited_states, steps_list):
+def transfusion_of_liquids(position):
     '''Функция перемещения цвета в текущей позиции и записи последовательности шагов'''
-    # Проверяем решена ли задача
-    if check_solving(position):
-        return True
-    
-    # Обходим массив возможных перемещений, рекурсивно погружаясь в глубину
-    for move in possible_moves(position):
-        # Применяем действие
-        next_position, step = apply_move(position, move)
-        # Преобразуем новую текущую позицию в неизменяемый объект (кортеж)
-        steps_list.append(step)
-        next_position_tuple = tuple(tuple(flask) for flask in next_position)
+    steps_list = []
+    visited_states = set()
+    stack = [(position, steps_list)]
+    while stack:
+        now_position, steps = stack.pop(0)
+        # Проверяем решена ли задача
+        if check_solving(position):
+            return True, steps
+        
+        # Обходим массив возможных перемещений, рекурсивно погружаясь в глубину
+        for move in possible_moves(now_position):
+            # Применяем действие
+            now_position = list(list(flask) for flask in now_position)
+            next_position, step = apply_move(now_position, move)
+            # Преобразуем новую текущую позицию в неизменяемый объект (кортеж)
+            next_position_tuple = tuple(tuple(flask) for flask in next_position)
 
-        # Если текущая позиция уже была посещена ранее, то возвращаем движение назад
-        if next_position_tuple in visited_states:
+            # Если текущая позиция уже была посещена ранее, то возвращаем движение назад
+            if next_position_tuple in visited_states:
+                go_back_move(next_position, move)
+                continue
+
+            # Добавляем текущую позицию в список посещенных
+            visited_states.add(next_position_tuple)
+            steps = list(steps)
+            steps.append(step)
+            steps_tuple = tuple(steps)
+            stack.append((next_position_tuple, steps_tuple))
+            # Поскольку мы сначала заполняем стек вершинами, то для корректных позиций нужен откат действия
             go_back_move(next_position, move)
-            steps_list.pop()
-            continue
+            steps.pop()
+            steps_tuple = tuple(steps)
 
-        # Добавляем текущую позицию в список посещенных
-        visited_states.add(next_position_tuple)
+    return False, None
 
-        is_solved = transfusion_of_liquids(next_position, visited_states, steps_list)  # Делаем перемещение
-        # Если решение найдено, то завершаем перемещения
-        if is_solved:
-            return True
-        go_back_move(next_position, move)
-        steps_list.pop()
 
-    return False
+# def transfusion_of_liquids(position, visited_states, steps_list, i_cnt):
+#     '''Функция перемещения цвета в текущей позиции и записи последовательности шагов'''
+#     i_cnt += 1
+#     print(i_cnt)
+#     # Проверяем решена ли задача
+#     if check_solving(position):
+#         return True
+    
+#     # Обходим массив возможных перемещений, рекурсивно погружаясь в глубину
+#     for move in possible_moves(position):
+#         # Применяем действие
+#         next_position, step = apply_move(position, move)
+#         # Преобразуем новую текущую позицию в неизменяемый объект (кортеж)
+#         next_position_tuple = tuple(tuple(flask) for flask in next_position)
+
+#         # Если текущая позиция уже была посещена ранее, то возвращаем движение назад
+#         if next_position_tuple in visited_states:
+#             go_back_move(next_position, move)
+#             continue
+
+#         # Добавляем текущую позицию в список посещенных
+#         visited_states.add(next_position_tuple)
+#         steps_list.append(step)
+
+#         is_solved = transfusion_of_liquids(next_position, visited_states, steps_list, i_cnt)  # Делаем перемещение
+#         # Если решение найдено, то завершаем перемещения
+#         if is_solved:
+#             return True
+#         go_back_move(next_position, move)
+#         steps_list.pop()
+
+#     return False
 
 
 def transfusion_manage(task, result):
@@ -184,12 +223,13 @@ def transfusion_manage(task, result):
     # Вызываем функцию для считывания файлов из json
     start_position = get_level_from_json(task)
     
-    visited_states = set()
-    steps_list = []
+    # visited_states = set()
+    # steps_list = []
 
-    sys.setrecursionlimit(200000)
-    # Возвращаем флаг решения и список шагов, если решение есть
-    is_solved = transfusion_of_liquids(start_position, visited_states, steps_list)  # Делаем первое перемещение
+    # # Возвращаем флаг решения и список шагов, если решение есть
+    # i_cnt = 0
+    # is_solved = transfusion_of_liquids(start_position, visited_states, steps_list, i_cnt)  # Делаем первое перемещение
+    is_solved, steps_list = transfusion_of_liquids(start_position)
     if is_solved:
         send_result_to_txt(result, steps_list)
         return True
@@ -198,4 +238,4 @@ def transfusion_manage(task, result):
 
 
 if __name__ == "__main__":
-    transfusion_manage('./fucking_game/config_files/myLevel.json', 'result.txt')
+    transfusion_manage('./fucking_game/config_files/myLevel2.json', 'result.txt')

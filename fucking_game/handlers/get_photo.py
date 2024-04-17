@@ -84,7 +84,6 @@ async def get_photo(message: Message, bot: Bot, state: FSMContext):
         # Формируем итоговый json
         create_image_for_replace(json_name=in_file, id_client=message.from_user.id)
         # Итоговое изображение
-        await message.delete()
         with open(lvl_file, 'rb') as open_image:
             await message.answer_photo(
                 BufferedInputFile(

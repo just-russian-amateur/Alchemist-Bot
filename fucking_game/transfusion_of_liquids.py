@@ -131,7 +131,7 @@ def apply_move(position, move):
     for cnt in range(solve_flask[1][1]):
         position[target_flask[0][0]][target_flask[0][1] + cnt] = solve_flask[1][0]
         position[solve_flask[0][0]][solve_flask[0][1] - cnt] = 'EMPTY'
-    step = f'{solve_flask[0][0]} -> {target_flask[0][0]}'
+    step = f'{solve_flask[0][0] + 1} -> {target_flask[0][0] + 1}'
 
     return position, step
 

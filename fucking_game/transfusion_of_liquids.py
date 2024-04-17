@@ -1,5 +1,4 @@
 import json
-import time
 
 
 def get_level_from_json(level):
@@ -197,17 +196,10 @@ def transfusion_manage(task, result):
     # Вызываем функцию для считывания файлов из json
     start_position = get_level_from_json(task)
     
-    s_t = time.time()
-    # # Возвращаем флаг решения и список шагов, если решение есть
+    # Возвращаем флаг решения и список шагов, если решение есть
     is_solved, steps_list = transfusion_of_liquids(start_position)
-    all_time = time.time() - s_t
-    print(all_time)
     if is_solved:
         send_result_to_txt(result, steps_list)
         return True
     
     return False
-
-
-if __name__ == "__main__":
-    transfusion_manage('./fucking_game/config_files/myLevel.json', 'result.txt')

@@ -3,7 +3,6 @@ from aiogram.types import Message, CallbackQuery, BufferedInputFile
 from aiogram.fsm.context import FSMContext
 from aiogram.exceptions import TelegramBadRequest
 
-# from flasks import flasks_solver
 from transfusion_of_liquids import transfusion_manage
 from found_colors import found_colors_in_flasks, replace_in_json, create_image_for_replace, add_empty_flask
 import config

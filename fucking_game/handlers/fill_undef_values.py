@@ -155,7 +155,7 @@ async def fill_undef_values(callback: CallbackQuery, state: FSMContext):
         else:
             with open(out_file, "r") as result:
                 await callback.message.answer(
-                    f'Yay!🥳🥳🥳I found a solution for you!!!🥳🥳🥳\nPlease note that the flasks are numbered starting from 0, not 1!\n{result.read()}\nLet me know if you want a solution for another screenshot :)',
+                    f'Yay!🥳🥳🥳I found a solution for you!!!🥳🥳🥳\n{result.read()}\nLet me know if you want a solution for another screenshot :)',
                     reply_markup=upload_new()
                 )
             await state.set_state(amc.SolveFlasks.start_solving)

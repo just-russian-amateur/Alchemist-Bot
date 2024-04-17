@@ -143,8 +143,6 @@ async def fill_undef_values(callback: CallbackQuery, state: FSMContext):
         try:
             # Вызываем функцию перебора переливаний
             is_solved = transfusion_manage(task=in_file, result=out_file)
-            # Запускаем файл для решения уровня
-            # flasks_solver(input_file=in_file, output_file=out_file)
         except TelegramBadRequest:
             logger.log_error('Превышено время ожидания ответа на начало поиска решения')
 

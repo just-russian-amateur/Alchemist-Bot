@@ -61,7 +61,7 @@ async def fill_undef_values(callback: CallbackQuery, state: FSMContext):
 
     if callback.data != 'reload_image' and callback.data != 'add_an_empty_flask':
         # Удаление цвета нажатой кнопки из словаря и замена неопределенного цвета цветом кнопки
-        if len(undef_colors) != 0:
+        if undef_colors:
             for variation in config.color_variations:
                 if callback.data == variation:
                     if variation == 'LIGHT GREEN':
@@ -83,7 +83,7 @@ async def fill_undef_values(callback: CallbackQuery, state: FSMContext):
                         replace_in_json(json_name=in_file, color_name=variation)
                         break
 
-    if len(undef_colors) != 0:
+    if undef_colors:
         if callback.data == 'add_an_empty_flask':
             # Добавляем пустую колбу
             add_empty_flask(json_name=in_file)

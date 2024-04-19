@@ -46,6 +46,7 @@ async def fill_undef_values(callback: CallbackQuery, state: FSMContext):
         try:
             # Распознаем цвета и добавляем их в список с последующей сериализации в json
             undef_colors = found_colors_in_flasks(image_for_search=image_for_load, id_client=callback.from_user.id, reload_image=True)
+            await state.update_data(undefined_colors=undef_colors)
         except:
             # Если есть любое прерывание во время распознавания, то просим пользователя загрузить новое фото
             # (генерация прерывания говорит о том, что фото не является скриншотом колб или не соответствует условиям)

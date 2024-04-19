@@ -1,7 +1,4 @@
 import json
-import multiprocessing as mp
-import threading as th
-import os
 
 
 def get_level_from_json(level):
@@ -46,7 +43,6 @@ def possible_moves(position):
     moves = []  # Список перемещений
     count_flasks = len(position)    # Количество колб
     count_colors = len(position[0]) # Максимальное количество цветов в колбе (во всех колбах одинаковое количество элементов)
-    
     # Перебираем все колбы из которых можно перелить
     for idx_solve_flask in range(count_flasks):
         # Перебираем все цвета, начиная с верхнего (последний в списке)
@@ -156,10 +152,16 @@ def transfusion_of_liquids(position, steps_list=None):
     '''Функция перемещения цвета в текущей позиции и записи последовательности шагов'''
     visited_states = set()
     stack = [(position, [])]
-    # stack = [(position, [steps_list])]
-    # print(stack)
     while stack:
         now_position, steps = stack[0]
+        now_position = tuple(tuple(flask) for flask in now_position)
+        # Проверяем пришли ли мы в начальную позицию снова? если да, то решения не было найдено
+        if len(stack) == 1:
+            if now_position in visited_states:
+                return False, None
+        # Если начального состояния нет в списке посещенных, то добавляем его (начало поиска)
+        if not visited_states:
+            visited_states.add(now_position)
         now_position = list(list(flask) for flask in now_position)
         steps = list(steps)
         # Проверяем решена ли задача
@@ -193,43 +195,6 @@ def transfusion_of_liquids(position, steps_list=None):
                 stack.insert(0, (now_position_tuple, steps))
                 break
 
-    return False, None
-
-
-def find_all_first_moves(position):
-    '''Функция для поиска всех возможных перемещений для начальной позиции для последующей параллелизации'''
-    visited_states = set()
-    pair = set()
-    moves = possible_moves(position)
-    for move in moves:
-        # Применяем действие
-        position, step = apply_move(position, move)
-        # Преобразуем новую текущую позицию в неизменяемый объект (кортеж)
-        position_tuple = tuple(tuple(flask) for flask in position)
-
-        # Добавляем текущую позицию в список посещенных
-        visited_states.add(position_tuple)
-        # Возвращаемся к стартовой позиции
-        go_back_move(position, move)
-        # Создаем пару агрументов для следующей функции
-        pair.add((position_tuple, step))
-
-    return pair
-
-
-# def create_threads_pack(pair_args, count_threads_pack):
-#     '''Функция для упаковки в пакеты потоков для обраюотки на отдельных ядрах'''
-#     threads_pack = []
-
-#     for i in range(count_threads_pack):
-#         if not pair_args:
-#             break
-#         thread = th.Thread(target=transfusion_of_liquids, )
-#         threads_pack.append(thread)
-#         pair_args.pop(0)
-    
-#     return thread
-
 
 def transfusion_manage(task, result):
     '''Основная функция модуля, регулирующая процесс переливания'''
@@ -240,28 +205,5 @@ def transfusion_manage(task, result):
     if is_solved:
         send_result_to_txt(result, steps_list)
         return True
-    # Получаем все возможные начальные перемещения
-    # pair_args = find_all_first_moves(start_position)
 
-    # # count_processes = len(os.sched_getaffinity(0))
-    # # count_threads_pack = int(round(len(pair_args) / count_processes))
-
-    # # if count_threads_pack > 1:
-    # #     create_threads_pack(pair_args, count_threads_pack)
-    # #     with mp.Pool(processes=count_processes) as process:
-    # #         is_solved = process.starmap(transfusion_of_liquids, pair_args)
-
-    # with mp.Pool(processes=len(pair_args)) as process:
-    #     is_solved = process.starmap(transfusion_of_liquids, pair_args)
-    
-    # # Возвращаем флаг решения и список шагов, если решение есть
-    # for _ in range(len(is_solved)):
-    #     if is_solved[0]:
-    #         send_result_to_txt(result, is_solved[1])
-    #         return True
-    
     return False
-
-
-# if __name__ == '__main__':
-#     transfusion_manage('./fucking_game/config_files/myLevel.json', 'result.txt')

@@ -49,7 +49,7 @@ def preprocessing_image(image):
     return thresholder
 
 
-def found_rect(contour, my_list, coeff_width, coeff_height, is_flask):
+def found_rect(contour, my_list, coeff_width, coeff_height, is_flask=False):
     '''Функция распознавания прямоугольника'''
     rect = cv2.minAreaRect(contour)
     box = np.intp(cv2.boxPoints(rect))
@@ -106,7 +106,7 @@ def create_color_list(image):
             cv2.RETR_TREE,
             cv2.CHAIN_APPROX_SIMPLE
         )
-        if len(contours_color) != 0:
+        if contours_color:
             # В случае если контур был найден, определяем координаты и размеры прямоугольника с цветом
             color = []
             for cnt in contours_color:
@@ -148,7 +148,7 @@ def create_color_list(image):
     # Не учитываем пустые списки (пустые колбы будут добавляться отдельно)
     if len(colors_info) < 4 and len(colors_info) > 0:
         # Добавляем неопределившиеся значения список цветов в колбе
-        for i in range(4 - len(colors_info)):
+        for _ in range(4 - len(colors_info)):
             colors_info.append(['UNDEFINED', (0, height)])
     
     return colors_info
@@ -239,7 +239,7 @@ def found_colors_in_flasks(image_for_search, id_client, reload_image):
     # Проходим по всем контурам и подсвечиваем прямоугольники целых колб
     for contour in contours_of_flasks:
         # Определение границ прямоугольников и добавление цвета прямоугольника в список
-        flasks, _ = found_rect(contour, flasks, coeff_width_flask, coeff_height_flask, is_flask=False)
+        flasks, _ = found_rect(contour, flasks, coeff_width_flask, coeff_height_flask)
     flasks = sorted_flasks(flasks)
     images_of_flasks = crop_rects(flasks, cropped_image, id_client)
 
@@ -248,7 +248,7 @@ def found_colors_in_flasks(image_for_search, id_client, reload_image):
         # Находим контуры цветов внутри каждой колбы
         internal_colors = []
         colors_list = create_color_list(images_contour[0])
-        if len(colors_list) != 0:
+        if colors_list:
             for colors_contours in colors_list:
                 internal_colors.append((colors_contours[0], colors_contours[1]))
             internal_colors = sorted(

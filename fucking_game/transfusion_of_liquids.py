@@ -11,14 +11,9 @@ def get_level_from_json(level):
 
 def send_result_to_txt(result, steps):
     '''Функция для записи результата решения в текстовый файл'''
-    if len(steps) == 0:
-        return False
-    else:
-        with open(result, 'w') as result_level:
-            for step in steps:
-                result_level.write(f'{step}\n')
-    
-    return True
+    with open(result, 'w') as result_level:
+        for step in steps:
+            result_level.write(f'{step}\n')
 
 
 def check_solving(position):
@@ -43,6 +38,7 @@ def possible_moves(position):
     moves = []  # Список перемещений
     count_flasks = len(position)    # Количество колб
     count_colors = len(position[0]) # Максимальное количество цветов в колбе (во всех колбах одинаковое количество элементов)
+
     # Перебираем все колбы из которых можно перелить
     for idx_solve_flask in range(count_flasks):
         # Перебираем все цвета, начиная с верхнего (последний в списке)
@@ -148,10 +144,11 @@ def go_back_move(position, move):
     return position
 
 
-def transfusion_of_liquids(position, steps_list=None):
+def transfusion_of_liquids(position):
     '''Функция перемещения цвета в текущей позиции и записи последовательности шагов'''
     visited_states = set()
     stack = [(position, [])]
+
     while stack:
         now_position, steps = stack[0]
         now_position = tuple(tuple(flask) for flask in now_position)
@@ -168,7 +165,7 @@ def transfusion_of_liquids(position, steps_list=None):
         if check_solving(now_position):
             return True, steps
         
-        if len(possible_moves(now_position)) == 0:
+        if not possible_moves(now_position):
             # Поскольку мы сначала заполняем стек вершинами, то для корректных позиций нужен откат действия
             go_back_move(now_position, move)
             stack.pop(0)
@@ -178,7 +175,6 @@ def transfusion_of_liquids(position, steps_list=None):
             for move in moves:
                 # Применяем действие
                 now_position, step = apply_move(now_position, move)
-                # Преобразуем новую текущую позицию в неизменяемый объект (кортеж)
                 now_position_tuple = tuple(tuple(flask) for flask in now_position)
 
                 # Если текущая позиция уже была посещена ранее, то возвращаем движение назад

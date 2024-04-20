@@ -59,7 +59,7 @@ def possible_moves(position):
         # Из пустой колбы ничего перелить нельзя
         if solve_upper_color[1][0] == 'EMPTY':
             continue
-        # Проверка того, что следующие плоки такого же цвета (переливаться будет сразу весь цвет и это влияет на решение)
+        # Проверка того, что следующие блоки такого же цвета (переливаться будет сразу весь цвет и это влияет на решение)
         for idx_color in range(solve_upper_color[0][1] - 1, -1, -1):
             if position[idx_solve_flask][idx_color] == solve_upper_color[1][0]:
                 mono_color_height += 1

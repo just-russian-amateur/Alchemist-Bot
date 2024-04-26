@@ -11,27 +11,6 @@ import shutil
 import os
 
 
-"""
-Список поддерживаемых команд (желательно все сделать в виде кнопок):
-/start - начало работы с ботом
-Надеюсь будут добавлены:
-/payment - покупка попыток участия, если бот станет популярен
-/share - ссылка для распространения бота в различных социальных сетях
-"""
-
-
-# @dp.message(Command("share"))    #   Команда поделиться
-# async def share(message: Message):
-#     """Функция для распространения"""
-#     await message.answer(F.data)
-
-
-# @dp.message(Command("payment"))    #   Команда покупки попыток
-# async def payment(message: Message):
-#     """Функция для покупки попыток"""
-#     await message.answer(F.data)
-
-
 async def clue(bot: Bot):
     # Реализация меню команд
     bot_commands = [

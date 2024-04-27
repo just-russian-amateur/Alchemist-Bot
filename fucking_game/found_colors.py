@@ -207,7 +207,7 @@ def replace_undefined(flasks_list):
     for key in colors_dict.keys():
         if colors_dict[key] < 4:
             if key != 'UNDEFINED':
-                added_colors[key] = 4 - colors_dict[key]
+                added_colors[key] = int(4 - colors_dict[key])
     return added_colors
 
 

@@ -83,6 +83,7 @@ async def fill_undef_values(callback: CallbackQuery, state: FSMContext):
                             undef_colors.pop(variation)
                         replace_in_json(json_name=in_file, color_name=variation)
                         break
+            await state.update_data(undefined_colors=undef_colors)
 
     if undef_colors:
         if callback.data == 'add_an_empty_flask':

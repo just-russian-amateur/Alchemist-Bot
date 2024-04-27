@@ -1,6 +1,9 @@
 from aiogram import Bot, Dispatcher  # Подключение библиотек
 from aiogram.types import BotCommand
 from aiogram.exceptions import TelegramNetworkError
+from aiogram.fsm.storage.redis import RedisStorage
+
+from redis import asyncio as aioredis
 
 from handlers import send_welcome, start_solving, get_photo, fill_undef_values
 import config
@@ -35,8 +38,11 @@ async def main():
     if free_space < 5:
         logger.log_warning(f'Заканчивается свободное место на диске, осталось свободно: {free_space} Гб')
 
+    # Объявляем хранилище Redis
+    redis = aioredis.Redis()
+
     # Инициализация диспетчера
-    dp = Dispatcher()
+    dp = Dispatcher(storage=RedisStorage(redis=redis))
     bot = Bot(token=config.API_TOKEN)
 
     dp.startup.register(clue)

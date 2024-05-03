@@ -165,7 +165,7 @@ def transfusion_of_liquids(position):
             # Обходим массив возможных перемещений, рекурсивно погружаясь в глубину
             moves = possible_moves(now_position)
             for move in moves:
-                if move == moves[len(moves) - 1] and now_position == stack[0][0]:
+                if move == moves[len(moves) - 1] and len(stack) == 1:
                     # Прекращаем решение если пройдены все ветви от корня
                     return False, None
                 # Применяем действие

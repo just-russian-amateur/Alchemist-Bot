@@ -1,0 +1,28 @@
+{
+  "bottles": [
+    [
+      "LIGHTBLUE",
+      "ORANGE",
+      "LIGHTBLUE",
+      "LIGHTBLUE"
+    ],
+    [
+      "UNDEFINED",
+      "PINK",
+      "ORANGE",
+      "LIGHTBLUE"
+    ],
+    [
+      "EMPTY",
+      "EMPTY",
+      "EMPTY",
+      "EMPTY"
+    ],
+    [
+      "EMPTY",
+      "EMPTY",
+      "EMPTY",
+      "EMPTY"
+    ]
+  ]
+}

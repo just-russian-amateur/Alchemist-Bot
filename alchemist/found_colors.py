@@ -218,7 +218,7 @@ def found_colors_in_flasks(image_for_search, id_client, reload_image):
     # Получение параметров размера изображения и вывод параметров обрезки
     height, width, _ = original_image.shape
     if reload_image == False:
-        cropped_height = [round(height * 0.125), round(height * 0.875)]
+        cropped_height = [int(100), round(height - 200)]
     else:
         cropped_height = [0, height]
     # Обрзка изображения под определенные границы (чтобы были видны только колбы)

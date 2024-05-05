@@ -1,0 +1,46 @@
+{
+  "bottles": [
+    [
+      "BURGUNDY",
+      "PINK",
+      "BLUE",
+      "GREEN"
+    ],
+    [
+      "UNDEFINED",
+      "UNDEFINED",
+      "RED",
+      "LIGHTBLUE"
+    ],
+    [
+      "PURPLE",
+      "GREEN",
+      "PINK",
+      "ORANGE"
+    ],
+    [
+      "UNDEFINED",
+      "LIGHTBLUE",
+      "BURGUNDY",
+      "GREEN"
+    ],
+    [
+      "UNDEFINED",
+      "UNDEFINED",
+      "RED",
+      "PINK"
+    ],
+    [
+      "EMPTY",
+      "EMPTY",
+      "EMPTY",
+      "EMPTY"
+    ],
+    [
+      "EMPTY",
+      "EMPTY",
+      "EMPTY",
+      "EMPTY"
+    ]
+  ]
+}

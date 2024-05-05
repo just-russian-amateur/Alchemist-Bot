@@ -151,14 +151,6 @@ def transfusion_of_liquids(position):
 
     while stack:
         now_position, steps = stack[0]
-        now_position = tuple(tuple(flask) for flask in now_position)
-        # Проверяем пришли ли мы в начальную позицию снова? если да, то решения не было найдено
-        if len(stack) == 1:
-            if now_position in visited_states:
-                return False, None
-        # Если начального состояния нет в списке посещенных, то добавляем его (начало поиска)
-        if not visited_states:
-            visited_states.add(now_position)
         now_position = list(list(flask) for flask in now_position)
         steps = list(steps)
         # Проверяем решена ли задача
@@ -173,6 +165,9 @@ def transfusion_of_liquids(position):
             # Обходим массив возможных перемещений, рекурсивно погружаясь в глубину
             moves = possible_moves(now_position)
             for move in moves:
+                if move == moves[len(moves) - 1] and len(stack) == 1:
+                    # Прекращаем решение если пройдены все ветви от корня
+                    return False, None
                 # Применяем действие
                 now_position, step = apply_move(now_position, move)
                 now_position_tuple = tuple(tuple(flask) for flask in now_position)

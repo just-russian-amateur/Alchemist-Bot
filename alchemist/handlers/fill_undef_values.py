@@ -57,6 +57,7 @@ async def fill_undef_values(callback: CallbackQuery, state: FSMContext):
             logger.log_error('Изображение не подходит для распознавания')
             await callback.answer()
             await state.set_state(amc.SolveFlasks.start_solving)
+            return
     else:
         undef_colors = paths['undefined_colors']
 

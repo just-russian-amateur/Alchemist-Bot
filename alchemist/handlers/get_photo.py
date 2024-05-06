@@ -58,6 +58,7 @@ async def get_photo(message: Message, bot: Bot, state: FSMContext):
         )
         logger.log_error('Изображение не подходит для распознавания')
         await state.set_state(amc.SolveFlasks.start_solving)
+        return
 
     if undef_colors:
         # Подготавливаем картинку, в которой подсвечиваем неопределенные области

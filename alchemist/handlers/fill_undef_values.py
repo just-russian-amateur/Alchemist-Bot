@@ -29,6 +29,7 @@ logger = amc.ConfigLogger(__name__)
 )
 async def fill_undef_values(callback: CallbackQuery, state: FSMContext):
     '''Функция дозаполнения неопределенных цветов вручную'''
+    await callback.message.delete()
     if callback.data == 'upload_new_image':
         await callback.message.answer('Upload a new screenshot as an image, please')
         await callback.answer()
@@ -114,7 +115,6 @@ async def fill_undef_values(callback: CallbackQuery, state: FSMContext):
             logger.log_info(f'Изображение для пользователя {callback.from_user.id} перезагружено для дальнейшего редактирования')
         else:
             # Изображение, где подсвечивается первый неопределенный цвет
-            await callback.message.delete()
             with open(lvl_file, 'rb') as open_image:
                 await callback.message.answer_photo(
                     BufferedInputFile(
@@ -130,7 +130,6 @@ async def fill_undef_values(callback: CallbackQuery, state: FSMContext):
         # Формируем итоговый json
         create_image_for_replace(json_name=in_file, id_client=callback.from_user.id)
         # Итоговое изображение
-        await callback.message.delete()
         with open(lvl_file, 'rb') as open_image:
             await callback.message.answer_photo(
                 BufferedInputFile(

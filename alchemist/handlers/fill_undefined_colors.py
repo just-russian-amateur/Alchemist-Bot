@@ -37,10 +37,10 @@ async def fill_undef_values(callback: CallbackQuery, state: FSMContext):
         return
 
     # Получаем данные с путями к папкам
-    paths = await state.get_data()
-    image_for_load = paths['original_image']
-    in_file, out_file = paths['input_file'], paths['output_file']
-    lvl_file = paths['level_file']
+    props = await state.get_data()
+    image_for_load = props['original_image']
+    in_file, out_file = props['input_file'], props['output_file']
+    lvl_file = props['level_file']
 
     if callback.data == 'reload_image' or callback.data == 'add_an_empty_flask':
         logger.log_info(f'Изображение от пользователя {callback.from_user.id} отправлено на перезагрузку с/без добавления пустой колбы')
@@ -48,7 +48,7 @@ async def fill_undef_values(callback: CallbackQuery, state: FSMContext):
         undef_colors = found_colors_in_flasks(image_for_search=image_for_load, id_client=callback.from_user.id, reload_image=True)
         await state.update_data(undefined_colors=undef_colors)
     else:
-        undef_colors = paths['undefined_colors']
+        undef_colors = props['undefined_colors']
 
     if callback.data != 'reload_image' and callback.data != 'add_an_empty_flask':
         # Удаление цвета нажатой кнопки из словаря и замена неопределенного цвета цветом кнопки

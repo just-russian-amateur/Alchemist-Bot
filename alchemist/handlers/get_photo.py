@@ -4,7 +4,7 @@ from aiogram.fsm.context import FSMContext
 from aiogram.exceptions import TelegramBadRequest
 
 from transfusion_of_liquids import transfusion_manage
-from found_colors import found_colors_in_flasks, create_image_for_replace
+from found_colors import found_colors_in_flasks, create_image_for_replace, replace_in_json
 import classes.all_my_classes as amc
 from keyboards.all_my_keyboards import error_image, colors, feedback, upload_new, no_result
 
@@ -59,6 +59,15 @@ async def get_photo(message: Message, bot: Bot, state: FSMContext):
         logger.log_error('Изображение не подходит для распознавания')
         await state.set_state(amc.SolveFlasks.start_solving)
         return
+
+    # Автозаполнение цвета, если остался только один неопределенный
+    if len(undef_colors) == 1:
+        for variation in undef_colors:
+            while undef_colors[variation] != 0:
+                undef_colors[variation] -= 1
+                replace_in_json(json_name=in_file, color_name=variation)
+        undef_colors.pop(variation)
+        await state.update_data(undefined_colors=undef_colors)
 
     if undef_colors:
         # Подготавливаем картинку, в которой подсвечиваем неопределенные области

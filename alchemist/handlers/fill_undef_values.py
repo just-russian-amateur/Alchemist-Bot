@@ -55,25 +55,21 @@ async def fill_undef_values(callback: CallbackQuery, state: FSMContext):
         if undef_colors:
             for variation in config.color_variations:
                 if callback.data == variation:
-                    if variation == 'LIGHT GREEN':
-                        undef_colors['LIGHTGREEN'] -= 1
-                        if undef_colors['LIGHTGREEN'] == 0:
-                            undef_colors.pop('LIGHTGREEN')
-                        replace_in_json(json_name=in_file, color_name='LIGHTGREEN')
-                        break
-                    elif variation == 'LIGHT BLUE':
-                        undef_colors['LIGHTBLUE'] -= 1
-                        if undef_colors['LIGHTBLUE'] == 0:
-                            undef_colors.pop('LIGHTBLUE')
-                        replace_in_json(json_name=in_file, color_name='LIGHTBLUE')
-                        break
-                    else:
-                        undef_colors[variation] -= 1
-                        if undef_colors[variation] == 0:
-                            undef_colors.pop(variation)
-                        replace_in_json(json_name=in_file, color_name=variation)
-                        break
+                    undef_colors[variation] -= 1
+                    if undef_colors[variation] == 0:
+                        undef_colors.pop(variation)
+                    replace_in_json(json_name=in_file, color_name=variation)
+                    break
             await state.update_data(undefined_colors=undef_colors)
+
+    # Автозаполнение цвета, если остался только один неопределенный
+    if len(undef_colors) == 1:
+        for variation in undef_colors:
+            while undef_colors[variation] != 0:
+                undef_colors[variation] -= 1
+                replace_in_json(json_name=in_file, color_name=variation)
+        undef_colors.pop(variation)
+        await state.update_data(undefined_colors=undef_colors)
 
     if undef_colors:
         if callback.data == 'add_an_empty_flask':

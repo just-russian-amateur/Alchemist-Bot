@@ -44,21 +44,9 @@ async def fill_undef_values(callback: CallbackQuery, state: FSMContext):
 
     if callback.data == 'reload_image' or callback.data == 'add_an_empty_flask':
         logger.log_info(f'Изображение от пользователя {callback.from_user.id} отправлено на перезагрузку с/без добавления пустой колбы')
-        try:
-            # Распознаем цвета и добавляем их в список с последующей сериализации в json
-            undef_colors = found_colors_in_flasks(image_for_search=image_for_load, id_client=callback.from_user.id, reload_image=True)
-            await state.update_data(undefined_colors=undef_colors)
-        except:
-            # Если есть любое прерывание во время распознавания, то просим пользователя загрузить новое фото
-            # (генерация прерывания говорит о том, что фото не является скриншотом колб или не соответствует условиям)
-            await callback.message.answer(
-                'Something went wrong...🤷‍♂️ Please upload another picture',
-                reply_markup=error_image()
-            )
-            logger.log_error('Изображение не подходит для распознавания')
-            await callback.answer()
-            await state.set_state(amc.SolveFlasks.start_solving)
-            return
+        # Распознаем цвета и добавляем их в список с последующей сериализации в json
+        undef_colors = found_colors_in_flasks(image_for_search=image_for_load, id_client=callback.from_user.id, reload_image=True)
+        await state.update_data(undefined_colors=undef_colors)
     else:
         undef_colors = paths['undefined_colors']
 

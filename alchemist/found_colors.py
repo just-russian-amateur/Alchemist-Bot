@@ -218,7 +218,7 @@ def found_colors_in_flasks(image_for_search, id_client, reload_image):
     # Получение параметров размера изображения и вывод параметров обрезки
     height, width, _ = original_image.shape
     if reload_image == False:
-        cropped_height = [int(100), round(height - 200)]
+        cropped_height = [int(150), round(height - 200)]
     else:
         cropped_height = [0, height]
     # Обрзка изображения под определенные границы (чтобы были видны только колбы)
@@ -346,11 +346,12 @@ def create_image_for_replace(json_name, id_client):
                         color_circle = cv2.circle(template, (int(circle_x), int(circle_y)), 47, (0, 255, 0), 6)
                     else:
                         color_circle = cv2.circle(template, (int(circle_x), int(circle_y)), 47, (255, 255, 255), 6)
+                    cv2.imwrite(filename, color_circle)
                     break
                 elif flasks[colors][color] == variation[0]:
                     color_circle = cv2.circle(template, (int(circle_x), int(circle_y)), 47, variation[2], -1)
+                    cv2.imwrite(filename, color_circle)
                     break
-            cv2.imwrite(filename, color_circle)
 
 
 def add_empty_flask(json_name):

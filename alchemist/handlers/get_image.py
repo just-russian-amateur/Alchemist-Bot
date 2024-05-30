@@ -127,6 +127,7 @@ async def get_photo(message: Message, bot: Bot, state: FSMContext):
             os.remove(out_file)
         os.remove(in_file)
         os.remove(lvl_file)
+        os.remove(image_for_load)
 
 
 @rtr.message(amc.SolveFlasks.send_photo)

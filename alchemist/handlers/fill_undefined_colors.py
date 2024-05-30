@@ -7,7 +7,7 @@ from transfusion_of_liquids import transfusion_manage
 from found_colors import found_colors_in_flasks, replace_in_json, create_image_for_replace, add_empty_flask
 import config
 import classes.all_my_classes as amc
-from keyboards.all_my_keyboards import error_image, colors, feedback, upload_new, no_result
+from keyboards.all_my_keyboards import colors, feedback, upload_new, no_result
 
 import asyncio
 import os
@@ -150,6 +150,7 @@ async def fill_undef_values(callback: CallbackQuery, state: FSMContext):
             os.remove(out_file)
         os.remove(in_file)
         os.remove(lvl_file)
+        os.remove(image_for_load)
 
 
 @rtr.message(amc.SolveFlasks.set_color)

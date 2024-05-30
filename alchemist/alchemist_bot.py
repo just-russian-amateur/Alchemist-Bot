@@ -35,7 +35,7 @@ async def main():
 
     logger = amc.ConfigLogger(__name__)
     # Логгируем предупреждение, если свободного места меньше 5 Гб
-    if free_space < 5:
+    if free_space < 0.2:
         logger.log_warning(f'Заканчивается свободное место на диске, осталось свободно: {free_space} Гб')
 
     # Объявляем хранилище Redis

@@ -34,7 +34,7 @@ async def main():
         free_space = shutil.disk_usage('/dev/sda').free / 10**9
 
     logger = amc.ConfigLogger(__name__)
-    # Логгируем предупреждение, если свободного места меньше 5 Гб
+    # Логгируем предупреждение, если свободного места меньше 0.2 Гб
     if free_space < 0.2:
         logger.log_warning(f'Заканчивается свободное место на диске, осталось свободно: {free_space} Гб')
 

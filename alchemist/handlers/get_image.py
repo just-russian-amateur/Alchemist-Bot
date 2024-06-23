@@ -121,13 +121,13 @@ async def get_photo(message: Message, bot: Bot, state: FSMContext):
                     f'Yay!🥳🥳🥳I found a solution for you!!!🥳🥳🥳\n{result.read()}\nLet me know if you want a solution for another screenshot🙂',
                     reply_markup=upload_new()
                 )
+            os.remove(image_for_load)
             await state.set_state(amc.SolveFlasks.start_solving)
         # Удаление временных файлов
         if os.path.isfile(out_file):
             os.remove(out_file)
         os.remove(in_file)
         os.remove(lvl_file)
-        os.remove(image_for_load)
 
 
 @rtr.message(amc.SolveFlasks.send_photo)

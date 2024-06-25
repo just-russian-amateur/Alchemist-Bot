@@ -116,7 +116,7 @@ def create_color_list(image):
                 add_flag = True
                 if len(colors_info) > 0:
                     for add_color in colors_info:
-                        if abs(cnt[0][1] - add_color[1][1]) < 38:
+                        if abs(cnt[0][1] - add_color[1][1]) < height / 6:
                             add_flag = False
                             break
                 if add_flag == True:

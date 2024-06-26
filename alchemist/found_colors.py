@@ -49,16 +49,16 @@ def preprocessing_image(image):
     return thresholder
 
 
-def found_rect(contour, my_list, coeff_width, coeff_height, is_flask=False):
+def found_rect(contour, my_list, height, width=None):
     '''Функция распознавания прямоугольника'''
     rect = cv2.minAreaRect(contour)
     box = np.intp(cv2.boxPoints(rect))
-    if is_flask ==True:
-        if rect[1][0] >= coeff_height and rect[1][1] >= coeff_height:
+    if width == None:
+        if rect[1][0] >= height and rect[1][1] >= height:
             my_list.append(rect)
     else:
-        if (rect[1][0] >= rect[1][1] and rect[1][1] >= coeff_width and rect[1][0] >= coeff_height) or \
-            (rect[1][0] < rect[1][1] and rect[1][0] >= coeff_width and rect[1][1] >= coeff_height):
+        if (rect[1][0] >= rect[1][1] and rect[1][1] >= width and rect[1][0] >= height) or \
+            (rect[1][0] < rect[1][1] and rect[1][0] >= width and rect[1][1] >= height):
             # Добавляем прямоугольники с колбами в список
             my_list.append(rect)
 
@@ -91,13 +91,12 @@ def create_color_list(image):
     erode_image = cv2.erode(cv2.imread(image), kernel=morph_kernel, iterations=3)
     cv2.imwrite(image, erode_image)
     color_pixels = cv2.imread(image)
-    height, width, _ = color_pixels.shape
+    height, _, _ = color_pixels.shape
     hsv_colors = cv2.cvtColor(color_pixels, cv2.COLOR_BGR2HSV)
 
     colors_info, count_colors = [], []
     # Подбор коэффициентов
-    coeff_width = round(width / 1.5)
-    coeff_height = round(height / 6.8)
+    height_color = round(height / 6.8)
     for variation in variations:
         # Проверяем пороговое значение для каждой вариации цвета на картинке и находим контуры
         thresholder = cv2.inRange(hsv_colors, variation[1][0], variation[1][1])
@@ -110,13 +109,13 @@ def create_color_list(image):
             # В случае если контур был найден, определяем координаты и размеры прямоугольника с цветом
             color = []
             for cnt in contours_color:
-                color_coords, _ = found_rect(cnt, color, coeff_width, coeff_height, is_flask=True)
+                color_coords, _ = found_rect(cnt, color, height_color)
             for cnt in color_coords:
                 # Исключаем наложение прямоугольников друг на друга
                 add_flag = True
                 if len(colors_info) > 0:
                     for add_color in colors_info:
-                        if abs(cnt[0][1] - add_color[1][1]) < height / 6:
+                        if abs(cnt[0][1] - add_color[1][1]) < height_color:
                             add_flag = False
                             break
                 if add_flag == True:
@@ -215,14 +214,38 @@ def replace_undefined(flasks_list):
     return added_colors
 
 
-def found_colors_in_flasks(image_for_search, id_client, reload_image):
-    '''Основная функция для распознавания цветов на картинке и добавления их в массив'''
+def found_colors_in_flasks(image_for_search, id_client, reload_image=False):
+    '''
+    Основная функция для распознавания цветов на картинке и добавления их в массив
+    В ходе тестирования на разных разрешениях экрана были получены следующие эмпирические значения:
+    - Коэффициент отношения ширины экрана к ширине колбы (11)
+    - Коэффициент отношения высоты колбы к ширине колбы (3.6)
+    - Коэффициент отношения пустого пространства между слоями колб к высоте колбы (0.4)
+    - Коэффициент отношения высоты нижнего слоя кнопок к ширине колбы (0.8)
+    - Эмпирическая формула для определения рамки с колбами по которой надо обрезать:
+        - Для дисплеев с коэффициентом отношения высоты к ширине >= 2.0:
+            Высота колбы = Ширина экрана / коэффициент ширины экрана и колбы * коэффициент высоты колбы к ширине
+            Высота колбы * (максимальное количество слоев колб (3) + количество пустых пространств (4) * коэффициент высот колбы и пустого простарнства)
+        - Для дисплеев с коэффициентом отношения высоты к ширине < 2.0:
+            Высота колбы = Ширина экрана / коэффициент ширины экрана и колбы * коэффициент высоты колбы к ширине
+            Высота колбы * (максимальное количество слоев колб (3) + количество пустых пространств (3) * коэффициент высот колбы и пустого простарнства)
+    - Высота нижнего отступа до начала рамки с колбами (3.5 или 4 (для коэффициента отношения сторон >= 2) высоты нижних кнопок)
+    '''
     # Чтение изображения в цветном формате
     original_image = cv2.imread(image_for_search)
     # Получение параметров размера изображения и вывод параметров обрезки
     height, width, _ = original_image.shape
+    # Задаем эмпирически полученные коэффициенты отношения высоты и ширины экрана к высоте и ширине колбы
+    width_flask = round(width / 11)
+    height_flask = round(width_flask * 3.6)
     if reload_image == False:
-        cropped_height = [100, round(height - 200)]
+        if height / width < 2:
+            flasks_frame = round(height_flask * 4.2)
+            indent_down = round(width_flask * 0.8 * 3.5)
+        else:
+            flasks_frame = round(height_flask * 4.6)
+            indent_down = round(width_flask * 0.8 * 4.5)
+        cropped_height = [round(height - indent_down - flasks_frame), round(height - indent_down)]
     else:
         cropped_height = [0, height]
     # Обрзка изображения под определенные границы (чтобы были видны только колбы)
@@ -236,14 +259,11 @@ def found_colors_in_flasks(image_for_search, id_client, reload_image):
         cv2.CHAIN_APPROX_SIMPLE
     )
 
-    # Задаем эмпирически полученные коэффициенты отношения высоты и ширины экрана к высоте и ширине колбы
-    coeff_width_flask = round(width / 11)
-    coeff_height_flask = round((cropped_height[1] - cropped_height[0]) / 5.2)
     flasks = [] # Список прямоугольников-колб
     # Проходим по всем контурам и подсвечиваем прямоугольники целых колб
     for contour in contours_of_flasks:
         # Определение границ прямоугольников и добавление цвета прямоугольника в список
-        flasks, _ = found_rect(contour, flasks, coeff_width_flask, coeff_height_flask)
+        flasks, _ = found_rect(contour, flasks, height_flask, width_flask)
     flasks = sorted_flasks(flasks)
     images_of_flasks = crop_rects(flasks, cropped_image, id_client)
 

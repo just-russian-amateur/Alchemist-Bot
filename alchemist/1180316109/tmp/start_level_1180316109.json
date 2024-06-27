@@ -1,0 +1,76 @@
+{
+  "bottles": [
+    [
+      "BLUE",
+      "BURGUNDY",
+      "GREEN",
+      "ORANGE"
+    ],
+    [
+      "YELLOW",
+      "LIGHT GREEN",
+      "RED",
+      "LIGHT BLUE"
+    ],
+    [
+      "PINK",
+      "BURGUNDY",
+      "GREEN",
+      "PURPLE"
+    ],
+    [
+      "GREEN",
+      "BURGUNDY",
+      "GREEN",
+      "RED"
+    ],
+    [
+      "UNDEFINED",
+      "PINK",
+      "PURPLE",
+      "LIGHT GREEN"
+    ],
+    [
+      "UNDEFINED",
+      "UNDEFINED",
+      "YELLOW",
+      "LIGHT GREEN"
+    ],
+    [
+      "UNDEFINED",
+      "LIGHT GREEN",
+      "BLUE",
+      "RED"
+    ],
+    [
+      "UNDEFINED",
+      "PURPLE",
+      "BLUE",
+      "ORANGE"
+    ],
+    [
+      "LIGHT BLUE",
+      "ORANGE",
+      "BLUE",
+      "RED"
+    ],
+    [
+      "UNDEFINED",
+      "UNDEFINED",
+      "PINK",
+      "LIGHT BLUE"
+    ],
+    [
+      "EMPTY",
+      "EMPTY",
+      "EMPTY",
+      "EMPTY"
+    ],
+    [
+      "EMPTY",
+      "EMPTY",
+      "EMPTY",
+      "EMPTY"
+    ]
+  ]
+}

@@ -112,3 +112,37 @@ def no_result():
     logger.log_info('Результат не найден')
 
     return kb
+
+
+def continue_solving():
+    continue_button = [
+        [
+            InlineKeyboardButton(text='⏭️Continue solving', callback_data='continue')
+        ]
+    ]
+    kb = InlineKeyboardMarkup(inline_keyboard=continue_button)
+
+    return kb
+
+
+def ok():
+    ok_button = [
+        [
+            InlineKeyboardButton(text='✅I understand', callback_data='ok')
+        ]
+    ]
+    kb = InlineKeyboardMarkup(inline_keyboard=ok_button)
+
+    return kb
+
+
+def recognition_check():
+    check_button = [
+        [
+            InlineKeyboardButton(text='Yes👍', callback_data='yes'),
+            InlineKeyboardButton(text='No, try again👎', callback_data='no')
+        ]
+    ]
+    kb = InlineKeyboardMarkup(inline_keyboard=check_button)
+
+    return kb

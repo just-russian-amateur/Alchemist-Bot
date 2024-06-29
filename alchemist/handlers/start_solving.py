@@ -15,7 +15,7 @@ logger = amc.ConfigLogger(__name__)
     amc.SolveFlasks.start_solving,
     F.data.in_(
         [
-            'start_solving', 'upload_new_image'
+            'start_solving', 'upload_new_image', 'continue', 'ok'
         ]
     )
 )    #   Команды выбора режима распознавания
@@ -26,7 +26,7 @@ async def start_solving(callback: CallbackQuery, state: FSMContext):
         await callback.message.answer("So let's get started😎\nUpload the screenshot as an image, please")
         await callback.answer()
         await state.set_state(amc.SolveFlasks.send_photo)
-    elif callback.data == 'upload_new_image':
+    elif callback.data == 'upload_new_image' or callback.data == 'continue' or callback.data == 'ok':
         logger.log_info(f'Пользователь {callback.from_user.id} приступил к загрузке нового изображения')
         await callback.message.answer('Upload a new screenshot as an image, please')
         await callback.answer()

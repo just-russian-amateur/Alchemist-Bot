@@ -7,7 +7,7 @@ from transfusion_of_liquids import transfusion_manage
 from found_colors import found_colors_in_flasks, replace_in_json, create_image_for_replace, add_empty_flask
 import config
 import classes.all_my_classes as amc
-from keyboards.all_my_keyboards import colors, feedback, upload_new, no_result
+from keyboards.all_my_keyboards import colors, recognition_check, upload_new, no_result
 
 import asyncio
 import os
@@ -23,7 +23,8 @@ logger = amc.ConfigLogger(__name__)
         [
             "LIGHT BLUE", "ORANGE", "YELLOW", "RED", "LIGHT GREEN", "BLUE", "BURGUNDY",
             "GREEN", "PINK", "CRIMSON", "CREAM", "PURPLE", "GRAY","LILAC",
-            'reload_image', 'add_an_empty_flask', 'upload_new_image'
+            'reload_image', 'add_an_empty_flask', 'upload_new_image',
+            'ok', 'continue', 'yes', 'no'
         ]
     )
 )
@@ -47,6 +48,15 @@ async def fill_undef_values(callback: CallbackQuery, state: FSMContext):
         # Распознаем цвета и добавляем их в список с последующей сериализации в json
         undef_colors = found_colors_in_flasks(image_for_search=image_for_load, id_client=callback.from_user.id, reload_image=True)
         await state.update_data(undefined_colors=undef_colors)
+    elif callback.data == 'no':
+        '''Распознавание завершилось с ошибкой'''
+        await callback.message.answer(
+            "Please upload your screenshot again so I can try to recognize it🙂\nI recommend that you take a new screenshot of the same level and send me the updated version, for details use the /faq command"
+        )
+        await callback.answer()
+        logger.log_info('Изображение было распознано неверно')
+        await state.set_state(amc.SolveFlasks.send_photo)
+        return
     else:
         undef_colors = props['undefined_colors']
 
@@ -71,16 +81,31 @@ async def fill_undef_values(callback: CallbackQuery, state: FSMContext):
         undef_colors.pop(variation)
         await state.update_data(undefined_colors=undef_colors)
 
+    if callback.data == 'add_an_empty_flask':
+        # Добавляем пустую колбу
+        add_empty_flask(json_name=in_file)
+        logger.log_info(f'В изображение пользователя {callback.from_user.id} была добавлена пустая колба')
+
+    # Подготавливаем картинку, в которой подсвечиваем неопределенные области
+    create_image_for_replace(json_name=in_file, id_client=callback.from_user.id)
+
+    if callback.data == 'add_an_empty_flask':
+        # Изображение, где подсвечивается первый неопределенный цвет
+        with open(lvl_file, 'rb') as open_image:
+            await callback.message.answer_photo(
+                BufferedInputFile(
+                    open_image.read(),
+                    filename='solve_flasks'
+                ),
+                caption="This is what I saw in your screenshot. Compare the colors here with the original image and please tell me if I succeeded so I can continue with the solution. If something is wrong, I can try again, or you can send this screenshot for feedback using the /support command🙂",
+                reply_markup=recognition_check()
+            )
+        await callback.answer()
+        logger.log_info(f'Изображение для пользователя {callback.from_user.id} перезагружено для дальнейшего редактирования')
+        return
+
     if undef_colors:
-        if callback.data == 'add_an_empty_flask':
-            # Добавляем пустую колбу
-            add_empty_flask(json_name=in_file)
-            logger.log_info(f'В изображение пользователя {callback.from_user.id} была добавлена пустая колба')
-
-        # Подготавливаем картинку, в которой подсвечиваем неопределенные области
-        create_image_for_replace(json_name=in_file, id_client=callback.from_user.id)
-
-        if callback.data == 'reload_image' or callback.data == 'add_an_empty_flask':
+        if callback.data == 'reload_image':
             # Изображение, где подсвечивается первый неопределенный цвет
             with open(lvl_file, 'rb') as open_image:
                 await callback.message.answer_photo(
@@ -88,31 +113,27 @@ async def fill_undef_values(callback: CallbackQuery, state: FSMContext):
                         open_image.read(),
                         filename='solve_flasks'
                     ),
-                    caption="Please check if I recognized everything correctly? If I misrecognized some colors or you noticed some other error, then feel free to let me know about the problem\nTo do this, click the button below the message (send a photo with which the error occurred and describe the problem)🙂",
-                    reply_markup=feedback()
+                    caption="This is what I saw in your screenshot. Compare the colors here with the original image and please tell me if I succeeded so I can continue with the solution. If something is wrong, I can try again, or you can send this screenshot for feedback using the /support command🙂",
+                    reply_markup=recognition_check()
                 )
-            await callback.message.answer(
-                'Please select from the options provided the color that should be in place of the green circle',
-                reply_markup=colors(undef_colors)
-            )
             await callback.answer()
             logger.log_info(f'Изображение для пользователя {callback.from_user.id} перезагружено для дальнейшего редактирования')
-        else:
-            # Изображение, где подсвечивается первый неопределенный цвет
-            with open(lvl_file, 'rb') as open_image:
-                await callback.message.answer_photo(
-                    BufferedInputFile(
-                        open_image.read(),
-                        filename='solve_flasks'
-                    ),
-                    caption="Please select from the options provided the color that should be in place of the green circle",
-                    reply_markup=colors(undef_colors)
-                )
-            await callback.answer()
-            logger.log_info(f'Изображение для пользователя {callback.from_user.id} дополнено и отправлено для дальнейшего редактирования')
+            return
+        
+        # Изображение, где подсвечивается первый неопределенный цвет
+        with open(lvl_file, 'rb') as open_image:
+            await callback.message.answer_photo(
+                BufferedInputFile(
+                    open_image.read(),
+                    filename='solve_flasks'
+                ),
+                caption="Please select from the options provided the color that should be in place of the green circle",
+                reply_markup=colors(undef_colors)
+            )
+        await callback.answer()
+        logger.log_info(f'Изображение для пользователя {callback.from_user.id} дополнено и отправлено для дальнейшего редактирования')
     else:
-        # Формируем итоговый json
-        create_image_for_replace(json_name=in_file, id_client=callback.from_user.id)
+        '''Запускаем процесс поиска решения'''
         # Итоговое изображение
         with open(lvl_file, 'rb') as open_image:
             await callback.message.answer_photo(
@@ -123,8 +144,8 @@ async def fill_undef_values(callback: CallbackQuery, state: FSMContext):
                 caption="I'll look for a solution from this position. Wait, this may take a while"
             )
         await callback.answer()
-
         logger.log_info(f'Пользователь {callback.from_user.id} заполнил все пустоты')
+
         try:
             # Вызываем функцию перебора переливаний
             is_solved = transfusion_manage(task=in_file, result=out_file)
@@ -146,6 +167,7 @@ async def fill_undef_values(callback: CallbackQuery, state: FSMContext):
                 )
             os.remove(image_for_load)
             await state.set_state(amc.SolveFlasks.start_solving)
+
         # Удаление временных файлов
         if os.path.isfile(out_file):
             os.remove(out_file)

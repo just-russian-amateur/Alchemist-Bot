@@ -5,7 +5,7 @@ from aiogram.fsm.storage.redis import RedisStorage
 
 from redis import asyncio as aioredis
 
-from handlers import send_welcome, start_solving, fill_undefined_colors, get_image
+from handlers import send_welcome, start_solving, fill_undefined_colors, get_image, faq, support
 import config
 import classes.all_my_classes as amc
 
@@ -17,7 +17,9 @@ import os
 async def clue(bot: Bot):
     # Реализация меню команд
     bot_commands = [
-        BotCommand(command='/start', description='Restarting me and receiving instructions for working with me')
+        BotCommand(command='/start', description='🔄️Restarting me and receiving instructions for working with me'),
+        BotCommand(command='/faq', description='🛠️Solving the most common problems when working with me'),
+        BotCommand(command='/support', description='❓Support from my developer for any questions that arise')
     ]
     await bot.set_my_commands(bot_commands)
     # Реализация описания бота
@@ -46,7 +48,7 @@ async def main():
     bot = Bot(token=config.API_TOKEN)
 
     dp.startup.register(clue)
-    dp.include_routers(send_welcome.rtr, start_solving.rtr, get_image.rtr, fill_undefined_colors.rtr)
+    dp.include_routers(send_welcome.rtr, faq.rtr, support.rtr, start_solving.rtr, get_image.rtr, fill_undefined_colors.rtr)
     
     try:
         await bot.delete_webhook(drop_pending_updates=True)

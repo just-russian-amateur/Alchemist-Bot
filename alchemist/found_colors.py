@@ -138,7 +138,7 @@ def create_color_list(image):
             if colors_info[idx_line][3] < 45:
                 idx_height = 1
 
-            if colors_info[idx_line][2][idx_height] > 2.85 * min_color_rect:
+            if colors_info[idx_line][2][idx_height] > 3.25 * min_color_rect:
                 for _ in range(2):
                     colors_info.insert(idx_line, colors_info[idx_line])
                 idx_line += 3

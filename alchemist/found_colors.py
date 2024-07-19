@@ -1,7 +1,6 @@
 '''Этот модуль отвечает за поиск и распознавание цветов в каждой колбе'''
 import cv2
 import numpy as np
-import json
 import os
 
 
@@ -27,7 +26,7 @@ variations = [
 ]
 
 
-def preprocessing_image(image):
+def preprocessing_image(image: str) -> cv2.typing.MatLike:
     '''Функция предобработки изображения'''
     # Чтение обрезанного изображения в ч/б формате
     gray_noise = cv2.imread(image, 0)
@@ -49,7 +48,7 @@ def preprocessing_image(image):
     return thresholder
 
 
-def found_rect(contour, my_list, height, width=None):
+def found_rect(contour: cv2.typing.MatLike, my_list: list, height: int, width=None) -> tuple[list, np.intp]:
     '''Функция распознавания прямоугольника'''
     rect = cv2.minAreaRect(contour)
     box = np.intp(cv2.boxPoints(rect))
@@ -65,7 +64,7 @@ def found_rect(contour, my_list, height, width=None):
     return my_list, box
 
 
-def crop_rects(contours, cropped_image, id_client):
+def crop_rects(contours: list, cropped_image: np.ndarray, id_client: int) -> list:
     '''Функция для выделения каждой отдельной колбы или цвета в ней для распознавания цветов'''
     flasks_info = []
     for cnt in contours:
@@ -84,7 +83,7 @@ def crop_rects(contours, cropped_image, id_client):
     return flasks_info
 
 
-def create_color_list(image):
+def create_color_list(image: str) -> list:
     '''Функция для создания списка колб с цветами вместо числовых значений'''
     # Более агрессивный подход для удаления ненужных шумов с изображения с использованием эрозии
     morph_kernel = np.ones((3, 3))
@@ -148,16 +147,42 @@ def create_color_list(image):
             else:
                 idx_line += 1
 
+    # Сортировка распознанных цветов
+    colors_info = sorted(
+        colors_info,
+        key=lambda
+        item:
+        item[1][1],
+        reverse=True
+    )
+
+    if len(colors_info) < 4 and len(colors_info) > 1:
+        # Добавляем функционал для донатеров (когда между двумя элементами может быть неопределенный цвет)
+        idx_line = 1
+        while idx_line < len(colors_info): 
+            current_idx_height, previos_idx_height = 0, 0
+            if colors_info[idx_line][3] < 45:
+                current_idx_height = 1
+            if colors_info[idx_line - 1][3] < 45:
+                previos_idx_height = 1
+            
+            previous_coord = colors_info[idx_line - 1][1][1] - colors_info[idx_line - 1][2][previos_idx_height] / 2
+            current_coord = colors_info[idx_line][1][1] + colors_info[idx_line][2][current_idx_height] / 2
+            if previous_coord - current_coord > min_color_rect:
+                colors_info.insert(idx_line, ['UNDEFINED', (0, colors_info[idx_line][1][1] + 1), (0, 0), 0])
+                idx_line += 1
+            idx_line += 1
+
     # Не учитываем пустые списки (пустые колбы будут добавляться отдельно)
-    if len(colors_info) < 4 and len(colors_info) > 0:
+    if len(colors_info) < 4 and len(colors_info) > 0: 
         # Добавляем неопределившиеся значения список цветов в колбе
         for _ in range(4 - len(colors_info)):
-            colors_info.append(['UNDEFINED', (0, height)])
+            colors_info.insert(0, ['UNDEFINED', (0, height), (0, 0), 0])
     
     return colors_info
 
 
-def sorted_flasks(flasks_list):
+def sorted_flasks(flasks_list: list) -> list:
     '''Пользовательская функция для сортировки колб в нужном порядке'''
     min_coord = min(
         flasks_list,
@@ -200,7 +225,7 @@ def sorted_flasks(flasks_list):
     return sorted_flask_list
 
 
-def replace_undefined(flasks_list):
+def replace_undefined(flasks_list: list) -> dict:
     '''Функция для составления списка неопределенных значений недостающими цветами'''
     # Подготовление списка с цвтеами и их количеством, которые нужно добавить
     flasks_list = np.asarray(flasks_list)
@@ -214,7 +239,7 @@ def replace_undefined(flasks_list):
     return added_colors
 
 
-def found_colors_in_flasks(image_for_search, id_client, reload_image=False):
+def found_colors_in_flasks(image_for_search: str, id_client: int, reload_image=False) -> tuple[dict, list]:
     '''
     Основная функция для распознавания цветов на картинке и добавления их в массив
     В ходе тестирования на разных разрешениях экрана были получены следующие эмпирические значения:
@@ -270,21 +295,10 @@ def found_colors_in_flasks(image_for_search, id_client, reload_image=False):
     flasks_list = []    # Список цветов в колбах
     for images_contour in images_of_flasks:
         # Находим контуры цветов внутри каждой колбы
-        internal_colors = []
         colors_list = create_color_list(images_contour[0])
         if colors_list:
-            for colors_contours in colors_list:
-                internal_colors.append((colors_contours[0], colors_contours[1]))
-            internal_colors = sorted(
-                internal_colors,
-                key=lambda
-                item:
-                item[1][1],
-                reverse=True
-            )
-        
             colors = []
-            for color in internal_colors:
+            for color in colors_list:
                 colors.append(color[0])
             flasks_list.append(colors)
     
@@ -296,41 +310,25 @@ def found_colors_in_flasks(image_for_search, id_client, reload_image=False):
     for flask_info in images_of_flasks:
         os.remove(flask_info[0])
 
-    create_json(flasks_list, id_client)
-
-    return replace_undefined(flasks_list)
+    return replace_undefined(flasks_list), flasks_list
 
 
-def create_json(flasks_list, id_client):
-    '''Создание и заполнение json файла с распознанными цветами'''
-    with open(f"./{id_client}/tmp/start_level_{id_client}.json", "w") as this_level:
-        json.dump({"bottles": flasks_list}, this_level, indent=2)
-
-
-def replace_in_json(json_name, color_name):
-    '''Фуекция для замены неопределенных цветов в json на выбранные пользователем'''
-    with open(json_name, "r") as this_level:
-        file = json.load(this_level)
-    
+def replace_in_list(flasks_list: list, color_name: str) -> list:
+    '''Функция для замены неопределенных цветов на выбранные пользователем'''
     try:
-        for _, flasks in file.items():
-            for colors in range(len(flasks)):
-                for color in range(len(flasks[colors])):
-                    if flasks[colors][color] == 'UNDEFINED':
-                        file[_][colors][color] = color_name
-                        raise BreakAction
+        for flask in flasks_list:
+            for colors in range(len(flask)):
+                if flask[colors] == 'UNDEFINED':
+                    flask[colors] = color_name
+                    raise BreakAction
     except BreakAction:
         pass
-    
-    with open(json_name, "w") as this_level:
-        json.dump(file, this_level, indent=2)
+
+    return flasks_list
 
 
-def create_image_for_replace(json_name, id_client):
+def create_image_for_replace(flasks_list: list, id_client: int):
     '''Функция для отрисовки изображения с подсветкой того цвета, который нужно заполнить'''
-    with open(json_name, "r") as this_level:
-        file = json.load(this_level)
-    
     # Создание и сохранение пустого черного изображения
     filename = f'./{id_client}/tmp/level_for_{id_client}.jpg'
     height, width = 1800, 1400
@@ -338,9 +336,8 @@ def create_image_for_replace(json_name, id_client):
     cv2.imwrite(filename, template)
 
     # Установка количества линий с колбами и размеров колбы
-    for _, flasks in file.items():
-        count_flasks = len(flasks)
-    height_flask, width_flask = 400, 100
+    count_flasks = len(flasks_list)
+    width_flask = 100
     count_lines = np.trunc(count_flasks / 6) + 1
     flasks_centers = []
     # Заполнение массива с центрами колб
@@ -355,16 +352,18 @@ def create_image_for_replace(json_name, id_client):
     
     cnt_undef = 0
     # Отрисовка всех колб с цветами и пустыми полями внутри них
-    for colors in range(len(flasks)):
+    for colors in range(count_flasks):
+        height_flask = width_flask * len(flasks_list[colors])
+        
         x1, y1 = flasks_centers[colors][0] - width_flask / 2, flasks_centers[colors][1] - height_flask / 2
         x2, y2 = flasks_centers[colors][0] + width_flask / 2, flasks_centers[colors][1] + height_flask / 2
         flask_rect = cv2.rectangle(template, (int(x1), int(y1)), (int(x2), int(y2)), (176, 176, 90), 6)
         cv2.imwrite(filename, flask_rect)
 
-        for color in range(len(flasks[colors])):
+        for color in range(len(flasks_list[colors])):
             circle_x, circle_y = flasks_centers[colors][0], y2 - (y2 - y1) * (2 * color + 1) / 8
             for variation in variations:
-                if flasks[colors][color] == 'UNDEFINED':
+                if flasks_list[colors][color] == 'UNDEFINED':
                     cnt_undef += 1
                     if cnt_undef == 1:
                         color_circle = cv2.circle(template, (int(circle_x), int(circle_y)), 47, (0, 255, 0), 6)
@@ -372,18 +371,20 @@ def create_image_for_replace(json_name, id_client):
                         color_circle = cv2.circle(template, (int(circle_x), int(circle_y)), 47, (255, 255, 255), 6)
                     cv2.imwrite(filename, color_circle)
                     break
-                elif flasks[colors][color] == variation[0]:
+                elif flasks_list[colors][color] == variation[0]:
                     color_circle = cv2.circle(template, (int(circle_x), int(circle_y)), 47, variation[2], -1)
                     cv2.imwrite(filename, color_circle)
                     break
 
 
-def add_empty_flask(json_name):
-    '''Функция для добавления пустой колбы в конец json'''
-    with open(json_name, "r") as this_level:
-        file = json.load(this_level)
-
-    file['bottles'].append(['EMPTY', 'EMPTY', 'EMPTY', 'EMPTY'])
-
-    with open(json_name, "w") as this_level:
-        json.dump(file, this_level, indent=2)
+def add_empty_flask(flasks_list: list, idx_segment: int) -> list:
+    '''Функция для добавления пустой части колбы в конец'''
+    if idx_segment == 1:
+        flasks_list.append(['EMPTY'])
+    else:
+        flasks_list.pop()
+        new_segment = []
+        for _ in range(idx_segment):
+            new_segment.append('EMPTY')
+        flasks_list.append(new_segment)
+    return flasks_list

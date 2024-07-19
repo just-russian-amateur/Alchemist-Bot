@@ -101,7 +101,7 @@ def no_result():
     no_result_button = [
         [
             InlineKeyboardButton(text='🔄️🖼️Reload image', callback_data='reload_image'),
-            InlineKeyboardButton(text='➕🧪Add an empty flask', callback_data='add_an_empty_flask')
+            InlineKeyboardButton(text='➕🧪Add 1/4 flask', callback_data='add_an_empty_flask')
         ],
         [
             InlineKeyboardButton(text='📩🖼️Upload new image', callback_data='upload_new_image')
@@ -144,5 +144,53 @@ def recognition_check():
         ]
     ]
     kb = InlineKeyboardMarkup(inline_keyboard=check_button)
+
+    return kb
+
+
+def autofill_buttons():
+    autofill = [
+        [
+            InlineKeyboardButton(text='🙎‍♂️Manually', callback_data='manually'),
+            InlineKeyboardButton(text='🤖Autofill', callback_data='autofill')
+        ]
+    ]
+    kb = InlineKeyboardMarkup(inline_keyboard=autofill)
+
+    return kb
+
+
+def autofill_options(mode=None):
+    all_options = [
+        [
+            InlineKeyboardButton(text='⬅️Previous option', callback_data='previous'),
+            InlineKeyboardButton(text='➡️Next option', callback_data='next')
+        ],
+        [
+            InlineKeyboardButton(text='☑️Confirm selection', callback_data='confirm')
+        ]
+    ]
+    first_options = [
+        [
+            InlineKeyboardButton(text='➡️Next option', callback_data='next')
+        ],
+        [
+            InlineKeyboardButton(text='☑️Confirm selection', callback_data='confirm')
+        ]
+    ]
+    last_options = [
+        [
+            InlineKeyboardButton(text='⬅️Previous option', callback_data='previous')
+        ],
+        [
+            InlineKeyboardButton(text='☑️Confirm selection', callback_data='confirm')
+        ]
+    ]
+    if mode == 'first':
+        kb = InlineKeyboardMarkup(inline_keyboard=first_options)
+    elif mode == 'last':
+        kb = InlineKeyboardMarkup(inline_keyboard=last_options)
+    else:
+        kb = InlineKeyboardMarkup(inline_keyboard=all_options)
 
     return kb

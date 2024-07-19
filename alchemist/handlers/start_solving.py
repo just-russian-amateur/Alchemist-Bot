@@ -22,13 +22,14 @@ logger = amc.ConfigLogger(__name__)
 async def start_solving(callback: CallbackQuery, state: FSMContext):
     """Функция загрузки изображения"""
     if callback.data == 'start_solving':
+        await state.update_data(new_segment=0)
         logger.log_info(f'Пользователь {callback.from_user.id} приступил к загрузке первого изображения')
-        await callback.message.answer("So let's get started😎\nUpload the screenshot as an image, please")
+        await callback.message.edit_text("So let's get started😎\nUpload the screenshot as an image, please")
         await callback.answer()
         await state.set_state(amc.SolveFlasks.send_photo)
     elif callback.data == 'upload_new_image' or callback.data == 'continue' or callback.data == 'ok':
         logger.log_info(f'Пользователь {callback.from_user.id} приступил к загрузке нового изображения')
-        await callback.message.answer('Upload a new screenshot as an image, please')
+        await callback.message.edit_text('Upload a new screenshot as an image, please')
         await callback.answer()
         await state.set_state(amc.SolveFlasks.send_photo)
 

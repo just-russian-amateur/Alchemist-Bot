@@ -56,7 +56,7 @@ async def autofill(callback: CallbackQuery, bot: Bot, state: FSMContext):
 
                 try:
                     # Вызываем функцию перебора переливаний
-                    is_solved, steps = transfusion_manage(task=flasks_list)
+                    is_solved, steps = await transfusion_manage(bot=bot, chat_id=callback.from_user.id, task=flasks_list)
                 except TelegramBadRequest:
                     logger.log_error('Превышено время ожидания ответа на начало поиска решения')
 
@@ -124,7 +124,7 @@ async def autofill(callback: CallbackQuery, bot: Bot, state: FSMContext):
 
             try:
                 # Вызываем функцию перебора переливаний
-                is_solved, steps = transfusion_manage(task=autofill_flasks_list)
+                is_solved, steps = await transfusion_manage(bot=bot, chat_id=callback.from_user.id, task=autofill_flasks_list)
             except TelegramBadRequest:
                 logger.log_error('Превышено время ожидания ответа на начало поиска решения')
 
@@ -170,11 +170,11 @@ async def autofill(callback: CallbackQuery, bot: Bot, state: FSMContext):
     autofill_variation = all_permutations[number]
     # Дозаполняем неопределенные места
     for color in autofill_variation:
-        replace_in_list(autofill_flasks_list, color)
+        await replace_in_list(autofill_flasks_list, color)
     await state.update_data(autofill_flasks_list=autofill_flasks_list)
 
     # Подготавливаем картинку
-    create_image_for_replace(flasks_list=autofill_flasks_list, id_client=callback.from_user.id)
+    await create_image_for_replace(flasks_list=autofill_flasks_list, id_client=callback.from_user.id)
 
     mode = 'first'
     if callback.data == 'previous' or callback.data == 'next':

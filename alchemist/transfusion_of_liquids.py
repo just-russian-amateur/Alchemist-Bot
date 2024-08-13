@@ -1,4 +1,8 @@
-def check_solving(position: list) -> bool:
+from aiogram import Bot
+from aiogram.utils.chat_action import ChatActionSender
+
+
+async def check_solving(position: list) -> bool:
     '''Функция проверки получения решения'''
     full_color = 0
     for flask in position:
@@ -21,7 +25,7 @@ def check_solving(position: list) -> bool:
     return False
 
 
-def possible_moves(position: list) -> list:
+async def possible_moves(position: list) -> list:
     '''Функция для определения всех возможных перемещений для конкретной ситуации'''
     moves = []  # Список перемещений
     count_flasks = len(position)    # Количество колб
@@ -106,7 +110,7 @@ def possible_moves(position: list) -> list:
     return moves
 
 
-def apply_move(position: list, move: tuple) -> tuple[list, str]:
+async def apply_move(position: list, move: tuple) -> tuple[list, str]:
     '''Функция для применения перемещения к текущему положению для получения нового'''
     # Получение данных о колбах, которые задействуются
     solve_flask, target_flask = move
@@ -120,7 +124,7 @@ def apply_move(position: list, move: tuple) -> tuple[list, str]:
     return position, step
 
 
-def go_back_move(position: list, move: tuple) -> list:
+async def go_back_move(position: list, move: tuple) -> list:
     '''Функция отмены перемещения'''
     # Получение данных о колбах, которые задействуются
     solve_flask, target_flask = move
@@ -133,53 +137,54 @@ def go_back_move(position: list, move: tuple) -> list:
     return position
 
 
-def transfusion_of_liquids(position: list) -> tuple[bool, any]:
+async def transfusion_of_liquids(bot: Bot, chat_id: int, position: list) -> tuple[bool, any]:
     '''Функция перемещения цвета в текущей позиции и записи последовательности шагов'''
     visited_states = set()
     stack = [(position, [])]
 
     while stack:
-        now_position, steps = stack[0]
-        now_position = list(list(flask) for flask in now_position)
-        steps = list(steps)
-        # Проверяем решена ли задача
-        if check_solving(now_position):
-            return True, steps
-        
-        if not possible_moves(now_position):
-            # Поскольку мы сначала заполняем стек вершинами, то для корректных позиций нужен откат действия
-            go_back_move(now_position, move)
-            stack.pop(0)
-        else:
-            # Обходим массив возможных перемещений, рекурсивно погружаясь в глубину
-            moves = possible_moves(now_position)
-            for move in moves:
-                if move == moves[len(moves) - 1] and len(stack) == 1:
-                    # Прекращаем решение если пройдены все ветви от корня
-                    return False, None
-                # Применяем действие
-                now_position, step = apply_move(now_position, move)
-                now_position_tuple = tuple(tuple(flask) for flask in now_position)
+        async with ChatActionSender.typing(bot=bot, chat_id=chat_id):
+            now_position, steps = stack[0]
+            now_position = list(list(flask) for flask in now_position)
+            steps = list(steps)
+            # Проверяем решена ли задача
+            if await check_solving(now_position):
+                return True, steps
+            
+            if not await possible_moves(now_position):
+                # Поскольку мы сначала заполняем стек вершинами, то для корректных позиций нужен откат действия
+                await go_back_move(now_position, move)
+                stack.pop(0)
+            else:
+                # Обходим массив возможных перемещений, рекурсивно погружаясь в глубину
+                moves = await possible_moves(now_position)
+                for move in moves:
+                    if move == moves[len(moves) - 1] and len(stack) == 1:
+                        # Прекращаем решение если пройдены все ветви от корня
+                        return False, None
+                    # Применяем действие
+                    now_position, step = await apply_move(now_position, move)
+                    now_position_tuple = tuple(tuple(flask) for flask in now_position)
 
-                # Если текущая позиция уже была посещена ранее, то возвращаем движение назад
-                if now_position_tuple in visited_states:
-                    if move == moves[len(moves) - 1]:
-                        stack.pop(0)
-                    go_back_move(now_position, move)
-                    continue
+                    # Если текущая позиция уже была посещена ранее, то возвращаем движение назад
+                    if now_position_tuple in visited_states:
+                        if move == moves[len(moves) - 1]:
+                            stack.pop(0)
+                        await go_back_move(now_position, move)
+                        continue
 
-                # Добавляем текущую позицию в список посещенных
-                visited_states.add(now_position_tuple)
-                steps.append(step)
-                steps = tuple(steps)
-                stack.insert(0, (now_position_tuple, steps))
-                break
+                    # Добавляем текущую позицию в список посещенных
+                    visited_states.add(now_position_tuple)
+                    steps.append(step)
+                    steps = tuple(steps)
+                    stack.insert(0, (now_position_tuple, steps))
+                    break
 
 
-def transfusion_manage(task: list) -> tuple[bool, any]:
+async def transfusion_manage(bot: Bot, chat_id: int, task: list) -> tuple[bool, any]:
     '''Основная функция модуля, регулирующая процесс переливания'''
     # Возвращаем флаг решения и список шагов, если решение есть
-    is_solved, steps_list = transfusion_of_liquids(task)
+    is_solved, steps_list = await transfusion_of_liquids(bot, chat_id, task)
     if is_solved:
         # Убираем "глупые" ходы бота
         idx_step = 1

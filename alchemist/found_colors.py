@@ -26,7 +26,7 @@ variations = [
 ]
 
 
-def preprocessing_image(image: str) -> cv2.typing.MatLike:
+async def preprocessing_image(image: str) -> cv2.typing.MatLike:
     '''Функция предобработки изображения'''
     # Чтение обрезанного изображения в ч/б формате
     gray_noise = cv2.imread(image, 0)
@@ -48,7 +48,7 @@ def preprocessing_image(image: str) -> cv2.typing.MatLike:
     return thresholder
 
 
-def found_rect(contour: cv2.typing.MatLike, my_list: list, height: int, width=None) -> tuple[list, np.intp]:
+async def found_rect(contour: cv2.typing.MatLike, my_list: list, height: int, width=None) -> tuple[list, np.intp]:
     '''Функция распознавания прямоугольника'''
     rect = cv2.minAreaRect(contour)
     box = np.intp(cv2.boxPoints(rect))
@@ -64,7 +64,7 @@ def found_rect(contour: cv2.typing.MatLike, my_list: list, height: int, width=No
     return my_list, box
 
 
-def crop_rects(contours: list, cropped_image: np.ndarray, id_client: int) -> list:
+async def crop_rects(contours: list, cropped_image: np.ndarray, id_client: int) -> list:
     '''Функция для выделения каждой отдельной колбы или цвета в ней для распознавания цветов'''
     flasks_info = []
     for cnt in contours:
@@ -83,7 +83,7 @@ def crop_rects(contours: list, cropped_image: np.ndarray, id_client: int) -> lis
     return flasks_info
 
 
-def create_color_list(image: str) -> list:
+async def create_color_list(image: str) -> list:
     '''Функция для создания списка колб с цветами вместо числовых значений'''
     # Более агрессивный подход для удаления ненужных шумов с изображения с использованием эрозии
     morph_kernel = np.ones((3, 3))
@@ -108,7 +108,7 @@ def create_color_list(image: str) -> list:
             # В случае если контур был найден, определяем координаты и размеры прямоугольника с цветом
             color = []
             for cnt in contours_color:
-                color_coords, _ = found_rect(cnt, color, height_color)
+                color_coords, _ = await found_rect(cnt, color, height_color)
             for cnt in color_coords:
                 # Исключаем наложение прямоугольников друг на друга
                 add_flag = True
@@ -182,7 +182,7 @@ def create_color_list(image: str) -> list:
     return colors_info
 
 
-def sorted_flasks(flasks_list: list) -> list:
+async def sorted_flasks(flasks_list: list) -> list:
     '''Пользовательская функция для сортировки колб в нужном порядке'''
     min_coord = min(
         flasks_list,
@@ -225,7 +225,7 @@ def sorted_flasks(flasks_list: list) -> list:
     return sorted_flask_list
 
 
-def replace_undefined(flasks_list: list) -> dict:
+async def replace_undefined(flasks_list: list) -> dict:
     '''Функция для составления списка неопределенных значений недостающими цветами'''
     # Подготовление списка с цвтеами и их количеством, которые нужно добавить
     flasks_list = np.asarray(flasks_list)
@@ -239,7 +239,7 @@ def replace_undefined(flasks_list: list) -> dict:
     return added_colors
 
 
-def found_colors_in_flasks(image_for_search: str, id_client: int, reload_image=False) -> tuple[dict, list]:
+async def found_colors_in_flasks(image_for_search: str, id_client: int, reload_image=False) -> tuple[dict, list]:
     '''
     Основная функция для распознавания цветов на картинке и добавления их в массив
     В ходе тестирования на разных разрешениях экрана были получены следующие эмпирические значения:
@@ -279,7 +279,7 @@ def found_colors_in_flasks(image_for_search: str, id_client: int, reload_image=F
     # Предобработка начального изображения после кропа
     # Определение контуров элементов и их отрисовка на цветном изображении
     contours_of_flasks, _ = cv2.findContours(
-        preprocessing_image(image_for_search),
+        await preprocessing_image(image_for_search),
         cv2.RETR_TREE,
         cv2.CHAIN_APPROX_SIMPLE
     )
@@ -288,14 +288,14 @@ def found_colors_in_flasks(image_for_search: str, id_client: int, reload_image=F
     # Проходим по всем контурам и подсвечиваем прямоугольники целых колб
     for contour in contours_of_flasks:
         # Определение границ прямоугольников и добавление цвета прямоугольника в список
-        flasks, _ = found_rect(contour, flasks, height_flask, width_flask)
-    flasks = sorted_flasks(flasks)
-    images_of_flasks = crop_rects(flasks, cropped_image, id_client)
+        flasks, _ = await found_rect(contour, flasks, height_flask, width_flask)
+    flasks = await sorted_flasks(flasks)
+    images_of_flasks = await crop_rects(flasks, cropped_image, id_client)
 
     flasks_list = []    # Список цветов в колбах
     for images_contour in images_of_flasks:
         # Находим контуры цветов внутри каждой колбы
-        colors_list = create_color_list(images_contour[0])
+        colors_list = await create_color_list(images_contour[0])
         if colors_list:
             colors = []
             for color in colors_list:
@@ -310,10 +310,10 @@ def found_colors_in_flasks(image_for_search: str, id_client: int, reload_image=F
     for flask_info in images_of_flasks:
         os.remove(flask_info[0])
 
-    return replace_undefined(flasks_list), flasks_list
+    return await replace_undefined(flasks_list), flasks_list
 
 
-def replace_in_list(flasks_list: list, color_name: str) -> list:
+async def replace_in_list(flasks_list: list, color_name: str) -> list:
     '''Функция для замены неопределенных цветов на выбранные пользователем'''
     try:
         for flask in flasks_list:
@@ -327,7 +327,7 @@ def replace_in_list(flasks_list: list, color_name: str) -> list:
     return flasks_list
 
 
-def create_image_for_replace(flasks_list: list, id_client: int):
+async def create_image_for_replace(flasks_list: list, id_client: int):
     '''Функция для отрисовки изображения с подсветкой того цвета, который нужно заполнить'''
     # Создание и сохранение пустого черного изображения
     filename = f'./{id_client}/tmp/level_for_{id_client}.jpg'
@@ -377,7 +377,7 @@ def create_image_for_replace(flasks_list: list, id_client: int):
                     break
 
 
-def add_empty_flask(flasks_list: list, idx_segment: int) -> list:
+async def add_empty_flask(flasks_list: list, idx_segment: int) -> list:
     '''Функция для добавления пустой части колбы в конец'''
     if idx_segment == 1:
         flasks_list.append(['EMPTY'])

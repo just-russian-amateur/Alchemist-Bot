@@ -49,7 +49,7 @@ async def fill_undef_values(callback: CallbackQuery, bot: Bot, state: FSMContext
     if callback.data == 'reload_image' or callback.data == 'add_an_empty_flask':
         logger.log_info(f'Изображение от пользователя {callback.from_user.id} отправлено на перезагрузку с/без добавления пустой колбы')
         # Распознаем цвета и добавляем их в список с последующей сериализации в json
-        undef_colors, flasks_list = found_colors_in_flasks(image_for_search=image_for_load, id_client=callback.from_user.id, reload_image=True)
+        undef_colors, flasks_list = await found_colors_in_flasks(image_for_search=image_for_load, id_client=callback.from_user.id, reload_image=True)
         await state.update_data(undefined_colors=undef_colors)
         await state.update_data(flasks_list=flasks_list)
     elif callback.data == 'no':
@@ -75,7 +75,7 @@ async def fill_undef_values(callback: CallbackQuery, bot: Bot, state: FSMContext
                     undef_colors[variation] -= 1
                     if undef_colors[variation] == 0:
                         undef_colors.pop(variation)
-                    flasks_list = replace_in_list(flasks_list=flasks_list, color_name=variation)
+                    flasks_list = await replace_in_list(flasks_list=flasks_list, color_name=variation)
                     break
             await state.update_data(undefined_colors=undef_colors)
             await state.update_data(flasks_list=flasks_list)
@@ -85,7 +85,7 @@ async def fill_undef_values(callback: CallbackQuery, bot: Bot, state: FSMContext
         for variation in undef_colors:
             while undef_colors[variation] != 0:
                 undef_colors[variation] -= 1
-                flasks_list = replace_in_list(flasks_list=flasks_list, color_name=variation)
+                flasks_list = await replace_in_list(flasks_list=flasks_list, color_name=variation)
         undef_colors.pop(variation)
         await state.update_data(undefined_colors=undef_colors)
         await state.update_data(flasks_list=flasks_list)
@@ -98,12 +98,12 @@ async def fill_undef_values(callback: CallbackQuery, bot: Bot, state: FSMContext
         elif props['new_segment'] < 3:
             idx_segment = props['new_segment'] + 1
             await state.update_data(new_segment=idx_segment)
-        flasks_list = add_empty_flask(flasks_list=flasks_list, idx_segment=idx_segment)
+        flasks_list = await add_empty_flask(flasks_list=flasks_list, idx_segment=idx_segment)
         await state.update_data(flasks_list=flasks_list)
         logger.log_info(f'В изображение пользователя {callback.from_user.id} была добавлена пустая четверть колбы')
 
     # Подготавливаем картинку, в которой подсвечиваем неопределенные области
-    create_image_for_replace(flasks_list=flasks_list, id_client=callback.from_user.id)
+    await create_image_for_replace(flasks_list=flasks_list, id_client=callback.from_user.id)
 
     if callback.data == 'add_an_empty_flask' or callback.data == 'reload_image':
         await callback.message.delete()
@@ -195,7 +195,7 @@ async def fill_undef_values(callback: CallbackQuery, bot: Bot, state: FSMContext
 
             try:
                 # Вызываем функцию перебора переливаний
-                is_solved, steps = transfusion_manage(task=flasks_list)
+                is_solved, steps = await transfusion_manage(bot=bot, chat_id=callback.from_user.id, task=flasks_list)
             except TelegramBadRequest:
                 logger.log_error('Превышено время ожидания ответа на начало поиска решения')
 

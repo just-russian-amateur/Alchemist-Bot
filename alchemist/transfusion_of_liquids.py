@@ -104,7 +104,7 @@ async def possible_moves(position: list) -> list:
                             ('EMPTY', target_upper_color[1][1])
                         )
                         moves.append((solve_upper_color, target_upper_color))
-                    elif target_upper_color[1][0] == 'EMPTY':
+                    elif target_upper_color[1][0] == 'EMPTY' and target_upper_color[1][1] >= solve_upper_color[1][1]:
                         moves.append((solve_upper_color, target_upper_color))
 
     return moves

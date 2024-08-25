@@ -62,7 +62,6 @@ async def reply(callback: CallbackQuery, bot: Bot, state: FSMContext, flasks_lis
 
         # Удаление временных файлов
         os.remove(lvl_file)
-        return
 
 
 @rtr.callback_query(
@@ -86,6 +85,7 @@ async def autofill(callback: CallbackQuery, bot: Bot, state: FSMContext):
 
         if not undef_colors:
             await reply(callback, bot, state, flasks_list)
+            return
 
         async with ChatActionSender.typing(bot=bot, chat_id=callback.from_user.id):
             await callback.message.delete()
@@ -101,7 +101,6 @@ async def autofill(callback: CallbackQuery, bot: Bot, state: FSMContext):
     # Получаем доступ к сохраненному набору неопределенных цветов
     data = await state.get_data()
     undef_colors = data['undefined_colors']
-    image_for_load = data['original_image']
     lvl_file = data['level_file']
 
     if callback.data == 'autofill':
@@ -125,6 +124,7 @@ async def autofill(callback: CallbackQuery, bot: Bot, state: FSMContext):
         logger.log_info(f'Пользователь {callback.from_user.id} выбрал вариант для поиска решения')
         autofill_flasks_list = data['autofill_flasks_list']
         await reply(callback, bot, state, autofill_flasks_list)
+        return
     
     autofill_flasks_list = data['flasks_list']
     data = await state.get_data()

@@ -8,7 +8,7 @@ from random import shuffle
 
 import classes.all_my_classes as amc
 from keyboards.all_my_keyboards import autofill_buttons, autofill_options, no_result, upload_new
-from found_colors import replace_in_list, create_image_for_replace
+from found_colors import replace_in_list, create_image_for_replace, BreakAction
 from transfusion_of_liquids import transfusion_manage
 
 import os
@@ -19,8 +19,11 @@ rtr = Router()
 logger = amc.ConfigLogger(__name__)
 
 
-async def reply(callback: CallbackQuery, bot: Bot, state: FSMContext, flasks_list: list, image_for_load: str, lvl_file: str):
+async def reply(callback: CallbackQuery, bot: Bot, state: FSMContext, flasks_list: list):
     '''Функция для вызова поиска решения'''
+    data = await state.get_data()
+    image_for_load = data['original_image']
+    lvl_file = data['level_file']
     async with ChatActionSender.typing(bot=bot, chat_id=callback.from_user.id):
         '''Запускаем процесс поиска решения'''
         # Итоговое изображение
@@ -57,6 +60,10 @@ async def reply(callback: CallbackQuery, bot: Bot, state: FSMContext, flasks_lis
             os.remove(image_for_load)
             await state.set_state(amc.SolveFlasks.start_solving)
 
+        # Удаление временных файлов
+        os.remove(lvl_file)
+        return
+
 
 @rtr.callback_query(
     amc.SolveFlasks.set_color,
@@ -75,14 +82,10 @@ async def autofill(callback: CallbackQuery, bot: Bot, state: FSMContext):
         data = await state.get_data()
         undef_colors = data['undefined_colors']
         flasks_list = data['flasks_list']
-        image_for_load = data['original_image']
         lvl_file = data['level_file']
 
         if not undef_colors:
-            await reply(callback, bot, state, flasks_list, image_for_load, lvl_file)
-            # Удаление временных файлов
-            os.remove(lvl_file)
-            return
+            await reply(callback, bot, state, flasks_list)
 
         async with ChatActionSender.typing(bot=bot, chat_id=callback.from_user.id):
             await callback.message.delete()
@@ -121,10 +124,7 @@ async def autofill(callback: CallbackQuery, bot: Bot, state: FSMContext):
     if callback.data == 'confirm':
         logger.log_info(f'Пользователь {callback.from_user.id} выбрал вариант для поиска решения')
         autofill_flasks_list = data['autofill_flasks_list']
-        await reply(callback, bot, state, autofill_flasks_list, image_for_load, lvl_file)
-        # Удаление временных файлов
-        os.remove(lvl_file)
-        return
+        await reply(callback, bot, state, autofill_flasks_list)
     
     autofill_flasks_list = data['flasks_list']
     data = await state.get_data()
@@ -152,9 +152,29 @@ async def autofill(callback: CallbackQuery, bot: Bot, state: FSMContext):
     else:
         number = data['serial_number']
         autofill_variation = all_permutations[number]
-    # Дозаполняем неопределенные места
-    for color in autofill_variation:
-        await replace_in_list(autofill_flasks_list, color)
+
+    unique_sequence = False # Флаг для отслеживания перемешки без повторений последовательных цветов
+    while not unique_sequence:
+        if len(all_permutations) != 1:
+            unique_sequence = True
+        # Дозаполняем неопределенные места
+        for color in autofill_variation:
+            await replace_in_list(autofill_flasks_list, color)
+
+        if len(all_permutations) == 1:
+            try:
+                for flask in autofill_flasks_list:
+                    for color in range(len(flask) - 1):
+                        if flask[color] == flask[color + 1] and flask[color] != 'EMPTY':
+                            raise BreakAction
+                unique_sequence = True
+            except BreakAction:
+                pass
+
+        if unique_sequence == False:
+            shuffle(autofill_variation)
+            data = await state.get_data()
+            autofill_flasks_list = data['flasks_list']
     await state.update_data(autofill_flasks_list=autofill_flasks_list)
 
     # Подготавливаем картинку

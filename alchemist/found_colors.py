@@ -18,11 +18,15 @@ variations = [
     ('BURGUNDY', (np.array((158, 135, 84), np.uint8), np.array((255, 255, 127), np.uint8)), (53, 32, 95)),
     ('GREEN', (np.array((86, 121, 86), np.uint8), np.array((96, 255, 255), np.uint8)), (100, 97, 46)),
     ('PINK', (np.array((140, 0, 197), np.uint8), np.array((154, 255, 255), np.uint8)), (219, 153, 212)),
-    ('CRIMSON', (np.array((140, 88, 183), np.uint8), np.array((195, 255, 255), np.uint8)), (128, 109, 218)),
+    ('PEACH', (np.array((140, 88, 183), np.uint8), np.array((195, 255, 255), np.uint8)), (128, 109, 218)),
     ('CREAM', (np.array((0, 0, 241), np.uint8), np.array((20, 255, 255), np.uint8)), (194, 218, 248)),
     ('PURPLE', (np.array((131, 157, 186), np.uint8), np.array((255, 255, 255), np.uint8)), (201, 64, 132)),
     ('GRAY', (np.array((0, 0, 94), np.uint8), np.array((255, 29, 116), np.uint8)), (109, 107, 106)),
-    ('LILAC', (np.array((117, 155, 136), np.uint8), np.array((125, 255, 255), np.uint8)), (187, 62, 71))
+    ('LILAC', (np.array((117, 155, 136), np.uint8), np.array((125, 255, 255), np.uint8)), (187, 62, 71)),
+    ('LIME', (np.array((70, 135, 70), np.uint8), np.array((81, 255, 255), np.uint8)), (106, 203, 52)),
+    ('MOSS', (np.array((62, 162, 57), np.uint8), np.array((68, 255, 95), np.uint8)), (27, 87, 16)),
+    ('BROWN', (np.array((12, 149, 82), np.uint8), np.array((23, 255, 132), np.uint8)), (23, 76, 119)),
+    ('CRIMSON', (np.array((145, 199, 55), np.uint8), np.array((160, 255, 168), np.uint8)), (122, 5, 162))
 ]
 
 
@@ -68,7 +72,7 @@ async def crop_rects(contours: list, cropped_image: np.ndarray, id_client: int) 
     '''Функция для выделения каждой отдельной колбы или цвета в ней для распознавания цветов'''
     flasks_info = []
     for cnt in contours:
-        filename = f'./{id_client}/tmp/flask_{cnt}.jpg'
+        filename = f'./tmp/{id_client}_flask_{cnt}.jpg'
         # Взаимодействие с колбой
         if cnt[2] > 45:
             height_flask = [round(cnt[0][1] - cnt[1][0] / 2), round(cnt[0][1] + cnt[1][0] / 2)]
@@ -254,7 +258,7 @@ async def found_colors_in_flasks(image_for_search: str, id_client: int, reload_i
         - Для дисплеев с коэффициентом отношения высоты к ширине < 2.0:
             Высота колбы = Ширина экрана / коэффициент ширины экрана и колбы * коэффициент высоты колбы к ширине
             Высота колбы * (максимальное количество слоев колб (3) + количество пустых пространств (3) * коэффициент высот колбы и пустого простарнства)
-    - Высота нижнего отступа до начала рамки с колбами (3.5 или 4 (для коэффициента отношения сторон >= 2) высоты нижних кнопок)
+    - Высота нижнего отступа до начала рамки с колбами (3.5 или 4.5 (для коэффициента отношения сторон >= 2) высоты нижних кнопок)
     '''
     # Чтение изображения в цветном формате
     original_image = cv2.imread(image_for_search)
@@ -330,7 +334,7 @@ async def replace_in_list(flasks_list: list, color_name: str) -> list:
 async def create_image_for_replace(flasks_list: list, id_client: int):
     '''Функция для отрисовки изображения с подсветкой того цвета, который нужно заполнить'''
     # Создание и сохранение пустого черного изображения
-    filename = f'./{id_client}/tmp/level_for_{id_client}.jpg'
+    filename = f'./tmp/level_for_{id_client}.jpg'
     height, width = 1800, 1400
     template = np.zeros((height, width, 3), np.uint8)
     cv2.imwrite(filename, template)

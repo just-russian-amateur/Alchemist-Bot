@@ -35,6 +35,10 @@ async def main():
     elif os.name == 'posix':
         free_space = shutil.disk_usage('/dev/sda').free / 10**9
 
+    # Создаем папку для хранения временных файлов
+    if not os.path.isdir('./tmp'):
+        os.mkdir('./tmp')
+
     logger = amc.ConfigLogger(__name__)
     # Логгируем предупреждение, если свободного места меньше 0.2 Гб
     if free_space < 0.2:

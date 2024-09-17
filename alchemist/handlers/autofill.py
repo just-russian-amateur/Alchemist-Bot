@@ -8,10 +8,9 @@ from random import shuffle
 
 import classes.all_my_classes as amc
 from keyboards.all_my_keyboards import autofill_buttons, autofill_options, no_result, upload_new
-from found_colors import replace_in_list, create_image_for_replace, BreakAction
+from found_colors import replace_in_list, create_image_for_replace, add_empty_flask, BreakAction
 from transfusion_of_liquids import transfusion_manage
 
-import os
 from itertools import permutations
 
 
@@ -22,7 +21,6 @@ logger = amc.ConfigLogger(__name__)
 async def reply(callback: CallbackQuery, bot: Bot, state: FSMContext, flasks_list: list):
     '''Функция для вызова поиска решения'''
     data = await state.get_data()
-    image_for_load = data['original_image']
     lvl_file = data['level_file']
     async with ChatActionSender.typing(bot=bot, chat_id=callback.from_user.id):
         '''Запускаем процесс поиска решения'''
@@ -45,51 +43,63 @@ async def reply(callback: CallbackQuery, bot: Bot, state: FSMContext, flasks_lis
         except TelegramBadRequest:
             logger.log_error('Превышено время ожидания ответа на начало поиска решения')
 
-        # В случае, если файл пустой или не был создан сообщаем, что решение не найдено, иначе выводим решение
+        # В случае, если флаг выставлен в False сообщаем, что решение не найдено, иначе выводим решение
         if not is_solved:
             await callback.message.answer(
                 f'😖😖😖Unfortunately, I was unable to find a solution for this arrangement.\nIf you want to change the order of undefined colors, click "🔄️🖼️Reload image".\nIf you know all the colors, but the solution still hasn’t been found, then I can add another empty flask, to do this, click “➕🧪Add an empty flask”\nOr you can upload a new image, to do this, click "📩🖼️Upload new image"',
                 reply_markup=no_result()
             )
-            await state.set_state(amc.SolveFlasks.set_color)
         else:
             await callback.message.answer(
                 f'Yay!🥳🥳🥳I found a solution for you!!!🥳🥳🥳\n{steps}\nLet me know if you want a solution for another screenshot :)',
                 reply_markup=upload_new()
             )
-            os.remove(image_for_load)
-            await state.set_state(amc.SolveFlasks.start_solving)
-
-        # Удаление временных файлов
-        os.remove(lvl_file)
+        await state.set_state(amc.SolveFlasks.set_color)
 
 
 @rtr.callback_query(
     amc.SolveFlasks.set_color,
     F.data.in_(
         [
-            'yes', 'autofill', 'previous', 'next', 'confirm'
+            'yes', 'autofill', 'previous', 'next', 'confirm', 'reload_image', 'add_an_empty_flask'
         ]
     )
 )
 async def autofill(callback: CallbackQuery, bot: Bot, state: FSMContext):
     '''Функция выбора режима работы и реализации логики втозаполнения'''
     logger.log_info(f'Пользователь {callback.from_user.id} выбрал режим автозаполнения')
-    if callback.data == 'yes':
+    if callback.data in ['yes', 'reload_image', 'add_an_empty_flask']:
         '''Если пользователь подтвердил, что изображение было распознано правильно'''
         # Получаем доступ к сохраненному набору неопределенных цветов
         data = await state.get_data()
-        undef_colors = data['undefined_colors']
-        flasks_list = data['flasks_list']
+        undef_colors, flasks_list = data['undefined_colors'], data['flasks_list']
         lvl_file = data['level_file']
+
+        if callback.data in ['reload_image', 'add_an_empty_flask']:
+            logger.log_info(f'Изображение от пользователя {callback.from_user.id} отправлено на перезагрузку с/без добавления пустой колбы')
+            if callback.data == 'add_an_empty_flask':
+                # Добавляем пустую четверть колбы
+                if data['new_segment'] == 0 or data['new_segment'] == 3:
+                    idx_segment = 1
+                    await state.update_data(new_segment=idx_segment)
+                elif data['new_segment'] < 3:
+                    idx_segment = data['new_segment'] + 1
+                    await state.update_data(new_segment=idx_segment)
+                flasks_list = await add_empty_flask(flasks_list=flasks_list, idx_segment=idx_segment)
+                await state.update_data(flasks_list=flasks_list)
+                logger.log_info(f'В изображение пользователя {callback.from_user.id} была добавлена пустая четверть колбы')
+
+                # Подготавливаем картинку, в которой подсвечиваем неопределенные области
+                await create_image_for_replace(flasks_list=flasks_list, id_client=callback.from_user.id)
 
         if not undef_colors:
             await reply(callback, bot, state, flasks_list)
             return
 
         async with ChatActionSender.typing(bot=bot, chat_id=callback.from_user.id):
-            await callback.message.delete()
-            await state.update_data(serial_number=0)
+            if callback.data == 'yes':
+                await callback.message.delete()
+                await state.update_data(serial_number=0)
             await callback.message.answer(
                 "Tell me if you want to fill in the undefined colors manually or should I do it automatically?🙂",
                 reply_markup=autofill_buttons()
@@ -181,7 +191,7 @@ async def autofill(callback: CallbackQuery, bot: Bot, state: FSMContext):
     await create_image_for_replace(flasks_list=autofill_flasks_list, id_client=callback.from_user.id)
 
     mode = 'first'
-    if callback.data == 'previous' or callback.data == 'next':
+    if callback.data in ['previous', 'next']:
         if len(all_permutations) == 1:
             mode = 'first'
             caption = 'Click on one of the buttons below to get another option or select the current option'

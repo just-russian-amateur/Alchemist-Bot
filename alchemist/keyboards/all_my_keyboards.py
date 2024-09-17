@@ -33,7 +33,8 @@ def create_undef_buttons(color_buttons_list):
 def start_keyboard():
     start_button = [
         [
-            InlineKeyboardButton(text='🚀Start solving', callback_data='start_solving')
+            InlineKeyboardButton(text='🚀Start solving', callback_data='start_solving'),
+            InlineKeyboardButton(text='📝Rules of use', callback_data='rules')
         ]
     ]
     kb = InlineKeyboardMarkup(inline_keyboard=start_button)
@@ -46,7 +47,7 @@ def start_keyboard():
 def error_image():
     reload_img = [
         [
-            InlineKeyboardButton(text='📩🖼️Upload new image', callback_data='upload_new_image')
+            InlineKeyboardButton(text='📩🖼️Upload new image', callback_data='start_solving')
         ]
     ]
     kb = InlineKeyboardMarkup(inline_keyboard=reload_img)
@@ -59,12 +60,7 @@ def colors(undef_colors):
     # Создание списка кнопок с цветмаи, которыми можно будет заменить неопределенные значения
     for color in undef_colors.keys():
         for _ in range(undef_colors[color]):
-            if color == 'LIGHTGREEN':
-                color_buttons_list.append(InlineKeyboardButton(text='LIGHT GREEN', callback_data='LIGHT GREEN'))
-            elif color == 'LIGHTBLUE':
-                color_buttons_list.append(InlineKeyboardButton(text='LIGHT BLUE', callback_data='LIGHT BLUE'))
-            else:
-                color_buttons_list.append(InlineKeyboardButton(text=color, callback_data=color))
+            color_buttons_list.append(InlineKeyboardButton(text=color, callback_data=color))
     color_buttons = create_undef_buttons(color_buttons_list)
     kb = InlineKeyboardMarkup(inline_keyboard=color_buttons)
 
@@ -76,7 +72,8 @@ def colors(undef_colors):
 def feedback():
     feedback_button = [
         [
-            InlineKeyboardButton(text='Feedback to me🙃', url=f"tg://user?id={984089348}")
+            InlineKeyboardButton(text='Feedback to me🙃', url=f"tg://user?id={984089348}"),
+            InlineKeyboardButton(text='📩🖼️Upload new image', callback_data='upload_new_image')
         ]
     ]
     kb = InlineKeyboardMarkup(inline_keyboard=feedback_button)
@@ -87,6 +84,7 @@ def feedback():
 def upload_new():
     upload_new_button = [
         [
+            InlineKeyboardButton(text='🔄️🖼️Reload image', callback_data='reload_image'),
             InlineKeyboardButton(text='📩🖼️Upload new image', callback_data='upload_new_image')
         ]
     ]
@@ -151,7 +149,7 @@ def recognition_check():
 def autofill_buttons():
     autofill = [
         [
-            InlineKeyboardButton(text='🙎‍♂️Manually', callback_data='manually'),
+            InlineKeyboardButton(text='🙍‍♂️Manually', callback_data='manually'),
             InlineKeyboardButton(text='🤖Autofill', callback_data='autofill')
         ]
     ]

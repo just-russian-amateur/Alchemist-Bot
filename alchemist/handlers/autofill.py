@@ -7,7 +7,7 @@ from aiogram.utils.chat_action import ChatActionSender
 from random import shuffle
 
 import classes.all_my_classes as amc
-from keyboards.all_my_keyboards import autofill_buttons, autofill_options, no_result, upload_new
+from keyboards.all_my_keyboards import autofill_buttons, autofill_options, no_result, upload_new, upload_new_or_reload
 from found_colors import replace_in_list, create_image_for_replace, add_empty_flask, BreakAction
 from transfusion_of_liquids import transfusion_manage
 
@@ -18,10 +18,17 @@ rtr = Router()
 logger = amc.ConfigLogger(__name__)
 
 
-async def reply(callback: CallbackQuery, bot: Bot, state: FSMContext, flasks_list: list):
+async def reply(callback: CallbackQuery, bot: Bot, state: FSMContext, flasks_list: list, keyboard_name: str):
     '''Функция для вызова поиска решения'''
     data = await state.get_data()
     lvl_file = data['level_file']
+
+    # Подставляем нужную клавиатуру в зависимости от начальной картинки
+    if keyboard_name == 'upload_new':
+        keyboard = upload_new()
+    else:
+        keyboard = upload_new_or_reload()
+
     async with ChatActionSender.typing(bot=bot, chat_id=callback.from_user.id):
         '''Запускаем процесс поиска решения'''
         # Итоговое изображение
@@ -52,7 +59,7 @@ async def reply(callback: CallbackQuery, bot: Bot, state: FSMContext, flasks_lis
         else:
             await callback.message.answer(
                 f'Yay!🥳🥳🥳I found a solution for you!!!🥳🥳🥳\n{steps}\nLet me know if you want a solution for another screenshot :)',
-                reply_markup=upload_new()
+                reply_markup=keyboard
             )
         await state.set_state(amc.SolveFlasks.set_color)
 
@@ -75,25 +82,24 @@ async def autofill(callback: CallbackQuery, bot: Bot, state: FSMContext):
         undef_colors, flasks_list = data['undefined_colors'], data['flasks_list']
         lvl_file = data['level_file']
 
-        if callback.data in ['reload_image', 'add_an_empty_flask']:
-            logger.log_info(f'Изображение от пользователя {callback.from_user.id} отправлено на перезагрузку с/без добавления пустой колбы')
-            if callback.data == 'add_an_empty_flask':
-                # Добавляем пустую четверть колбы
-                if data['new_segment'] == 0 or data['new_segment'] == 3:
-                    idx_segment = 1
-                    await state.update_data(new_segment=idx_segment)
-                elif data['new_segment'] < 3:
-                    idx_segment = data['new_segment'] + 1
-                    await state.update_data(new_segment=idx_segment)
-                flasks_list = await add_empty_flask(flasks_list=flasks_list, idx_segment=idx_segment)
-                await state.update_data(flasks_list=flasks_list)
-                logger.log_info(f'В изображение пользователя {callback.from_user.id} была добавлена пустая четверть колбы')
+        logger.log_info(f'Изображение от пользователя {callback.from_user.id} отправлено на перезагрузку с/без добавления пустой колбы или цвета распознаны верно')
+        if callback.data == 'add_an_empty_flask':
+            # Добавляем пустую четверть колбы
+            if data['new_segment'] == 0 or data['new_segment'] == 3:
+                idx_segment = 1
+                await state.update_data(new_segment=idx_segment)
+            elif data['new_segment'] < 3:
+                idx_segment = data['new_segment'] + 1
+                await state.update_data(new_segment=idx_segment)
+            flasks_list = await add_empty_flask(flasks_list=flasks_list, idx_segment=idx_segment)
+            await state.update_data(flasks_list=flasks_list)
+            logger.log_info(f'В изображение пользователя {callback.from_user.id} была добавлена пустая четверть колбы')
 
-                # Подготавливаем картинку, в которой подсвечиваем неопределенные области
-                await create_image_for_replace(flasks_list=flasks_list, id_client=callback.from_user.id)
+            # Подготавливаем картинку, в которой подсвечиваем неопределенные области
+            await create_image_for_replace(flasks_list=flasks_list, id_client=callback.from_user.id)
 
         if not undef_colors:
-            await reply(callback, bot, state, flasks_list)
+            await reply(callback, bot, state, flasks_list, 'upload_new')
             return
 
         async with ChatActionSender.typing(bot=bot, chat_id=callback.from_user.id):
@@ -133,7 +139,7 @@ async def autofill(callback: CallbackQuery, bot: Bot, state: FSMContext):
     if callback.data == 'confirm':
         logger.log_info(f'Пользователь {callback.from_user.id} выбрал вариант для поиска решения')
         autofill_flasks_list = data['autofill_flasks_list']
-        await reply(callback, bot, state, autofill_flasks_list)
+        await reply(callback, bot, state, autofill_flasks_list, 'upload_new_or_reload')
         return
     
     autofill_flasks_list = data['flasks_list']

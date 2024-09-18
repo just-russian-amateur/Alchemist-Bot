@@ -72,7 +72,8 @@ def colors(undef_colors):
 def feedback():
     feedback_button = [
         [
-            InlineKeyboardButton(text='Feedback to me🙃', url=f"tg://user?id={984089348}")
+            InlineKeyboardButton(text='Feedback to me🙃', url=f"tg://user?id={984089348}"),
+            InlineKeyboardButton(text='📩🖼️Upload new image', callback_data='upload_new_image')
         ]
     ]
     kb = InlineKeyboardMarkup(inline_keyboard=feedback_button)
@@ -80,10 +81,23 @@ def feedback():
     return kb
 
 
-def upload_new():
+def upload_new_or_reload():
     upload_new_button = [
         [
             InlineKeyboardButton(text='🔄️🖼️Reload image', callback_data='reload_image'),
+            InlineKeyboardButton(text='📩🖼️Upload new image', callback_data='upload_new_image')
+        ]
+    ]
+    kb = InlineKeyboardMarkup(inline_keyboard=upload_new_button)
+
+    logger.log_info('Результат успешно найден')
+
+    return kb
+
+
+def upload_new():
+    upload_new_button = [
+        [
             InlineKeyboardButton(text='📩🖼️Upload new image', callback_data='upload_new_image')
         ]
     ]

@@ -23,7 +23,7 @@ logger = amc.ConfigLogger(__name__)
     F.data.in_(
         [
             "LIGHT BLUE", "ORANGE", "YELLOW", "RED", "LIGHT GREEN", "BLUE", "BURGUNDY", "LIME", "MOSS",
-            "GREEN", "PINK", "CRIMSON", "CREAM", "PURPLE", "GRAY", "LILAC", "PEACH", "BROWN"
+            "GREEN", "PINK", "CRIMSON", "CREAM", "PURPLE", "GRAY", "LILAC", "PEACH", "BROWN",
             'upload_new_image', 'manually', 'no'
         ]
     )

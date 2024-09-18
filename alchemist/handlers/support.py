@@ -1,4 +1,4 @@
-from aiogram import Router  # Подключение библиотек
+from aiogram import Router
 from aiogram.filters import Command
 from aiogram.types import Message
 from aiogram.fsm.context import FSMContext

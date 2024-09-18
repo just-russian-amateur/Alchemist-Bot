@@ -5,6 +5,7 @@ from aiogram.fsm.context import FSMContext
 import classes.all_my_classes as amc
 
 from keyboards.all_my_keyboards import continue_solving
+from handlers.send_welcome import check_user
 
 import asyncio
 
@@ -23,6 +24,7 @@ logger = amc.ConfigLogger(__name__)
 )
 async def start_solving(callback: CallbackQuery, state: FSMContext):
     """Функция загрузки изображения"""
+    await check_user(callback.message.from_user.id, state)
     if callback.data in ['start_solving', 'continue', 'ok']:
         await state.update_data(new_segment=0)
         logger.log_info(f'Пользователь {callback.from_user.id} приступил к загрузке первого изображения')

@@ -1,4 +1,4 @@
-from aiogram import Bot, Router, F  # Подключение библиотек
+from aiogram import Bot, Router, F
 from aiogram.types import CallbackQuery, BufferedInputFile, InputMediaPhoto
 from aiogram.fsm.context import FSMContext
 from aiogram.exceptions import TelegramBadRequest
@@ -10,6 +10,7 @@ import classes.all_my_classes as amc
 from keyboards.all_my_keyboards import autofill_buttons, autofill_options, no_result, upload_new, upload_new_or_reload
 from found_colors import replace_in_list, create_image_for_replace, add_empty_flask, BreakAction
 from transfusion_of_liquids import transfusion_manage
+from handlers.send_welcome import check_user
 
 from itertools import permutations
 
@@ -39,8 +40,9 @@ async def reply(callback: CallbackQuery, bot: Bot, state: FSMContext, flasks_lis
                         open_image.read(),
                         filename='solve_flasks'
                     ),
-                    caption="I'll look for a solution from this position. Wait, this may take a while" )
+                    caption="I'll look for a solution from this position. Wait, this may take a while"
                 )
+            )
         await callback.answer()
         logger.log_info(f'Пользователь {callback.from_user.id} заполнил все пустоты')
 
@@ -75,6 +77,7 @@ async def reply(callback: CallbackQuery, bot: Bot, state: FSMContext, flasks_lis
 async def autofill(callback: CallbackQuery, bot: Bot, state: FSMContext):
     '''Функция выбора режима работы и реализации логики втозаполнения'''
     logger.log_info(f'Пользователь {callback.from_user.id} выбрал режим автозаполнения')
+    await check_user(callback.message.from_user.id, state)
     if callback.data in ['yes', 'reload_image', 'add_an_empty_flask']:
         '''Если пользователь подтвердил, что изображение было распознано правильно'''
         # Получаем доступ к сохраненному набору неопределенных цветов

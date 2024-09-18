@@ -1,4 +1,4 @@
-from aiogram import Bot, Dispatcher  # Подключение библиотек
+from aiogram import Bot, Dispatcher
 from aiogram.types import BotCommand
 from aiogram.exceptions import TelegramNetworkError
 from aiogram.fsm.storage.redis import RedisStorage
@@ -38,6 +38,10 @@ async def main():
     # Создаем папку для хранения временных файлов
     if not os.path.isdir('./tmp'):
         os.mkdir('./tmp')
+
+    # Создаем файл для хранения id пользователей, если его не было
+    if not os.path.isfile('id_users.txt'):
+        open('id_users.txt', 'a').close()
 
     logger = amc.ConfigLogger(__name__)
     # Логгируем предупреждение, если свободного места меньше 0.2 Гб

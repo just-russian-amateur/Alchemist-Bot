@@ -1,14 +1,14 @@
-from aiogram import Bot, Router, F  # Подключение библиотек
+from aiogram import Bot, Router, F
 from aiogram.types import Message, CallbackQuery, BufferedInputFile, InputMediaPhoto
 from aiogram.fsm.context import FSMContext
-from aiogram.exceptions import TelegramBadRequest
 from aiogram.utils.chat_action import ChatActionSender
 
-from transfusion_of_liquids import transfusion_manage
 from found_colors import replace_in_list, create_image_for_replace
 import config
 import classes.all_my_classes as amc
-from keyboards.all_my_keyboards import colors, upload_new, no_result
+from keyboards.all_my_keyboards import colors
+from handlers.send_welcome import check_user
+from handlers.autofill import reply
 
 import asyncio
 import os
@@ -30,6 +30,7 @@ logger = amc.ConfigLogger(__name__)
 )
 async def fill_undef_values(callback: CallbackQuery, bot: Bot, state: FSMContext):
     '''Функция дозаполнения неопределенных цветов вручную'''
+    await check_user(callback.message.from_user.id, state)
     # Получаем данные с путями к файлам
     props = await state.get_data()
     image_for_load, lvl_file = props['original_image'], props['level_file']
@@ -117,40 +118,7 @@ async def fill_undef_values(callback: CallbackQuery, bot: Bot, state: FSMContext
         await callback.answer()
         logger.log_info(f'Изображение для пользователя {callback.from_user.id} дополнено и отправлено для дальнейшего редактирования')
     else:
-        async with ChatActionSender.typing(bot=bot, chat_id=callback.from_user.id):
-            '''Запускаем процесс поиска решения'''
-            # Итоговое изображение
-            with open(lvl_file, 'rb') as open_image:
-                await callback.message.edit_media(
-                    InputMediaPhoto(
-                        media=BufferedInputFile(
-                            open_image.read(),
-                            filename='solve_flasks'
-                        ),
-                        caption="I'll look for a solution from this position. Wait, this may take a while"
-                    )
-                )
-            await callback.answer()
-            logger.log_info(f'Пользователь {callback.from_user.id} заполнил все пустоты')
-
-            try:
-                # Вызываем функцию перебора переливаний
-                is_solved, steps = await transfusion_manage(bot=bot, chat_id=callback.from_user.id, task=edit_flasks_list)
-            except TelegramBadRequest:
-                logger.log_error('Превышено время ожидания ответа на начало поиска решения')
-
-            # В случае, если файл пустой или не был создан сообщаем, что решение не найдено, иначе выводим решение
-            if not is_solved:
-                await callback.message.answer(
-                    f'😖😖😖Unfortunately, I was unable to find a solution for this arrangement.\nIf you want to change the order of undefined colors, click "🔄️🖼️Reload image".\nIf you know all the colors, but the solution still hasn’t been found, then I can add another empty flask, to do this, click “➕🧪Add an empty flask”\nOr you can upload a new image, to do this, click "📩🖼️Upload new image"',
-                    reply_markup=no_result()
-                )
-            else:
-                await callback.message.answer(
-                    f'Yay!🥳🥳🥳I found a solution for you!!!🥳🥳🥳\n{steps}\nLet me know if you want a solution for another screenshot🙂',
-                    reply_markup=upload_new()
-                )
-            await state.set_state(amc.SolveFlasks.set_color)
+        await reply(callback, bot, state, flasks_list, 'upload_new_or_reload')
 
 
 @rtr.message(amc.SolveFlasks.set_color)

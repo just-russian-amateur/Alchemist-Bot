@@ -81,26 +81,20 @@ def feedback():
     return kb
 
 
-def upload_new_or_reload():
-    upload_new_button = [
-        [
-            InlineKeyboardButton(text='🔄️🖼️Reload image', callback_data='reload_image'),
-            InlineKeyboardButton(text='📩🖼️Upload new image', callback_data='upload_new_image')
+def upload_new(mode):
+    if mode == 'upload_new_or_reload':
+        upload_new_button = [
+            [
+                InlineKeyboardButton(text='🔄️🖼️Reload image', callback_data='reload_image'),
+                InlineKeyboardButton(text='📩🖼️Upload new image', callback_data='upload_new_image')
+            ]
         ]
-    ]
-    kb = InlineKeyboardMarkup(inline_keyboard=upload_new_button)
-
-    logger.log_info('Результат успешно найден')
-
-    return kb
-
-
-def upload_new():
-    upload_new_button = [
-        [
-            InlineKeyboardButton(text='📩🖼️Upload new image', callback_data='upload_new_image')
+    else:
+        upload_new_button = [
+            [
+                InlineKeyboardButton(text='📩🖼️Upload new image', callback_data='upload_new_image')
+            ]
         ]
-    ]
     kb = InlineKeyboardMarkup(inline_keyboard=upload_new_button)
 
     logger.log_info('Результат успешно найден')

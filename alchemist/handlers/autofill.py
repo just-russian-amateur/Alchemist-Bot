@@ -7,7 +7,7 @@ from aiogram.utils.chat_action import ChatActionSender
 from random import shuffle
 
 import classes.all_my_classes as amc
-from keyboards.all_my_keyboards import autofill_buttons, autofill_options, no_result, upload_new, upload_new_or_reload
+from keyboards.all_my_keyboards import autofill_buttons, autofill_options, no_result, upload_new
 from found_colors import replace_in_list, create_image_for_replace, add_empty_flask, BreakAction
 from transfusion_of_liquids import transfusion_manage
 from handlers.send_welcome import check_user
@@ -19,30 +19,40 @@ rtr = Router()
 logger = amc.ConfigLogger(__name__)
 
 
-async def reply(callback: CallbackQuery, bot: Bot, state: FSMContext, flasks_list: list, keyboard_name: str):
+async def reply(callback: CallbackQuery, bot: Bot, state: FSMContext, flasks_list: list, keyboard_name: str, new_message: bool):
     '''Функция для вызова поиска решения'''
     data = await state.get_data()
     lvl_file = data['level_file']
 
     # Подставляем нужную клавиатуру в зависимости от начальной картинки
     if keyboard_name == 'upload_new':
-        keyboard = upload_new()
+        keyboard = upload_new('upload_new')
     else:
-        keyboard = upload_new_or_reload()
+        keyboard = upload_new('upload_new_or_reload')
 
     async with ChatActionSender.typing(bot=bot, chat_id=callback.from_user.id):
         '''Запускаем процесс поиска решения'''
         # Итоговое изображение
-        with open(lvl_file, 'rb') as open_image:
-            await callback.message.edit_media(
-                InputMediaPhoto(
-                    media=BufferedInputFile(
+        if new_message == False:
+            with open(lvl_file, 'rb') as open_image:
+                await callback.message.edit_media(
+                    InputMediaPhoto(
+                        media=BufferedInputFile(
+                            open_image.read(),
+                            filename='solve_flasks'
+                        ),
+                        caption="I'll look for a solution from this position. Wait, this may take a while"
+                    )
+                )
+        else:
+            with open(lvl_file, 'rb') as open_image:
+                await callback.message.answer_photo(
+                    BufferedInputFile(
                         open_image.read(),
                         filename='solve_flasks'
                     ),
                     caption="I'll look for a solution from this position. Wait, this may take a while"
                 )
-            )
         await callback.answer()
         logger.log_info(f'Пользователь {callback.from_user.id} заполнил все пустоты')
 
@@ -84,25 +94,29 @@ async def autofill(callback: CallbackQuery, bot: Bot, state: FSMContext):
         data = await state.get_data()
         undef_colors, flasks_list = data['undefined_colors'], data['flasks_list']
         lvl_file = data['level_file']
+        new_message = False
 
         logger.log_info(f'Изображение от пользователя {callback.from_user.id} отправлено на перезагрузку с/без добавления пустой колбы или цвета распознаны верно')
-        if callback.data == 'add_an_empty_flask':
-            # Добавляем пустую четверть колбы
-            if data['new_segment'] == 0 or data['new_segment'] == 3:
-                idx_segment = 1
-                await state.update_data(new_segment=idx_segment)
-            elif data['new_segment'] < 3:
-                idx_segment = data['new_segment'] + 1
-                await state.update_data(new_segment=idx_segment)
-            flasks_list = await add_empty_flask(flasks_list=flasks_list, idx_segment=idx_segment)
-            await state.update_data(flasks_list=flasks_list)
-            logger.log_info(f'В изображение пользователя {callback.from_user.id} была добавлена пустая четверть колбы')
+        if callback.data in ['reload_image', 'add_an_empty_flask']:
+            await callback.message.delete()
+            new_message = True
+            if callback.data == 'add_an_empty_flask':
+                # Добавляем пустую четверть колбы
+                if data['new_segment'] == 0 or data['new_segment'] == 3:
+                    idx_segment = 1
+                    await state.update_data(new_segment=idx_segment)
+                elif data['new_segment'] < 3:
+                    idx_segment = data['new_segment'] + 1
+                    await state.update_data(new_segment=idx_segment)
+                flasks_list = await add_empty_flask(flasks_list=flasks_list, idx_segment=idx_segment)
+                await state.update_data(flasks_list=flasks_list)
+                logger.log_info(f'В изображение пользователя {callback.from_user.id} была добавлена пустая четверть колбы')
 
-            # Подготавливаем картинку, в которой подсвечиваем неопределенные области
-            await create_image_for_replace(flasks_list=flasks_list, id_client=callback.from_user.id)
+                # Подготавливаем картинку, в которой подсвечиваем неопределенные области
+                await create_image_for_replace(flasks_list=flasks_list, id_client=callback.from_user.id)
 
         if not undef_colors:
-            await reply(callback, bot, state, flasks_list, 'upload_new')
+            await reply(callback, bot, state, flasks_list, 'upload_new', new_message)
             return
 
         async with ChatActionSender.typing(bot=bot, chat_id=callback.from_user.id):
@@ -142,7 +156,7 @@ async def autofill(callback: CallbackQuery, bot: Bot, state: FSMContext):
     if callback.data == 'confirm':
         logger.log_info(f'Пользователь {callback.from_user.id} выбрал вариант для поиска решения')
         autofill_flasks_list = data['autofill_flasks_list']
-        await reply(callback, bot, state, autofill_flasks_list, 'upload_new_or_reload')
+        await reply(callback, bot, state, autofill_flasks_list, 'upload_new_or_reload', False)
         return
     
     autofill_flasks_list = data['flasks_list']

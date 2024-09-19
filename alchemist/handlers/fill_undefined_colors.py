@@ -118,7 +118,7 @@ async def fill_undef_values(callback: CallbackQuery, bot: Bot, state: FSMContext
         await callback.answer()
         logger.log_info(f'Изображение для пользователя {callback.from_user.id} дополнено и отправлено для дальнейшего редактирования')
     else:
-        await reply(callback, bot, state, flasks_list, 'upload_new_or_reload')
+        await reply(callback, bot, state, flasks_list, 'upload_new_or_reload', False)
 
 
 @rtr.message(amc.SolveFlasks.set_color)

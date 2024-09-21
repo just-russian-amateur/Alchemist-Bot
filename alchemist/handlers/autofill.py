@@ -187,30 +187,29 @@ async def autofill(callback: CallbackQuery, bot: Bot, state: FSMContext):
         number = data['serial_number']
         autofill_variation = all_permutations[number]
 
-    if len(all_permutations) != 1:
-        unique_sequence = True # Флаг для отслеживания перемешки без повторений последовательных цветов
-    else:
-        unique_sequence = False
-        while not unique_sequence:
-            # Дозаполняем неопределенные места
-            for color in autofill_variation:
-                await replace_in_list(autofill_flasks_list, color)
+    unique_sequence = False # Флаг для отслеживания перемешки без повторений последовательных цветов
+    while not unique_sequence:
+        if len(all_permutations) != 1:
+            unique_sequence = True
+        # Дозаполняем неопределенные места
+        for color in autofill_variation:
+            await replace_in_list(autofill_flasks_list, color)
 
-            if len(all_permutations) == 1:
-                try:
-                    for flask in autofill_flasks_list:
-                        for color in range(len(flask) - 1):
-                            if flask[color] == flask[color + 1] and flask[color] != 'EMPTY':
-                                raise BreakAction
-                    unique_sequence = True
-                except BreakAction:
-                    pass
+        if len(all_permutations) == 1:
+            try:
+                for flask in autofill_flasks_list:
+                    for color in range(len(flask) - 1):
+                        if flask[color] == flask[color + 1] and flask[color] != 'EMPTY':
+                            raise BreakAction
+                unique_sequence = True
+            except BreakAction:
+                pass
 
-            if unique_sequence == False:
-                shuffle(autofill_variation)
-                data = await state.get_data()
-                autofill_flasks_list = data['flasks_list']
-        await state.update_data(autofill_flasks_list=autofill_flasks_list)
+        if unique_sequence == False:
+            shuffle(autofill_variation)
+            data = await state.get_data()
+            autofill_flasks_list = data['flasks_list']
+    await state.update_data(autofill_flasks_list=autofill_flasks_list)
 
     # Подготавливаем картинку
     await create_image_for_replace(flasks_list=autofill_flasks_list, id_client=callback.from_user.id)

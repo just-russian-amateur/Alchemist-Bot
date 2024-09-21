@@ -23,7 +23,7 @@ logger = amc.ConfigLogger(__name__)
     F.data.in_(
         [
             "LIGHT BLUE", "ORANGE", "YELLOW", "RED", "LIGHT GREEN", "BLUE", "BURGUNDY", "LIME", "MOSS",
-            "GREEN", "PINK", "CRIMSON", "CREAM", "PURPLE", "GRAY", "LILAC", "PEACH", "BROWN",
+            "GREEN", "PINK", "CRIMSON", "CREAM", "PURPLE", "GRAY", "LILAC", "PEACH", "BROWN", "COCOA",
             'upload_new_image', 'manually', 'no'
         ]
     )
@@ -34,8 +34,6 @@ async def fill_undef_values(callback: CallbackQuery, bot: Bot, state: FSMContext
     # Получаем данные с путями к файлам
     props = await state.get_data()
     image_for_load, lvl_file = props['original_image'], props['level_file']
-    undef_colors, flasks_list = props['undefined_colors'], props['flasks_list']
-    edit_undef_colors, edit_flasks_list = props['edit_undefined_colors'], props['edit_flasks_list']
 
     if callback.data == 'upload_new_image':
         # Удаление временных файлов
@@ -63,6 +61,7 @@ async def fill_undef_values(callback: CallbackQuery, bot: Bot, state: FSMContext
     elif callback.data == 'manually':
         async with ChatActionSender.upload_photo(bot=bot, chat_id=callback.from_user.id):
             await callback.message.delete()
+            undef_colors, flasks_list = props['undefined_colors'], props['flasks_list']
             # Подготавливаем картинку, в которой подсвечиваем неопределенные области
             await create_image_for_replace(flasks_list=flasks_list, id_client=callback.from_user.id)
             # Изображение, где подсвечивается первый неопределенный цвет
@@ -76,18 +75,19 @@ async def fill_undef_values(callback: CallbackQuery, bot: Bot, state: FSMContext
                     reply_markup=colors(undef_colors)
                 )
         return
-    elif not callback.data in ['upload_new_image', 'manually', 'no']:
-        # Удаление цвета нажатой кнопки из словаря и замена неопределенного цвета цветом кнопки
-        if edit_undef_colors:
-            for variation in config.color_variations:
-                if callback.data == variation:
-                    edit_undef_colors[variation] -= 1
-                    if edit_undef_colors[variation] == 0:
-                        edit_undef_colors.pop(variation)
-                    edit_flasks_list = await replace_in_list(flasks_list=edit_flasks_list, color_name=variation)
-                    break
-            await state.update_data(edit_undefined_colors=edit_undef_colors)
-            await state.update_data(edit_flasks_list=edit_flasks_list)
+    
+    edit_undef_colors, edit_flasks_list = props['edit_undefined_colors'], props['edit_flasks_list']
+    # Удаление цвета нажатой кнопки из словаря и замена неопределенного цвета цветом кнопки
+    if edit_undef_colors:
+        for variation in config.color_variations:
+            if callback.data == variation:
+                edit_undef_colors[variation] -= 1
+                if edit_undef_colors[variation] == 0:
+                    edit_undef_colors.pop(variation)
+                edit_flasks_list = await replace_in_list(flasks_list=edit_flasks_list, color_name=variation)
+                break
+        await state.update_data(edit_undefined_colors=edit_undef_colors)
+        await state.update_data(edit_flasks_list=edit_flasks_list)
 
     # Автозаполнение цвета, если остался только один неопределенный
     if len(edit_undef_colors) == 1:
@@ -118,7 +118,7 @@ async def fill_undef_values(callback: CallbackQuery, bot: Bot, state: FSMContext
         await callback.answer()
         logger.log_info(f'Изображение для пользователя {callback.from_user.id} дополнено и отправлено для дальнейшего редактирования')
     else:
-        await reply(callback, bot, state, flasks_list, 'upload_new_or_reload', False)
+        await reply(callback, bot, state, edit_flasks_list, 'upload_new_or_reload', False)
 
 
 @rtr.message(amc.SolveFlasks.set_color)

@@ -189,8 +189,8 @@ async def transfusion_manage(bot: Bot, chat_id: int, task: list) -> tuple[bool, 
         # Убираем "глупые" ходы бота
         idx_step = 1
         while idx_step < len(steps_list):
-            current_step = steps_list[idx_step].split('➡️')
-            previous_step = steps_list[idx_step - 1].split('➡️')
+            current_step = steps_list[idx_step].split(' ➡️ ')
+            previous_step = steps_list[idx_step - 1].split(' ➡️ ')
             if current_step[0] == previous_step[1] and current_step[1] == previous_step[0]:
                 steps_list.pop(idx_step - 1)
                 idx_step -= 1

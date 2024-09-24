@@ -214,19 +214,19 @@ async def autofill(callback: CallbackQuery, bot: Bot, state: FSMContext):
     # Подготавливаем картинку
     await create_image_for_replace(flasks_list=autofill_flasks_list, id_client=callback.from_user.id)
 
-    mode = 'first'
-    if callback.data in ['previous', 'next']:
-        if len(all_permutations) == 1:
+    if len(all_permutations) == 1:
+        mode = 'first'
+        caption = 'Click on one of the buttons below to get another option or select the current option'
+    else:
+        if number == 0:
             mode = 'first'
-            caption = 'Click on one of the buttons below to get another option or select the current option'
+        elif number == len(all_permutations) - 1:
+            mode = 'last'
         else:
-            if number == 0:
-                mode = 'first'
-            elif number == len(all_permutations) - 1:
-                mode = 'last'
-            else:
-                mode = None
-            caption = f"Option {number + 1} of {len(all_permutations)}"
+            mode = None
+        caption = f"Option {number + 1} of {len(all_permutations)}"
+
+    if callback.data in ['previous', 'next']:
         # Рисуем картинки с вариантами автозаполнений
         with open(lvl_file, 'rb') as open_image:
             await callback.message.edit_media(
@@ -241,10 +241,6 @@ async def autofill(callback: CallbackQuery, bot: Bot, state: FSMContext):
             )
     else:
         async with ChatActionSender.upload_photo(bot=bot, chat_id=callback.from_user.id):
-            if len(all_permutations) == 1:
-                caption = 'Click on one of the buttons below to get another option or select the current option'
-            else:
-                caption = f"Option {number + 1} of {len(all_permutations)}"
             # Рисуем картинку после первого автозаполнения
             with open(lvl_file, 'rb') as open_image:
                 await callback.message.answer_photo(

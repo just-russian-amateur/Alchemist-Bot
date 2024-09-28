@@ -76,6 +76,18 @@ async def fill_undef_values(callback: CallbackQuery, bot: Bot, state: FSMContext
                 )
         return
     
+    # Промежуточный кадр без кнопок
+    with open(lvl_file, 'rb') as open_image:
+        await callback.message.edit_media(
+            InputMediaPhoto(
+                media=BufferedInputFile(
+                    open_image.read(),
+                    filename='solve_flasks'
+                ),
+                caption="Please select from the options provided the color that should be in place of the green circle",
+            )
+        )
+        
     edit_undef_colors, edit_flasks_list = props['edit_undefined_colors'], props['edit_flasks_list']
     # Удаление цвета нажатой кнопки из словаря и замена неопределенного цвета цветом кнопки
     if edit_undef_colors:

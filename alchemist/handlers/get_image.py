@@ -23,7 +23,7 @@ async def get_photo(message: Message, bot: Bot, state: FSMContext):
     '''Функция получения и обработки фотографий'''
     async with ChatActionSender.upload_photo(bot=bot, chat_id=message.chat.id):
         await check_user(message.from_user.id, state)
-        image_for_load = f'./tmp/{message.photo[-1].file_id}.jpg'   # Сохраняем на всякий случай путь к картинке
+        image_for_load = f'./tmp/{message.from_user.id}.jpg'   # Сохраняем на всякий случай путь к картинке
         lvl_file = f'./tmp/level_for_{message.from_user.id}.jpg'
         # Сохраняем пути в машину состояний
         await state.update_data(original_image=image_for_load)

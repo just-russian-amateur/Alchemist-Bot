@@ -66,7 +66,7 @@ async def reply(callback: CallbackQuery, bot: Bot, state: FSMContext, flasks_lis
         # В случае, если флаг выставлен в False сообщаем, что решение не найдено, иначе выводим решение
         if not is_solved:
             await callback.message.answer(
-                f'😖😖😖Unfortunately, I was unable to find a solution for this arrangement.\nIf you want to change the order of undefined colors, click "🔄️🖼️Reload image".\nIf you know all the colors, but the solution still hasn’t been found, then I can add another empty flask, to do this, click “➕🧪Add an empty flask”\nOr you can upload a new image, to do this, click "📩🖼️Upload new image"',
+                f'😖😖😖I have looked through all possible variants of pouring liquids and unfortunately, it is impossible to find a solution for this arrangement.\nIf you want to change the order of undefined colors, click "🔄️🖼️Update image".\nIf you know all the colors, but the solution is still not found, then I can add another empty flask, for this click "➕🧪Add empty flask"\nOr you can upload a new image, for this click "📩🖼️Upload new image"',
                 reply_markup=no_result()
             )
         else:

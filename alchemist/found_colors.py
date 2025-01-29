@@ -24,7 +24,7 @@ variations = [
     ('GRAY', (np.array((0, 0, 94), np.uint8), np.array((255, 29, 116), np.uint8)), (109, 107, 106)),
     ('LILAC', (np.array((117, 155, 136), np.uint8), np.array((125, 255, 255), np.uint8)), (187, 62, 71)),
     ('LIME', (np.array((70, 135, 70), np.uint8), np.array((81, 255, 255), np.uint8)), (106, 203, 52)),
-    ('MOSS', (np.array((62, 162, 57), np.uint8), np.array((68, 255, 95), np.uint8)), (27, 87, 16)),
+    ('MOSS', (np.array((50, 135, 57), np.uint8), np.array((68, 255, 95), np.uint8)), (27, 87, 16)),
     ('BROWN', (np.array((12, 149, 82), np.uint8), np.array((23, 255, 132), np.uint8)), (23, 76, 119)),
     ('CRIMSON', (np.array((145, 199, 55), np.uint8), np.array((160, 255, 168), np.uint8)), (122, 5, 162)),
     ('COCOA', (np.array((0, 90, 184), np.uint8), np.array((10, 141, 255), np.uint8)), (111, 138, 202))

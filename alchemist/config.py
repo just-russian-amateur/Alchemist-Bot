@@ -1,6 +1,23 @@
 API_TOKEN = '6987578051:AAG4TCXhhdMG1xSX2AjRJqu7Pqp4krpit_8'  # Токен для работы с API
 # Вариации цветов
-color_variations = [
-    'LIGHT BLUE', 'ORANGE', 'YELLOW', 'RED', 'LIGHT GREEN', 'BLUE', 'BURGUNDY', 'GREEN', 'COCOA',
-    'PINK', 'PEACH', 'CREAM', 'PURPLE', 'GRAY', 'LILAC', 'LIME', 'MOSS', 'BROWN', 'CRIMSON'
-]
+color_variations = {
+    0: 'LIGHT BLUE',
+    1: 'ORANGE',
+    2: 'YELLOW',
+    3: 'RED',
+    4: 'LIGHT GREEN',
+    5: 'BLUE',
+    6: 'BURGUNDY',
+    7: 'GREEN',
+    8: 'PINK',
+    9: 'PEACH',
+    10: 'CREAM',
+    11: 'PURPLE',
+    12: 'GRAY',
+    13: 'LILAC',
+    14: 'LIME',
+    15: 'MOSS',
+    16: 'BROWN',
+    17: 'CRIMSON',
+    18: 'COCOA'
+}

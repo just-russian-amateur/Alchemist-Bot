@@ -37,11 +37,11 @@ async def get_photo(message: Message, bot: Bot, state: FSMContext):
     
         try:
             # Распознаем цвета и добавляем их в список
-            undef_colors, flasks_list = await found_colors_in_flasks(image_for_search=image_for_load, id_client=message.from_user.id)
+            undef_colors, flasks_id_list = await found_colors_in_flasks(image_for_search=image_for_load, id_client=message.from_user.id)
             await state.update_data(undefined_colors=undef_colors)
-            await state.update_data(flasks_list=flasks_list)
+            await state.update_data(flasks_id_list=flasks_id_list)
             await state.update_data(edit_undefined_colors=undef_colors)
-            await state.update_data(edit_flasks_list=flasks_list)
+            await state.update_data(edit_flasks_id_list=flasks_id_list)
         except:
             # Если есть любое прерывание во время распознавания, то просим пользователя загрузить новое фото
             # (генерация прерывания говорит о том, что фото не является скриншотом колб или не соответствует условиям)
@@ -58,13 +58,13 @@ async def get_photo(message: Message, bot: Bot, state: FSMContext):
             for variation in undef_colors:
                 while undef_colors[variation] != 0:
                     undef_colors[variation] -= 1
-                    flasks_list = await replace_in_list(flasks_list=flasks_list, color_name=variation)
+                    flasks_id_list = await replace_in_list(flasks_id_list=flasks_id_list, color_id=variation)
             undef_colors.pop(variation)
             await state.update_data(undefined_colors=undef_colors)
-            await state.update_data(flasks_list=flasks_list)
+            await state.update_data(flasks_id_list=flasks_id_list)
 
         # Подготавливаем картинку, в которой подсвечиваем неопределенные области
-        await create_image_for_replace(flasks_list=flasks_list, id_client=message.from_user.id)
+        await create_image_for_replace(flasks_id_list=flasks_id_list, id_client=message.from_user.id)
 
         # Изображение, где подсвечивается первый неопределенный цвет
         with open(lvl_file, 'rb') as open_image:

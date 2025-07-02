@@ -37,11 +37,11 @@ async def possible_moves(position: list) -> list:
         mono_color_height = 0
         solve_upper_color = (
             (idx_solve_flask, 0),
-            ('EMPTY', mono_color_height)
+            (20, mono_color_height)
         )  # Пустая колба
         for idx_color in range(count_colors - 1, -1, -1):
             # Получаем необходимую информацию о самом верхнем цвете
-            if position[idx_solve_flask][idx_color] != 'EMPTY':
+            if position[idx_solve_flask][idx_color] != 20:
                 mono_color_height += 1
                 solve_upper_color = (
                     (idx_solve_flask, idx_color),
@@ -49,7 +49,7 @@ async def possible_moves(position: list) -> list:
                 )
                 break
         # Из пустой колбы ничего перелить нельзя
-        if solve_upper_color[1][0] == 'EMPTY':
+        if solve_upper_color[1][0] == 20:
             continue
         # Проверка того, что следующие блоки такого же цвета (переливаться будет сразу весь цвет и это влияет на решение)
         for idx_color in range(solve_upper_color[0][1] - 1, -1, -1):
@@ -74,10 +74,10 @@ async def possible_moves(position: list) -> list:
                 count_empty_slots = 0
                 target_upper_color = (
                     (idx_target_flask, 0),
-                    ('EMPTY', count_empty_slots)
+                    (20, count_empty_slots)
                 )
                 for idx_color in range(count_colors - 1, -1, -1):
-                    if position[idx_target_flask][idx_color] != 'EMPTY':
+                    if position[idx_target_flask][idx_color] != 20:
                         target_upper_color = (
                             (idx_target_flask, idx_color),
                             (position[idx_target_flask][idx_color], count_empty_slots)
@@ -94,17 +94,17 @@ async def possible_moves(position: list) -> list:
                 if target_upper_color[0][1] == count_colors - 1 and count_colors != 1:
                     continue
                 # Исключение переливания одного цвета в пустую колбу (бесполезное действие)
-                if not (target_upper_color[1][0] == 'EMPTY' and
+                if not (target_upper_color[1][0] == 20 and
                         len(set(position[idx_solve_flask])) == 2 and
-                        'EMPTY' in position[idx_solve_flask]):
+                        20 in position[idx_solve_flask]):
                     # Переливание возможно только если верхние цвета совпадают или если переливаем в пустую колбу и места в целевой колбе достаточно
                     if solve_upper_color[1][0] == target_upper_color[1][0] and target_upper_color[1][1] >= solve_upper_color[1][1]:
                         target_upper_color = (
                             (target_upper_color[0][0], target_upper_color[0][1] + 1),
-                            ('EMPTY', target_upper_color[1][1])
+                            (20, target_upper_color[1][1])
                         )
                         moves.append((solve_upper_color, target_upper_color))
-                    elif target_upper_color[1][0] == 'EMPTY' and target_upper_color[1][1] >= solve_upper_color[1][1]:
+                    elif target_upper_color[1][0] == 20 and target_upper_color[1][1] >= solve_upper_color[1][1]:
                         moves.append((solve_upper_color, target_upper_color))
 
     return moves
@@ -118,7 +118,7 @@ async def apply_move(position: list, move: tuple) -> tuple[list, str]:
     # Замена цвета в решающей колбе на пустое и заполнение места в целевой колбе 
     for cnt in range(solve_flask[1][1]):
         position[target_flask[0][0]][target_flask[0][1] + cnt] = solve_flask[1][0]
-        position[solve_flask[0][0]][solve_flask[0][1] - cnt] = 'EMPTY'
+        position[solve_flask[0][0]][solve_flask[0][1] - cnt] = 20
     step = f'{solve_flask[0][0] + 1} ➡️ {target_flask[0][0] + 1}'
 
     return position, step

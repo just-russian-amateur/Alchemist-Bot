@@ -1,5 +1,6 @@
 from aiogram.types import InlineKeyboardButton, InlineKeyboardMarkup
 import classes.all_my_classes as amc
+from config import color_variations
 
 
 logger = amc.ConfigLogger(__name__)
@@ -58,9 +59,9 @@ def error_image():
 def colors(undef_colors):
     color_buttons_list = []
     # Создание списка кнопок с цветмаи, которыми можно будет заменить неопределенные значения
-    for color in undef_colors.keys():
-        for _ in range(undef_colors[color]):
-            color_buttons_list.append(InlineKeyboardButton(text=color, callback_data=color))
+    for color_id in undef_colors.keys():
+        for _ in range(undef_colors[color_id]):
+            color_buttons_list.append(InlineKeyboardButton(text=color_variations[int(color_id)], callback_data=color_id))
     color_buttons = create_undef_buttons(color_buttons_list)
     kb = InlineKeyboardMarkup(inline_keyboard=color_buttons)
 

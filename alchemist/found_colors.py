@@ -8,27 +8,28 @@ class BreakAction(Exception):
     pass
 
 
-variations = [
-    ('LIGHT BLUE', (np.array((30, 50, 210), np.uint8), np.array((106, 255, 255), np.uint8)), (224, 161, 103)),
-    ('ORANGE', (np.array((0, 165, 203), np.uint8), np.array((19, 255, 255), np.uint8)), (68, 144, 226)),
-    ('YELLOW', (np.array((22, 46, 192), np.uint8), np.array((34, 255, 255), np.uint8)), (64, 185, 227)),
-    ('RED', (np.array((0, 148, 114), np.uint8), np.array((7, 255, 255), np.uint8)), (30, 43, 173)),
-    ('LIGHT GREEN', (np.array((41, 0, 160), np.uint8), np.array((65, 255, 255), np.uint8)), (70, 187, 108)),
-    ('BLUE', (np.array((103, 181, 135), np.uint8), np.array((120, 255, 255), np.uint8)), (207, 90, 39)),
-    ('BURGUNDY', (np.array((158, 135, 84), np.uint8), np.array((255, 255, 127), np.uint8)), (53, 32, 95)),
-    ('GREEN', (np.array((86, 121, 86), np.uint8), np.array((96, 255, 255), np.uint8)), (100, 97, 46)),
-    ('PINK', (np.array((140, 0, 197), np.uint8), np.array((154, 255, 255), np.uint8)), (219, 153, 212)),
-    ('PEACH', (np.array((140, 88, 183), np.uint8), np.array((195, 255, 255), np.uint8)), (128, 109, 218)),
-    ('CREAM', (np.array((0, 0, 241), np.uint8), np.array((20, 255, 255), np.uint8)), (194, 218, 248)),
-    ('PURPLE', (np.array((131, 157, 186), np.uint8), np.array((255, 255, 255), np.uint8)), (201, 64, 132)),
-    ('GRAY', (np.array((0, 0, 94), np.uint8), np.array((255, 29, 116), np.uint8)), (109, 107, 106)),
-    ('LILAC', (np.array((117, 155, 136), np.uint8), np.array((125, 255, 255), np.uint8)), (187, 62, 71)),
-    ('LIME', (np.array((70, 135, 70), np.uint8), np.array((81, 255, 255), np.uint8)), (106, 203, 52)),
-    ('MOSS', (np.array((50, 135, 57), np.uint8), np.array((68, 255, 95), np.uint8)), (27, 87, 16)),
-    ('BROWN', (np.array((12, 149, 82), np.uint8), np.array((23, 255, 132), np.uint8)), (23, 76, 119)),
-    ('CRIMSON', (np.array((145, 199, 55), np.uint8), np.array((160, 255, 168), np.uint8)), (122, 5, 162)),
-    ('COCOA', (np.array((0, 90, 184), np.uint8), np.array((10, 141, 255), np.uint8)), (111, 138, 202))
-]
+# Вместо строк с названиями цветов используются индексы (19 = 'UNDEFINED', 20 = 'EMPTY' - зарезервированные индексы)
+variations = {
+    'LIGHT BLUE': (0, (np.array((30, 50, 210), np.uint8), np.array((106, 255, 255), np.uint8)), (224, 161, 103)),
+    'ORANGE': (1, (np.array((0, 165, 203), np.uint8), np.array((19, 255, 255), np.uint8)), (68, 144, 226)),
+    'YELLOW': (2, (np.array((22, 46, 192), np.uint8), np.array((34, 255, 255), np.uint8)), (64, 185, 227)),
+    'RED': (3, (np.array((0, 148, 114), np.uint8), np.array((7, 255, 255), np.uint8)), (30, 43, 173)),
+    'LIGHT GREEN': (4, (np.array((41, 0, 160), np.uint8), np.array((65, 255, 255), np.uint8)), (70, 187, 108)),
+    'BLUE': (5, (np.array((103, 181, 135), np.uint8), np.array((120, 255, 255), np.uint8)), (207, 90, 39)),
+    'BURGUNDY': (6, (np.array((158, 135, 84), np.uint8), np.array((255, 255, 127), np.uint8)), (53, 32, 95)),
+    'GREEN': (7, (np.array((86, 121, 86), np.uint8), np.array((96, 255, 255), np.uint8)), (100, 97, 46)),
+    'PINK': (8, (np.array((140, 0, 197), np.uint8), np.array((154, 255, 255), np.uint8)), (219, 153, 212)),
+    'PEACH': (9, (np.array((140, 88, 183), np.uint8), np.array((195, 255, 255), np.uint8)), (128, 109, 218)),
+    'CREAM': (10, (np.array((0, 0, 241), np.uint8), np.array((20, 255, 255), np.uint8)), (194, 218, 248)),
+    'PURPLE': (11, (np.array((131, 157, 186), np.uint8), np.array((255, 255, 255), np.uint8)), (201, 64, 132)),
+    'GRAY': (12, (np.array((0, 0, 94), np.uint8), np.array((255, 29, 116), np.uint8)), (109, 107, 106)),
+    'LILAC': (13, (np.array((117, 155, 136), np.uint8), np.array((125, 255, 255), np.uint8)), (187, 62, 71)),
+    'LIME': (14, (np.array((70, 135, 70), np.uint8), np.array((81, 255, 255), np.uint8)), (106, 203, 52)),
+    'MOSS': (15, (np.array((50, 135, 57), np.uint8), np.array((68, 255, 95), np.uint8)), (27, 87, 16)),
+    'BROWN': (16, (np.array((12, 149, 82), np.uint8), np.array((23, 255, 132), np.uint8)), (23, 76, 119)),
+    'CRIMSON': (17, (np.array((145, 199, 55), np.uint8), np.array((160, 255, 168), np.uint8)), (122, 5, 162)),
+    'COCOA': (18, (np.array((0, 90, 184), np.uint8), np.array((10, 141, 255), np.uint8)), (111, 138, 202))
+}
 
 
 async def check_background(image: str) -> bool:
@@ -126,7 +127,7 @@ async def create_color_list(image: str) -> list:
     colors_info, count_colors = [], []
     # Подбор коэффициентов
     height_color = round(height / 6.8)
-    for variation in variations:
+    for variation in variations.values():
         # Проверяем пороговое значение для каждой вариации цвета на картинке и находим контуры
         thresholder = cv2.inRange(hsv_colors, variation[1][0], variation[1][1])
         contours_color, _ = cv2.findContours(
@@ -149,12 +150,12 @@ async def create_color_list(image: str) -> list:
                             break
                 if add_flag == True:
                     # Добавляем в список информацию о цвете и его местоположении
-                    color_name = variation[0]
-                    colors_info.append([color_name, cnt[0], cnt[1], cnt[2]])
+                    color_id = variation[0]
+                    colors_info.append([color_id, cnt[0], cnt[1], cnt[2]])
                     count_colors.append([variation[0]])
                     
     # Поддержка 2 и более цветов друг за другом
-    if len(colors_info) > 1:
+    if len(colors_info) > 1 and len(colors_info) < 4:
         min_color_rect = min(
             colors_info,
             key=lambda
@@ -199,7 +200,7 @@ async def create_color_list(image: str) -> list:
             previous_coord = colors_info[idx_line - 1][1][1] - colors_info[idx_line - 1][2][previos_idx_height] / 2
             current_coord = colors_info[idx_line][1][1] + colors_info[idx_line][2][current_idx_height] / 2
             if previous_coord - current_coord > min_color_rect:
-                colors_info.insert(idx_line, ['UNDEFINED', (0, colors_info[idx_line][1][1] + 1), (0, 0), 0])
+                colors_info.insert(idx_line, [19, (0, colors_info[idx_line][1][1] + 1), (0, 0), 0])
                 idx_line += 1
             idx_line += 1
 
@@ -207,21 +208,21 @@ async def create_color_list(image: str) -> list:
     if len(colors_info) < 4 and len(colors_info) > 0: 
         # Добавляем неопределившиеся значения список цветов в колбе
         for _ in range(4 - len(colors_info)):
-            colors_info.insert(0, ['UNDEFINED', (0, height), (0, 0), 0])
+            colors_info.insert(0, [19, (0, height), (0, 0), 0])
     
     return colors_info
 
 
-async def sorted_flasks(flasks_list: list) -> list:
+async def sorted_flasks(flasks_id_list: list) -> list:
     '''Пользовательская функция для сортировки колб в нужном порядке'''
     min_coord = min(
-        flasks_list,
+        flasks_id_list,
         key=lambda
         item:
         item[0][1]
     )[0][1]
     max_flask_height = max(
-        flasks_list,
+        flasks_id_list,
         key=lambda
         item:
         item[1][0]
@@ -229,7 +230,7 @@ async def sorted_flasks(flasks_list: list) -> list:
     layer_height = max_flask_height * 1.55
     sorted_flask_list, layer_1, layer_2, layer_3 = [], [], [], []
     
-    for coord_flask in flasks_list:
+    for coord_flask in flasks_id_list:
         number_layer = round((coord_flask[0][1] - min_coord) / layer_height)
         if number_layer == 0:
             layer_1.append(coord_flask)
@@ -255,16 +256,17 @@ async def sorted_flasks(flasks_list: list) -> list:
     return sorted_flask_list
 
 
-async def replace_undefined(flasks_list: list) -> dict:
+async def replace_undefined(flasks_id_list: list) -> dict:
     '''Функция для составления списка неопределенных значений недостающими цветами'''
     # Подготовление списка с цвтеами и их количеством, которые нужно добавить
-    flasks_list = np.asarray(flasks_list)
-    colors, counts = np.unique(flasks_list, return_counts=True)
-    colors_dict = dict(zip(colors, counts))
+    flasks_id_list = np.asarray(flasks_id_list)
+    colors_id, counts = np.unique(flasks_id_list, return_counts=True)
+    # Приведение ключей numpy.int32 к типу int
+    colors_dict = {int(k): int(v) for k, v in zip(colors_id, counts)}
     added_colors = dict()
     for key in colors_dict.keys():
         if colors_dict[key] < 4:
-            if key != 'UNDEFINED':
+            if key != 19:
                 added_colors[key] = int(4 - colors_dict[key])
     return added_colors
 
@@ -324,7 +326,7 @@ async def found_colors_in_flasks(image_for_search: str, id_client: int, reload_i
     flasks = await sorted_flasks(flasks)
     images_of_flasks = await crop_rects(flasks, cropped_image, id_client)
 
-    flasks_list = []    # Список цветов в колбах
+    flasks_id_list = []    # Список цветов в колбах
     for images_contour in images_of_flasks:
         # Находим контуры цветов внутри каждой колбы
         colors_list = await create_color_list(images_contour[0])
@@ -332,34 +334,34 @@ async def found_colors_in_flasks(image_for_search: str, id_client: int, reload_i
             colors = []
             for color in colors_list:
                 colors.append(color[0])
-            flasks_list.append(colors)
+            flasks_id_list.append(colors)
     
     # Вручную добавляем 2 пустые колбы
     for _ in range(2):
-        flasks_list.append(['EMPTY', 'EMPTY', 'EMPTY', 'EMPTY'])
+        flasks_id_list.append([20, 20, 20, 20])
 
     # Удаление всех временных файлов для экономии места
     for flask_info in images_of_flasks:
         os.remove(flask_info[0])
 
-    return await replace_undefined(flasks_list), flasks_list
+    return await replace_undefined(flasks_id_list), flasks_id_list
 
 
-async def replace_in_list(flasks_list: list, color_name: str) -> list:
+async def replace_in_list(flasks_id_list: list, color_id: int) -> list:
     '''Функция для замены неопределенных цветов на выбранные пользователем'''
     try:
-        for flask in flasks_list:
-            for colors in range(len(flask)):
-                if flask[colors] == 'UNDEFINED':
-                    flask[colors] = color_name
+        for flask in flasks_id_list:
+            for color in range(len(flask)):
+                if flask[color] == 19:
+                    flask[color] = color_id
                     raise BreakAction
     except BreakAction:
         pass
 
-    return flasks_list
+    return flasks_id_list
 
 
-async def create_image_for_replace(flasks_list: list, id_client: int):
+async def create_image_for_replace(flasks_id_list: list, id_client: int):
     '''Функция для отрисовки изображения с подсветкой того цвета, который нужно заполнить'''
     # Создание и сохранение пустого черного изображения
     filename = f'./tmp/level_for_{id_client}.jpg'
@@ -368,7 +370,7 @@ async def create_image_for_replace(flasks_list: list, id_client: int):
     cv2.imwrite(filename, template)
 
     # Установка количества линий с колбами и размеров колбы
-    count_flasks = len(flasks_list)
+    count_flasks = len(flasks_id_list)
     width_flask = 100
     count_lines = np.trunc(count_flasks / 6) + 1
     flasks_centers = []
@@ -385,17 +387,17 @@ async def create_image_for_replace(flasks_list: list, id_client: int):
     cnt_undef = 0
     # Отрисовка всех колб с цветами и пустыми полями внутри них
     for colors in range(count_flasks):
-        height_flask = width_flask * len(flasks_list[colors])
+        height_flask = width_flask * len(flasks_id_list[colors])
         
         x1, y1 = flasks_centers[colors][0] - width_flask / 2, flasks_centers[colors][1] - height_flask / 2
         x2, y2 = flasks_centers[colors][0] + width_flask / 2, flasks_centers[colors][1] + height_flask / 2
         flask_rect = cv2.rectangle(template, (int(x1), int(y1)), (int(x2), int(y2)), (176, 176, 90), 6)
         cv2.imwrite(filename, flask_rect)
 
-        for color in range(len(flasks_list[colors])):
+        for color in range(len(flasks_id_list[colors])):
             circle_x, circle_y = flasks_centers[colors][0], y2 - (y2 - y1) * (2 * color + 1) / 8
-            for variation in variations:
-                if flasks_list[colors][color] == 'UNDEFINED':
+            for variation in variations.values():
+                if flasks_id_list[colors][color] == 19:
                     cnt_undef += 1
                     if cnt_undef == 1:
                         color_circle = cv2.circle(template, (int(circle_x), int(circle_y)), 47, (0, 255, 0), 6)
@@ -403,20 +405,20 @@ async def create_image_for_replace(flasks_list: list, id_client: int):
                         color_circle = cv2.circle(template, (int(circle_x), int(circle_y)), 47, (255, 255, 255), 6)
                     cv2.imwrite(filename, color_circle)
                     break
-                elif flasks_list[colors][color] == variation[0]:
+                elif flasks_id_list[colors][color] == variation[0]:
                     color_circle = cv2.circle(template, (int(circle_x), int(circle_y)), 47, variation[2], -1)
                     cv2.imwrite(filename, color_circle)
                     break
 
 
-async def add_empty_flask(flasks_list: list, idx_segment: int) -> list:
+async def add_empty_flask(flasks_id_list: list, idx_segment: int) -> list:
     '''Функция для добавления пустой части колбы в конец'''
     if idx_segment == 1:
-        flasks_list.append(['EMPTY'])
+        flasks_id_list.append([20])
     else:
-        flasks_list.pop()
+        flasks_id_list.pop()
         new_segment = []
         for _ in range(idx_segment):
-            new_segment.append('EMPTY')
-        flasks_list.append(new_segment)
-    return flasks_list
+            new_segment.append(20)
+        flasks_id_list.append(new_segment)
+    return flasks_id_list

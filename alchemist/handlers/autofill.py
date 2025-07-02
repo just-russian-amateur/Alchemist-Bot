@@ -19,7 +19,7 @@ rtr = Router()
 logger = amc.ConfigLogger(__name__)
 
 
-async def reply(callback: CallbackQuery, bot: Bot, state: FSMContext, flasks_list: list, keyboard_name: str, new_message: bool):
+async def reply(callback: CallbackQuery, bot: Bot, state: FSMContext, flasks_id_list: list, keyboard_name: str, new_message: bool):
     '''Функция для вызова поиска решения'''
     data = await state.get_data()
     lvl_file = data['level_file']
@@ -59,7 +59,7 @@ async def reply(callback: CallbackQuery, bot: Bot, state: FSMContext, flasks_lis
 
         try:
             # Вызываем функцию перебора переливаний
-            is_solved, steps = await transfusion_manage(bot=bot, chat_id=callback.from_user.id, task=flasks_list)
+            is_solved, steps = await transfusion_manage(bot=bot, chat_id=callback.from_user.id, task=flasks_id_list)
         except TelegramBadRequest:
             logger.log_error('Превышено время ожидания ответа на начало поиска решения')
 
@@ -89,16 +89,15 @@ async def autofill(callback: CallbackQuery, bot: Bot, state: FSMContext):
     '''Функция выбора режима работы и реализации логики втозаполнения'''
     logger.log_info(f'Пользователь {callback.from_user.id} выбрал режим автозаполнения')
     await check_user(callback.message.from_user.id, state)
-    async with ChatActionSender.typing(bot=bot, chat_id=callback.from_user.id):
-        if callback.data in ['yes', 'reload_image', 'add_an_empty_flask']:
-            '''Если пользователь подтвердил, что изображение было распознано правильно'''
-            # Получаем доступ к сохраненному набору неопределенных цветов
-            data = await state.get_data()
-            undef_colors, flasks_list = data['undefined_colors'], data['flasks_list']
-            lvl_file = data['level_file']
-            new_message = False
+    if callback.data in ['yes', 'reload_image', 'add_an_empty_flask']:
+        '''Если пользователь подтвердил, что изображение было распознано правильно'''
+        # Получаем доступ к сохраненному набору неопределенных цветов
+        data = await state.get_data()
+        undef_colors, flasks_id_list = data['undefined_colors'], data['flasks_id_list']
+        lvl_file = data['level_file']
+        new_message = False
 
-            logger.log_info(f'Изображение от пользователя {callback.from_user.id} отправлено на перезагрузку с/без добавления пустой колбы или цвета распознаны верно')
+        async with ChatActionSender.typing(bot=bot, chat_id=callback.from_user.id):
             if callback.data in ['reload_image', 'add_an_empty_flask']:
                 await callback.message.delete()
                 new_message = True
@@ -110,15 +109,15 @@ async def autofill(callback: CallbackQuery, bot: Bot, state: FSMContext):
                     elif data['new_segment'] < 3:
                         idx_segment = data['new_segment'] + 1
                         await state.update_data(new_segment=idx_segment)
-                    flasks_list = await add_empty_flask(flasks_list=flasks_list, idx_segment=idx_segment)
-                    await state.update_data(flasks_list=flasks_list)
+                    flasks_id_list = await add_empty_flask(flasks_id_list=flasks_id_list, idx_segment=idx_segment)
+                    await state.update_data(flasks_id_list=flasks_id_list)
                     logger.log_info(f'В изображение пользователя {callback.from_user.id} была добавлена пустая четверть колбы')
 
                     # Подготавливаем картинку, в которой подсвечиваем неопределенные области
-                    await create_image_for_replace(flasks_list=flasks_list, id_client=callback.from_user.id)
+                    await create_image_for_replace(flasks_id_list=flasks_id_list, id_client=callback.from_user.id)
 
             if not undef_colors:
-                await reply(callback, bot, state, flasks_list, 'upload_new', new_message)
+                await reply(callback, bot, state, flasks_id_list, 'upload_new', new_message)
                 return
 
             if callback.data == 'yes':
@@ -144,7 +143,7 @@ async def autofill(callback: CallbackQuery, bot: Bot, state: FSMContext):
             variations = []
             for key in undef_colors.keys():
                 for _ in range(undef_colors[key]):
-                    variations.append(key)
+                    variations.append(int(key))
             if len(variations) < 5:
                 # Получение всевозможных уникальных перестановок
                 all_permutations = list(list(permutation) for permutation in set(permutations(variations)))
@@ -156,11 +155,11 @@ async def autofill(callback: CallbackQuery, bot: Bot, state: FSMContext):
 
     if callback.data == 'confirm':
         logger.log_info(f'Пользователь {callback.from_user.id} выбрал вариант для поиска решения')
-        autofill_flasks_list = data['autofill_flasks_list']
-        await reply(callback, bot, state, autofill_flasks_list, 'upload_new_or_reload', False)
+        autofill_flasks_id_list = data['autofill_flasks_id_list']
+        await reply(callback, bot, state, autofill_flasks_id_list, 'upload_new_or_reload', False)
         return
     
-    autofill_flasks_list = data['flasks_list']
+    autofill_flasks_id_list = data['flasks_id_list']
     data = await state.get_data()
     all_permutations = data['permutations']
 
@@ -206,13 +205,13 @@ async def autofill(callback: CallbackQuery, bot: Bot, state: FSMContext):
             unique_sequence = True
         # Дозаполняем неопределенные места
         for color in autofill_variation:
-            await replace_in_list(autofill_flasks_list, color)
+            await replace_in_list(autofill_flasks_id_list, color)
 
         if len(all_permutations) == 1:
             try:
-                for flask in autofill_flasks_list:
+                for flask in autofill_flasks_id_list:
                     for color in range(len(flask) - 1):
-                        if flask[color] == flask[color + 1] and flask[color] != 'EMPTY':
+                        if flask[color] == flask[color + 1] and flask[color] != 20:
                             raise BreakAction
                 unique_sequence = True
             except BreakAction:
@@ -221,11 +220,11 @@ async def autofill(callback: CallbackQuery, bot: Bot, state: FSMContext):
         if unique_sequence == False:
             shuffle(autofill_variation)
             data = await state.get_data()
-            autofill_flasks_list = data['flasks_list']
-    await state.update_data(autofill_flasks_list=autofill_flasks_list)
+            autofill_flasks_id_list = data['flasks_id_list']
+    await state.update_data(autofill_flasks_id_list=autofill_flasks_id_list)
 
     # Подготавливаем картинку
-    await create_image_for_replace(flasks_list=autofill_flasks_list, id_client=callback.from_user.id)
+    await create_image_for_replace(flasks_id_list=autofill_flasks_id_list, id_client=callback.from_user.id)
 
     if len(all_permutations) == 1:
         mode = 'first'

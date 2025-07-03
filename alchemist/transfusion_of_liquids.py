@@ -196,8 +196,14 @@ async def transfusion_manage(bot: Bot, chat_id: int, task: list) -> tuple[bool, 
                 idx_step -= 1
             idx_step += 1
         result = ''
+        cnt_block_moves = 0
         for step in steps_list:
+            cnt_block_moves += 1
             result += step + '\n'
+            if cnt_block_moves == 4:
+                # Добавляем пустую строку, разбивая решение на блоки по 4 хода для удобства отслеживания
+                cnt_block_moves = 0
+                result += '\n'
         return True, result
 
     return False, None

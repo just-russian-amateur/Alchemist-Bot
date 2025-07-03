@@ -147,6 +147,9 @@ def recognition_check():
         [
             InlineKeyboardButton(text='Yes👍', callback_data='yes'),
             InlineKeyboardButton(text='No, try again👎', callback_data='no')
+        ],
+        [
+            InlineKeyboardButton(text='➕🧪Add 1/4 flask', callback_data='add_an_empty_flask')
         ]
     ]
     kb = InlineKeyboardMarkup(inline_keyboard=check_button)

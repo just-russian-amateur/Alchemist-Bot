@@ -9,6 +9,7 @@ class BreakAction(Exception):
 
 
 # Вместо строк с названиями цветов используются индексы (19 = 'UNDEFINED', 20 = 'EMPTY' - зарезервированные индексы)
+# Последние 5 цветов были добавлены позже
 variations = {
     'LIGHT BLUE': (0, (np.array((30, 50, 210), np.uint8), np.array((106, 255, 255), np.uint8)), (224, 161, 103)),
     'ORANGE': (1, (np.array((0, 165, 203), np.uint8), np.array((19, 255, 255), np.uint8)), (68, 144, 226)),
@@ -34,9 +35,9 @@ variations = {
 
 async def check_background(image: str) -> bool:
     '''Функция для проверки уровня на яркость заднего фона, для выбора подходящего подхода для распознавания'''
-    gray_image = cv2.imread(image)
-    height, width, _ = gray_image.shape
-    hsv_image = cv2.cvtColor(gray_image, cv2.COLOR_BGR2HSV)
+    original_image = cv2.imread(image)
+    height, width, _ = original_image.shape
+    hsv_image = cv2.cvtColor(original_image, cv2.COLOR_BGR2HSV)
     # Эмпирически определенный порог для отделения фона от колб на изображении со светлым фоном
     thresholder = cv2.inRange(hsv_image, np.array((104, 90, 0), np.uint8), np.array((120, 223, 202), np.uint8))
 

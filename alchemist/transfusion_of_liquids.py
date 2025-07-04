@@ -151,13 +151,13 @@ async def transfusion_of_liquids(bot: Bot, chat_id: int, position: list) -> tupl
             if await check_solving(now_position):
                 return True, steps
             
-            if not await possible_moves(now_position):
+            moves = await possible_moves(now_position)
+            if not moves:
                 # Поскольку мы сначала заполняем стек вершинами, то для корректных позиций нужен откат действия
                 await go_back_move(now_position, move)
                 stack.pop(0)
             else:
                 # Обходим массив возможных перемещений, рекурсивно погружаясь в глубину
-                moves = await possible_moves(now_position)
                 for move in moves:
                     if move == moves[len(moves) - 1] and len(stack) == 1:
                         # Прекращаем решение если пройдены все ветви от корня

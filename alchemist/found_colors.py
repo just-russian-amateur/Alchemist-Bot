@@ -271,11 +271,11 @@ async def replace_undefined(flasks_id_list: list) -> dict:
                 added_colors[key] = int(4 - colors_dict[key])
 
     # Случай, когда пользователь еще не открыл все варианты цветов хотя бы в одном экземпляре
-    while flasks_id_list.shape[0] - 2 > len(added_colors):  # -2, чтобы исключить пустые колбы
-        for variation in variations.keys():
-            if not variations[variation][0] in sorted(added_colors.keys()):
-                added_colors[variations[variation][0]] = 4
-                break
+    # while flasks_id_list.shape[0] - 2 > len(added_colors):  # -2, чтобы исключить пустые колбы
+    #     for variation in variations.keys():
+    #         if not variations[variation][0] in sorted(added_colors.keys()):
+    #             added_colors[variations[variation][0]] = 4
+    #             break
 
     return added_colors
 

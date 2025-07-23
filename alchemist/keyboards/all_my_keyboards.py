@@ -73,7 +73,7 @@ def colors(undef_colors):
 def feedback():
     feedback_button = [
         [
-            InlineKeyboardButton(text='Feedback to me🙃', url=f"tg://user?id={984089348}"),
+            InlineKeyboardButton(text='Feedback to me🙃', url="t.me/alchemist_bot_support"),
             InlineKeyboardButton(text='📩🖼️Upload new image', callback_data='upload_new_image')
         ]
     ]

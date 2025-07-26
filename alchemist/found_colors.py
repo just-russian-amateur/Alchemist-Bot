@@ -33,31 +33,47 @@ variations = {
 }
 
 
-async def check_background(image: str) -> bool:
+async def check_background(image: str) -> tuple[bool, any]:
     '''Функция для проверки уровня на яркость заднего фона, для выбора подходящего подхода для распознавания'''
     original_image = cv2.imread(image)
     height, width, _ = original_image.shape
     hsv_image = cv2.cvtColor(original_image, cv2.COLOR_BGR2HSV)
-    # Эмпирически определенный порог для отделения фона от колб на изображении со светлым фоном
-    thresholder = cv2.inRange(hsv_image, np.array((104, 90, 0), np.uint8), np.array((120, 223, 202), np.uint8))
 
+    # Эмпирически определенный порог для отделения фона от колб на изображении со светлым верхним изображением
+    thresholder = cv2.inRange(hsv_image, np.array((0, 9, 0), np.uint8), np.array((169, 200, 124), np.uint8))
     if cv2.countNonZero(thresholder) > 2 * ((height * width) - cv2.countNonZero(thresholder)):
         # Если белые пиксели занимают больше двух третей изображения, то считаем, что фон был светлым, иначе темный
-        return True
+        return True, thresholder
+
+    # Эмпирически определенный порог для отделения фона от колб на изображении со светлым фоном
+    thresholder = cv2.inRange(hsv_image, np.array((104, 90, 0), np.uint8), np.array((120, 223, 202), np.uint8))
+    if cv2.countNonZero(thresholder) > 2 * ((height * width) - cv2.countNonZero(thresholder)):
+        # Если белые пиксели занимают больше двух третей изображения, то считаем, что фон был светлым, иначе темный
+        return True, None
     
-    return False
+    return False, None
 
 
-async def preprocessing_image(image: str, light_background_flag: bool) -> cv2.typing.MatLike:
+async def preprocessing_image(image: str, light_background_flag: bool, mask: any) -> cv2.typing.MatLike:
     '''Функция предобработки изображения'''
     # Чтение обрезанного изображения в ч/б формате
     gray_noise = cv2.imread(image, 0)
-    # Размытие фона для ч/б изображения
-    blurred = cv2.GaussianBlur(
-        gray_noise,
-        (5, 5),
-        0
-    )
+    if mask is not None:
+        mask_inv = cv2.bitwise_not(mask)
+        result = cv2.bitwise_and(gray_noise, gray_noise, mask=mask_inv)
+        # Размытие фона для ч/б изображения
+        blurred = cv2.GaussianBlur(
+            result,
+            (5, 5),
+            0
+        )
+    else:
+        # Размытие фона для ч/б изображения
+        blurred = cv2.GaussianBlur(
+            gray_noise,
+            (5, 5),
+            0
+        )
 
     # Пороговая обработка изображения
     if light_background_flag:
@@ -320,10 +336,10 @@ async def found_colors_in_flasks(image_for_search: str, id_client: int, reload_i
     cv2.imwrite(image_for_search, cropped_image)
     # Предобработка начального изображения после кропа
     # Определение яркости заднего фона для корректировки порога для обработки
-    light_background_flag = await check_background(image_for_search)
+    light_background_flag, mask = await check_background(image_for_search)
     # Определение контуров элементов и их отрисовка на цветном изображении
     contours_of_flasks, _ = cv2.findContours(
-        await preprocessing_image(image_for_search, light_background_flag),
+        await preprocessing_image(image_for_search, light_background_flag, mask),
         cv2.RETR_TREE,
         cv2.CHAIN_APPROX_SIMPLE
     )

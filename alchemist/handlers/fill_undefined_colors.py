@@ -3,11 +3,12 @@ from aiogram.types import Message, CallbackQuery, BufferedInputFile, InputMediaP
 from aiogram.fsm.context import FSMContext
 from aiogram.utils.chat_action import ChatActionSender
 
+from math import isnan
+
 from found_colors import replace_in_list, create_image_for_replace
 import config
 import classes.all_my_classes as amc
-from keyboards.all_my_keyboards import colors
-from handlers.send_welcome import check_user
+from keyboards.all_my_keyboards import colors, pay_attempts
 from handlers.autofill import reply
 
 import asyncio
@@ -29,7 +30,6 @@ logger = amc.ConfigLogger(__name__)
 )
 async def fill_undef_values(callback: CallbackQuery, bot: Bot, state: FSMContext):
     '''Функция дозаполнения неопределенных цветов вручную'''
-    await check_user(callback.message.from_user.id, state)
     # Получаем данные с путями к файлам
     props = await state.get_data()
     image_for_load, lvl_file = props['original_image'], props['level_file']
@@ -41,9 +41,34 @@ async def fill_undef_values(callback: CallbackQuery, bot: Bot, state: FSMContext
         if os.path.isfile(lvl_file):
             os.remove(lvl_file)
         await state.update_data(new_segment=0)
+
         # Предлагаем купить попытки, если они закончились
-        await callback.message.edit_text('Upload a new screenshot as an image, please')
-        await state.set_state(amc.SolveFlasks.send_photo)
+        free_attempts = props['count_free_attempts']
+        paid_attempts = props['count_paid_attempts']
+        if free_attempts == 0 and paid_attempts == 0:
+            logger.log_info(f'У пользователя {callback.from_user.id} закончились попытки')
+            msg_text = "Sorry, you've run out of attempts😞\nIf you want to continue now, you can buy multiple attempts for a small fee"
+            msg_kb = pay_attempts()
+            set_state = amc.SolveFlasks.pay_attempts
+        else:
+            msg_kb = None
+            set_state = amc.SolveFlasks.send_photo
+            if isnan(free_attempts):
+                msg_text = f'Upload a new screenshot as an image, please'
+            elif isnan(paid_attempts):
+                msg_text = f'Upload a new screenshot as an image, please\nNow you have an unlimited 🎟️\n*Unlimited is available within two weeks from the date of payment'
+            elif paid_attempts > 0 and free_attempts > 0:
+                msg_text = f'Upload a new screenshot as an image, please\nNow you have:\nFree 🎟️: {free_attempts}\nPaid 🎟️: {paid_attempts}'
+            elif paid_attempts == 0 and free_attempts > 0:
+                msg_text = f'Upload a new screenshot as an image, please\nNow you have:\nFree 🎟️: {free_attempts}'
+            elif paid_attempts > 0 and free_attempts == 0:
+                msg_text = f'Upload a new screenshot as an image, please\nNow you have:\nPaid 🎟️: {paid_attempts}'
+                
+        await callback.message.edit_text(
+            msg_text,
+            reply_markup=msg_kb
+        )
+        await state.set_state(set_state)
         await callback.answer()
         return
     elif callback.data == 'no':
@@ -54,7 +79,7 @@ async def fill_undef_values(callback: CallbackQuery, bot: Bot, state: FSMContext
                 "Please upload your screenshot again so I can try to recognize it🙂\nI recommend that you take a new screenshot of the same level and send me the updated version, for details use the /faq command"
             )
             await callback.answer()
-            logger.log_info(f'Изображение от пользователя {callback.message.from_user.id} было распознано неверно')
+            logger.log_info(f'Изображение от пользователя {callback.from_user.id} было распознано неверно')
             await state.set_state(amc.SolveFlasks.send_photo)
             return
     elif callback.data == 'manually':

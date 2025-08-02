@@ -1,4 +1,4 @@
-from aiogram import Bot, Router, F  # Подключение библиотек
+from aiogram import Bot, Router, F
 from aiogram.types import Message, BufferedInputFile
 from aiogram.fsm.context import FSMContext
 from aiogram.utils.chat_action import ChatActionSender
@@ -6,7 +6,6 @@ from aiogram.utils.chat_action import ChatActionSender
 from found_colors import found_colors_in_flasks, create_image_for_replace, replace_in_list
 import classes.all_my_classes as amc
 from keyboards.all_my_keyboards import error_image, recognition_check
-from handlers.send_welcome import check_user
 
 import asyncio
 
@@ -22,7 +21,6 @@ logger = amc.ConfigLogger(__name__)
 async def get_photo(message: Message, bot: Bot, state: FSMContext):
     '''Функция получения и обработки фотографий'''
     async with ChatActionSender.upload_photo(bot=bot, chat_id=message.chat.id):
-        await check_user(message.from_user.id, state)
         image_for_load = f'./tmp/{message.from_user.id}.jpg'   # Сохраняем на всякий случай путь к картинке
         lvl_file = f'./tmp/level_for_{message.from_user.id}.jpg'
         # Сохраняем пути в машину состояний

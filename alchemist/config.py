@@ -1,3 +1,9 @@
+from redis import asyncio as aioredis
+from apscheduler.schedulers.asyncio import AsyncIOScheduler
+from apscheduler.jobstores.redis import RedisJobStore
+from pytz import utc
+
+
 API_TOKEN = '6987578051:AAG4TCXhhdMG1xSX2AjRJqu7Pqp4krpit_8'  # Токен для работы с API
 # Вариации цветов
 color_variations = {
@@ -21,3 +27,10 @@ color_variations = {
     17: 'CRIMSON',
     18: 'COCOA'
 }
+
+# Создание RedisJobStore
+jobstores = {'default': RedisJobStore(jobs_key='attempts.jobs', run_times_key='attempts.run_times')}
+# Объявляем хранилище Redis
+redis = aioredis.Redis()
+# Подключаем расписание
+scheduler = AsyncIOScheduler(jobstores=jobstores, timezone=utc)

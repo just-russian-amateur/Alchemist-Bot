@@ -36,9 +36,47 @@ def start_keyboard():
         [
             InlineKeyboardButton(text='🚀Start solving', callback_data='start_solving'),
             InlineKeyboardButton(text='📝Rules of use', callback_data='rules')
+        ],
+        [
+            InlineKeyboardButton(text='📒Account', callback_data='account')
         ]
     ]
     kb = InlineKeyboardMarkup(inline_keyboard=start_button)
+
+    logger.log_info('Вывод приветствия')
+
+    return kb
+
+
+def account(free_mode):
+    if free_mode == True:
+        account_button = [
+            [
+                InlineKeyboardButton(text='📃User Agreement', callback_data='terms')
+            ],
+            [
+                InlineKeyboardButton(text='❓Support', url="t.me/alchemist_bot_support"),
+            ],
+            [
+                InlineKeyboardButton(text='⏭️Continue solving', callback_data='continue')
+            ]
+        ]
+    else:
+        account_button = [
+            [
+                InlineKeyboardButton(text='📃User Agreement', callback_data='terms')
+            ],
+            [
+                InlineKeyboardButton(text='❓Support', url="t.me/alchemist_bot_support"),
+            ],
+            [
+                InlineKeyboardButton(text='🎟️Buy attempts', callback_data='buy_attempts'),
+            ],
+            [
+                InlineKeyboardButton(text='⏭️Continue solving', callback_data='continue')
+            ]
+        ]
+    kb = InlineKeyboardMarkup(inline_keyboard=account_button)
 
     logger.log_info('Вывод приветствия')
 
@@ -74,7 +112,7 @@ def feedback():
     feedback_button = [
         [
             InlineKeyboardButton(text='Feedback to me🙃', url="t.me/alchemist_bot_support"),
-            InlineKeyboardButton(text='📩🖼️Upload new image', callback_data='upload_new_image')
+            InlineKeyboardButton(text='📩🖼️Upload new image', callback_data='start_solving')
         ]
     ]
     kb = InlineKeyboardMarkup(inline_keyboard=feedback_button)
@@ -116,6 +154,45 @@ def no_result():
     kb = InlineKeyboardMarkup(inline_keyboard=no_result_button)
 
     logger.log_info('Результат не найден')
+
+    return kb
+
+
+def pay_attempts():
+    pay_button = [
+        [
+            InlineKeyboardButton(text='💰Buy 5🎟️ for 50⭐', callback_data='5_attempts')
+        ],
+        [
+            InlineKeyboardButton(text='💰Buy 12🎟️ for 100⭐', callback_data='12_attempts')
+        ],
+        [
+            InlineKeyboardButton(text='💰Buy 20🎟️ for 150⭐', callback_data='20_attempts')
+        ],
+        # [
+        #     InlineKeyboardButton(text='💰Buy unlimited🎟️ for 250⭐', callback_data='unlimited_attempts')
+        # ],
+        [
+            InlineKeyboardButton(text='❌Cancel', callback_data='account')
+        ]
+    ]
+    kb = InlineKeyboardMarkup(inline_keyboard=pay_button)
+
+    logger.log_info('Кончились попытки')
+
+    return kb
+
+
+def payment_kb(btn_text):
+    payment_button = [
+        [
+            InlineKeyboardButton(text=btn_text, pay=True)
+        ],
+        [
+            InlineKeyboardButton(text='❌Cancel', callback_data='cancel')
+        ]
+    ]
+    kb = InlineKeyboardMarkup(inline_keyboard=payment_button)
 
     return kb
 

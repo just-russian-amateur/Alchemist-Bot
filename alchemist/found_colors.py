@@ -285,7 +285,7 @@ async def replace_undefined(flasks_id_list: list) -> dict:
         if colors_dict[key] < 4:
             if key != 19:
                 added_colors[key] = int(4 - colors_dict[key])
-
+    
     # Случай, когда пользователь еще не открыл все варианты цветов хотя бы в одном экземпляре
     if flasks_id_list.shape[0] > len(colors_dict):
         for _ in range(flasks_id_list.shape[0] - len(colors_dict)):

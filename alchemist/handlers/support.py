@@ -20,4 +20,4 @@ async def call_support(message: Message, state: FSMContext):
         "If you got here, it means you still needed advice from my developer, I'm very sorry that this happened😞\nI hope that together you can solve your problem as soon as possible🙏\nIn order to contact my developer you just need to click on the button below and he'll answer you within a day, good luck✊",
         reply_markup=feedback()
     )
-    await state.set_state(amc.SolveFlasks.set_color)
+    await state.set_state(amc.SolveFlasks.start_solving)

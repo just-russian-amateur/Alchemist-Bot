@@ -45,3 +45,13 @@ class SolveFlasks(StatesGroup):
     start_solving = State()
     send_photo = State()
     set_color = State()
+    pay_attempts = State()
+
+
+class UserKey:
+    '''Класс для создания ключа'''
+    def __init__(self, user_id):
+        self.chat_id = user_id
+        self.user_id = user_id
+        self.thread_id = None  # Или другой подходящий идентификатор
+        self.destiny = 'default'  # Или другой подходящий идентификатор

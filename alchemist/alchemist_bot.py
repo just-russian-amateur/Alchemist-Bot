@@ -3,9 +3,7 @@ from aiogram.types import BotCommand
 from aiogram.exceptions import TelegramNetworkError
 from aiogram.fsm.storage.redis import RedisStorage
 
-from redis import asyncio as aioredis
-
-from handlers import send_welcome, start_solving, fill_undefined_colors, get_image, faq, support, autofill
+from handlers import send_welcome, start_solving, payment, fill_undefined_colors, get_image, faq, terms, support, autofill, account, check_updates
 import config
 import classes.all_my_classes as amc
 
@@ -17,9 +15,11 @@ import os
 async def clue(bot: Bot):
     # Реализация меню команд
     bot_commands = [
-        BotCommand(command='/start', description='🔄️Restarting me and receiving instructions for working with me'),
-        BotCommand(command='/faq', description='🛠️Solving the most common problems when working with me'),
-        BotCommand(command='/support', description='❓Support from my developer for any questions that arise')
+        BotCommand(command='/start', description='🔄️Restarting me'),
+        BotCommand(command='/account', description='📒Your account'),
+        BotCommand(command='/faq', description='🛠️Solving the most common problems'),
+        BotCommand(command='/terms', description='📃Terms of use me'),
+        BotCommand(command='/support', description='❓Support from my developer')
     ]
     await bot.set_my_commands(bot_commands)
     # Реализация описания бота
@@ -48,17 +48,16 @@ async def main():
     if free_space < 0.2:
         logger.log_warning(f'Заканчивается свободное место на диске, осталось свободно: {free_space} Гб')
 
-    # Объявляем хранилище Redis
-    redis = aioredis.Redis()
-
     # Инициализация диспетчера
-    dp = Dispatcher(storage=RedisStorage(redis=redis))
+    storage = RedisStorage(redis=config.redis)
+    dp = Dispatcher(storage=storage)
     bot = Bot(token=config.API_TOKEN)
 
     dp.startup.register(clue)
-    dp.include_routers(send_welcome.rtr, faq.rtr, support.rtr, start_solving.rtr, get_image.rtr, autofill.rtr, fill_undefined_colors.rtr)
+    dp.include_routers(send_welcome.rtr, account.rtr, faq.rtr, terms.rtr, support.rtr, start_solving.rtr, payment.rtr, get_image.rtr, autofill.rtr, fill_undefined_colors.rtr, check_updates.rtr)
     
     try:
+        config.scheduler.start()
         await bot.delete_webhook(drop_pending_updates=True)
         await dp.start_polling(bot)
     except TelegramNetworkError:

@@ -4,13 +4,13 @@ from aiogram.fsm.context import FSMContext
 from aiogram.exceptions import TelegramBadRequest
 from aiogram.utils.chat_action import ChatActionSender
 
+from math import isnan
 from random import shuffle
 
 import classes.all_my_classes as amc
-from keyboards.all_my_keyboards import autofill_buttons, autofill_options, no_result, upload_new
+from keyboards.all_my_keyboards import autofill_buttons, autofill_options, no_result, upload_new, pay_attempts
 from found_colors import replace_in_list, create_image_for_replace, add_empty_flask, BreakAction
 from transfusion_of_liquids import transfusion_manage
-from handlers.send_welcome import check_user
 
 from itertools import permutations
 
@@ -29,7 +29,7 @@ async def reply(callback: CallbackQuery, bot: Bot, state: FSMContext, flasks_id_
         keyboard = upload_new('upload_new')
     else:
         keyboard = upload_new('upload_new_or_reload')
-
+        
     async with ChatActionSender.typing(bot=bot, chat_id=callback.from_user.id):
         '''Запускаем процесс поиска решения'''
         # Итоговое изображение
@@ -75,6 +75,13 @@ async def reply(callback: CallbackQuery, bot: Bot, state: FSMContext, flasks_id_
                 reply_markup=keyboard
             )
         await state.set_state(amc.SolveFlasks.set_color)
+    
+        # Отнимаем попытку у пользователя только после того, как он получил решение или получил в ответ, что решения нет
+        if data['count_free_attempts'] > 0 and not isnan(data['count_free_attempts']):
+            await state.update_data(count_free_attempts=data['count_free_attempts'] - 1)
+        else:
+            if not isnan(data['count_paid_attempts']):
+                await state.update_data(count_paid_attempts=data['count_paid_attempts'] - 1)
 
 
 @rtr.callback_query(
@@ -88,7 +95,6 @@ async def reply(callback: CallbackQuery, bot: Bot, state: FSMContext, flasks_id_
 async def autofill(callback: CallbackQuery, bot: Bot, state: FSMContext):
     '''Функция выбора режима работы и реализации логики втозаполнения'''
     logger.log_info(f'Пользователь {callback.from_user.id} выбрал режим автозаполнения')
-    await check_user(callback.message.from_user.id, state)
     if callback.data in ['yes', 'reload_image', 'add_an_empty_flask']:
         '''Если пользователь подтвердил, что изображение было распознано правильно'''
         # Получаем доступ к сохраненному набору неопределенных цветов
@@ -99,8 +105,34 @@ async def autofill(callback: CallbackQuery, bot: Bot, state: FSMContext):
 
         async with ChatActionSender.typing(bot=bot, chat_id=callback.from_user.id):
             if callback.data in ['reload_image', 'add_an_empty_flask']:
+                # Предлагаем купить попытки, если они закончились
                 await callback.message.delete()
                 new_message = True
+                free_attempts = data['count_free_attempts']
+                paid_attempts = data['count_paid_attempts']
+                if free_attempts == 0 and paid_attempts == 0:
+                    logger.log_info(f'У пользователя {callback.from_user.id} закончились попытки')
+                    await callback.message.answer(
+                        "Sorry, you've run out of attempts😞\nIf you want to continue now, you can buy multiple attempts for a small fee",
+                        reply_markup=pay_attempts()
+                    )
+                    await callback.answer()
+                    await state.set_state(amc.SolveFlasks.pay_attempts)
+                    return
+                else:
+                    if not isnan(free_attempts):
+                        if isnan(paid_attempts):
+                            msg_text = f'Now you have an unlimited 🎟️\n*Unlimited is available within two weeks from the date of payment'
+                        elif paid_attempts > 0 and free_attempts > 0:
+                            msg_text = f'Now you have:\nFree 🎟️: {free_attempts}\nPaid 🎟️: {paid_attempts}'
+                        elif paid_attempts == 0 and free_attempts > 0:
+                            msg_text = f'Now you have:\nFree 🎟️: {free_attempts}'
+                        elif paid_attempts > 0 and free_attempts == 0:
+                            msg_text = f'Now you have:\nPaid 🎟️: {paid_attempts}'
+                        await callback.message.answer(msg_text)
+                    await callback.answer()
+                logger.log_info(f'Изображение от пользователя {callback.from_user.id} отправлено на перезагрузку с/без добавления пустой колбы')
+            
                 if callback.data == 'add_an_empty_flask':
                     # Добавляем пустую четверть колбы
                     if data['new_segment'] == 0 or data['new_segment'] == 3:
@@ -237,7 +269,7 @@ async def autofill(callback: CallbackQuery, bot: Bot, state: FSMContext):
         else:
             mode = None
         caption = f"Option {number + 1} of {len(all_permutations)}"
-
+        
     if callback.data in ['previous', 'next']:
         # Рисуем картинки с вариантами автозаполнений
         with open(lvl_file, 'rb') as open_image:

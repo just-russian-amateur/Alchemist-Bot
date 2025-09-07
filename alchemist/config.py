@@ -36,4 +36,4 @@ redis = aioredis.Redis()
 # Подключаем расписание
 scheduler = AsyncIOScheduler(jobstores=jobstores, timezone=utc)
 # Подключение модели YOLO11X для поиска колб на изображении
-model = YOLO("best.pt")
+model = YOLO("./alchemist/best.pt")

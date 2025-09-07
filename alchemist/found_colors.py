@@ -2,6 +2,7 @@
 import cv2
 import numpy as np
 import os
+from config import model
 
 
 class BreakAction(Exception):
@@ -33,100 +34,14 @@ variations = {
 }
 
 
-async def check_background(image: str) -> tuple[bool, any]:
-    '''Функция для проверки уровня на яркость заднего фона, для выбора подходящего подхода для распознавания'''
-    original_image = cv2.imread(image)
-    height, width, _ = original_image.shape
-    hsv_image = cv2.cvtColor(original_image, cv2.COLOR_BGR2HSV)
-
-    # Эмпирически определенный порог для отделения фона от колб на изображении со светлым верхним изображением
-    thresholder = cv2.inRange(hsv_image, np.array((0, 9, 0), np.uint8), np.array((169, 200, 124), np.uint8))
-    if cv2.countNonZero(thresholder) > 2 * ((height * width) - cv2.countNonZero(thresholder)):
-        # Если белые пиксели занимают больше двух третей изображения, то считаем, что фон был светлым, иначе темный
-        return True, thresholder
-
-    # Эмпирически определенный порог для отделения фона от колб на изображении со светлым фоном
-    thresholder = cv2.inRange(hsv_image, np.array((104, 90, 0), np.uint8), np.array((120, 223, 202), np.uint8))
-    if cv2.countNonZero(thresholder) > 2 * ((height * width) - cv2.countNonZero(thresholder)):
-        # Если белые пиксели занимают больше двух третей изображения, то считаем, что фон был светлым, иначе темный
-        return True, None
-    
-    return False, None
-
-
-async def preprocessing_image(image: str, light_background_flag: bool, mask: any) -> cv2.typing.MatLike:
-    '''Функция предобработки изображения'''
-    # Чтение обрезанного изображения в ч/б формате
-    gray_noise = cv2.imread(image, 0)
-    if mask is not None:
-        mask_inv = cv2.bitwise_not(mask)
-        result = cv2.bitwise_and(gray_noise, gray_noise, mask=mask_inv)
-        # Размытие фона для ч/б изображения
-        blurred = cv2.GaussianBlur(
-            result,
-            (5, 5),
-            0
-        )
-    else:
-        # Размытие фона для ч/б изображения
-        blurred = cv2.GaussianBlur(
-            gray_noise,
-            (5, 5),
-            0
-        )
-
-    # Пороговая обработка изображения
-    if light_background_flag:
-        thresholder = cv2.adaptiveThreshold(
-            blurred,
-            255,
-            cv2.ADAPTIVE_THRESH_MEAN_C,
-            cv2.THRESH_BINARY,
-            81,
-            1
-        )
-    else:
-        thresholder = cv2.threshold(
-            blurred,
-            68,
-            255,
-            cv2.THRESH_BINARY
-        )[1]
-
-    return thresholder
-
-
-async def found_rect(contour: cv2.typing.MatLike, my_list: list, height: int, width=None) -> tuple[list, np.intp]:
-    '''Функция распознавания прямоугольника'''
-    rect = cv2.minAreaRect(contour)
-    box = np.intp(cv2.boxPoints(rect))
-    if width == None:
-        if rect[1][0] >= height and rect[1][1] >= height:
-            my_list.append(rect)
-    else:
-        if (rect[2] < 30 and width <= rect[1][0] <= width * 1.75 and height <= rect[1][1] <= height * 1.75) or \
-            (rect[2] > 60 and width <= rect[1][1] <= width * 1.75 and height <= rect[1][0] <= height * 1.75):
-            # Добавляем прямоугольники с колбами в список
-            my_list.append(rect)
-
-    return my_list, box
-
-
 async def crop_rects(contours: list, cropped_image: np.ndarray, id_client: int) -> list:
     '''Функция для выделения каждой отдельной колбы или цвета в ней для распознавания цветов'''
     flasks_info = []
     for cnt in contours:
         filename = f'./tmp/{id_client}_flask_{cnt}.jpg'
-        # Взаимодействие с колбой
-        if cnt[2] > 45:
-            height_flask = [round(cnt[0][1] - cnt[1][0] / 2), round(cnt[0][1] + cnt[1][0] / 2)]
-            width_flask = [round(cnt[0][0] - cnt[1][1] / 2), round(cnt[0][0] + cnt[1][1] / 2)]
-        else:
-            height_flask = [round(cnt[0][1] - cnt[1][1] / 2), round(cnt[0][1] + cnt[1][1] / 2)]
-            width_flask = [round(cnt[0][0] - cnt[1][0] / 2), round(cnt[0][0] + cnt[1][0] / 2)]
-        flask = cropped_image[height_flask[0]:height_flask[1], width_flask[0]:width_flask[1]]
+        flask = cropped_image[cnt[1]:cnt[3], cnt[0]:cnt[2]]
         cv2.imwrite(filename, flask)
-        flasks_info.append((filename, (width_flask[1] - width_flask[0], height_flask[1] - height_flask[0])))
+        flasks_info.append(filename)
 
     return flasks_info
 
@@ -154,9 +69,11 @@ async def create_color_list(image: str) -> list:
         )
         if contours_color:
             # В случае если контур был найден, определяем координаты и размеры прямоугольника с цветом
-            color = []
+            color_coords = []
             for cnt in contours_color:
-                color_coords, _ = await found_rect(cnt, color, height_color)
+                rect = cv2.minAreaRect(cnt)
+                if rect[1][0] >= height_color and rect[1][1] >= height_color:
+                    color_coords.append(rect)
             for cnt in color_coords:
                 # Исключаем наложение прямоугольников друг на друга
                 add_flag = True
@@ -232,45 +149,23 @@ async def create_color_list(image: str) -> list:
 
 async def sorted_flasks(flasks_id_list: list) -> list:
     '''Пользовательская функция для сортировки колб в нужном порядке'''
-    min_coord = min(
-        flasks_id_list,
-        key=lambda
-        item:
-        item[0][1]
-    )[0][1]
-    max_flask_height = max(
-        flasks_id_list,
-        key=lambda
-        item:
-        item[1][0]
-    )[1][0]
-    layer_height = max_flask_height * 1.55
-    sorted_flask_list, layer_1, layer_2, layer_3 = [], [], [], []
-    
-    for coord_flask in flasks_id_list:
-        number_layer = round((coord_flask[0][1] - min_coord) / layer_height)
-        if number_layer == 0:
-            layer_1.append(coord_flask)
-        elif number_layer == 1:
-            layer_2.append(coord_flask)
-        elif number_layer == 2:
-            layer_3.append(coord_flask)
-    
-    if len(layer_1) != 0:
-        layer_1 = sorted(layer_1)
-    if len(layer_2) != 0:
-        layer_2 = sorted(layer_2)
-    if len(layer_3) != 0:
-        layer_3 = sorted(layer_3)
+    sorted_flasks_list = []
+    flasks_id_list.sort(key=lambda item: item[1])
+    layer = []
+    for flask in flasks_id_list:
+        if not layer:
+            layer.append(flask)
+        else:
+            if flask[1] - layer[0][1] < 25:
+                layer.append(flask)
+            else:
+                layer.sort()
+                sorted_flasks_list += layer.copy()
+                layer.clear()
+                layer.append(flask)
+    sorted_flasks_list += layer.copy()
 
-    for element in layer_1:
-        sorted_flask_list.append(element)
-    for element in layer_2:
-        sorted_flask_list.append(element)
-    for element in layer_3:
-        sorted_flask_list.append(element)
-
-    return sorted_flask_list
+    return sorted_flasks_list
 
 
 async def replace_undefined(flasks_id_list: list) -> dict:
@@ -298,64 +193,28 @@ async def replace_undefined(flasks_id_list: list) -> dict:
 
 
 async def found_colors_in_flasks(image_for_search: str, id_client: int, reload_image=False) -> tuple[dict, list]:
-    '''
-    Основная функция для распознавания цветов на картинке и добавления их в массив
-    В ходе тестирования на разных разрешениях экрана были получены следующие эмпирические значения:
-    - Коэффициент отношения ширины экрана к ширине колбы (11.82)
-    - Коэффициент отношения высоты колбы к ширине колбы (3.74)
-    - Коэффициент отношения пустого пространства между слоями колб к высоте колбы (0.4)
-    - Коэффициент отношения высоты нижнего слоя кнопок к ширине колбы (1)
-    - Эмпирическая формула для определения рамки с колбами по которой надо обрезать:
-        - Для дисплеев с коэффициентом отношения высоты к ширине >= 2.0:
-            Высота колбы = Ширина экрана / коэффициент ширины экрана и колбы * коэффициент высоты колбы к ширине
-            Высота колбы * (максимальное количество слоев колб (3) + количество пустых пространств (4) * коэффициент высот колбы и пустого простарнства)
-        - Для дисплеев с коэффициентом отношения высоты к ширине < 2.0:
-            Высота колбы = Ширина экрана / коэффициент ширины экрана и колбы * коэффициент высоты колбы к ширине
-            Высота колбы * (максимальное количество слоев колб (3) + количество пустых пространств (3) * коэффициент высот колбы и пустого простарнства)
-    - Высота нижнего отступа до начала рамки с колбами (3.5 или 4.5 (для коэффициента отношения сторон >= 2) высоты нижних кнопок)
-    '''
+    '''Основная функция для распознавания цветов на картинке и добавления их в массив'''
     # Чтение изображения в цветном формате
     original_image = cv2.imread(image_for_search)
-    # Получение параметров размера изображения и вывод параметров обрезки
-    height, width, _ = original_image.shape
-    # Задаем эмпирически полученные коэффициенты отношения высоты и ширины экрана к высоте и ширине колбы
-    width_flask = round(width / 11.82)
-    height_flask = round(width_flask * 3.74)
-    if reload_image == False:
-        if height / width < 2:
-            flasks_frame = round(height_flask * 4.2)
-            indent_down = round(width_flask * 3.5)
-        else:
-            flasks_frame = round(height_flask * 4.6)
-            indent_down = round(width_flask * 4.5)
-        cropped_height = [round(height - indent_down - flasks_frame), round(height - indent_down)]
-    else:
-        cropped_height = [0, height]
-    # Обрзка изображения под определенные границы (чтобы были видны только колбы)
-    cropped_image = original_image[cropped_height[0]:cropped_height[1], 0:width]
-    cv2.imwrite(image_for_search, cropped_image)
-    # Предобработка начального изображения после кропа
-    # Определение яркости заднего фона для корректировки порога для обработки
-    light_background_flag, mask = await check_background(image_for_search)
-    # Определение контуров элементов и их отрисовка на цветном изображении
-    contours_of_flasks, _ = cv2.findContours(
-        await preprocessing_image(image_for_search, light_background_flag, mask),
-        cv2.RETR_TREE,
-        cv2.CHAIN_APPROX_SIMPLE
-    )
 
+    boxes = model(image_for_search)[0].boxes
     flasks = [] # Список прямоугольников-колб
-    # Проходим по всем контурам и подсвечиваем прямоугольники целых колб
-    for contour in contours_of_flasks:
-        # Определение границ прямоугольников и добавление цвета прямоугольника в список
-        flasks, _ = await found_rect(contour, flasks, height_flask, width_flask)
+
+    for box in boxes:
+        x1, y1, x2, y2 = map(int, box.xyxy[0])
+        w, h = x2 - x1, y2 - y1
+        ratio = h / w
+        
+        if 3 < ratio < 4:
+            flasks.append([x1, y1, x2, y2])
+
     flasks = await sorted_flasks(flasks)
-    images_of_flasks = await crop_rects(flasks, cropped_image, id_client)
+    images_of_flasks = await crop_rects(flasks, original_image, id_client)
 
     flasks_id_list = []    # Список цветов в колбах
     for images_contour in images_of_flasks:
         # Находим контуры цветов внутри каждой колбы
-        colors_list = await create_color_list(images_contour[0])
+        colors_list = await create_color_list(images_contour)
         if colors_list:
             colors = []
             for color in colors_list:
@@ -368,7 +227,7 @@ async def found_colors_in_flasks(image_for_search: str, id_client: int, reload_i
 
     # Удаление всех временных файлов для экономии места
     for flask_info in images_of_flasks:
-        os.remove(flask_info[0])
+        os.remove(flask_info)
 
     return await replace_undefined(flasks_id_list), flasks_id_list
 

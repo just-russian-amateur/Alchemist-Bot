@@ -2,6 +2,7 @@ from redis import asyncio as aioredis
 from apscheduler.schedulers.asyncio import AsyncIOScheduler
 from apscheduler.jobstores.redis import RedisJobStore
 from pytz import utc
+from ultralytics import YOLO
 
 
 API_TOKEN = '6987578051:AAG4TCXhhdMG1xSX2AjRJqu7Pqp4krpit_8'  # Токен для работы с API
@@ -34,3 +35,5 @@ jobstores = {'default': RedisJobStore(jobs_key='attempts.jobs', run_times_key='a
 redis = aioredis.Redis()
 # Подключаем расписание
 scheduler = AsyncIOScheduler(jobstores=jobstores, timezone=utc)
+# Подключение модели YOLO11X для поиска колб на изображении
+model = YOLO("best.pt")

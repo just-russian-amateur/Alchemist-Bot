@@ -9,7 +9,36 @@ import classes.all_my_classes as amc
 
 import asyncio
 import shutil
+import json
 import os
+
+
+logger = amc.ConfigLogger(__name__)
+
+
+async def recovery_attempts():
+    '''Функция для восстановления количества бесплатных попыток для всех пользователей сразу (кроме друзей)'''
+    # Получаем списки id друзей и всех игроков
+    with open('id_friends.txt', 'r') as id_friends:
+        friends = list(int(friend.split('\n')[0]) for friend in id_friends.readlines())
+
+    async for key in config.redis.scan_iter("fsm:*:*:data"):
+        # Пропускаем пользователей из списка друзей
+        user_id = int(key.decode().split(':')[1])
+        if user_id in friends:
+            continue
+
+        # Получаем строку с переменными для пользователя
+        value = await config.redis.get(key)
+        if value:
+            try:
+                # Парсим строку на отдельные параметры и восстанавливаем попытки
+                data = json.loads(value)
+                data['count_free_attempts'] = 5
+                await config.redis.set(key, json.dumps(data))
+                logger.log_info(f'Попытки для пользователя {user_id} восстановлены')
+            except:
+                logger.log_error(f'Ошибка при восстановлении попыток для пользователя {user_id}')
 
 
 async def clue(bot: Bot):
@@ -43,7 +72,6 @@ async def main():
     if not os.path.isfile('id_users.txt'):
         open('id_users.txt', 'a').close()
 
-    logger = amc.ConfigLogger(__name__)
     # Логгируем предупреждение, если свободного места меньше 0.2 Гб
     if free_space < 0.2:
         logger.log_warning(f'Заканчивается свободное место на диске, осталось свободно: {free_space} Гб')
@@ -53,6 +81,19 @@ async def main():
     dp = Dispatcher(storage=storage)
     bot = Bot(token=config.API_TOKEN)
 
+    # Добавляем задачу в расписание
+    saved_jobs = config.scheduler.get_jobs()
+    if saved_jobs:
+        is_active_job = False
+        for job in saved_jobs:
+            if job.name == 'recovery_attempts':
+                is_active_job = True
+                break
+        if not is_active_job:
+            config.scheduler.add_job(recovery_attempts, 'cron', month='*', misfire_grace_time=300)
+    else:
+        config.scheduler.add_job(recovery_attempts, 'cron', month='*', misfire_grace_time=300)
+    
     dp.startup.register(clue)
     dp.include_routers(send_welcome.rtr, account.rtr, faq.rtr, terms.rtr, support.rtr, start_solving.rtr, payment.rtr, get_image.rtr, autofill.rtr, fill_undefined_colors.rtr, check_updates.rtr)
     

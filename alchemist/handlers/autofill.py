@@ -77,10 +77,10 @@ async def reply(callback: CallbackQuery, bot: Bot, state: FSMContext, flasks_id_
         await state.set_state(amc.SolveFlasks.set_color)
     
         # Отнимаем попытку у пользователя только после того, как он получил решение или получил в ответ, что решения нет
-        if data['count_free_attempts'] > 0 and not isnan(data['count_free_attempts']):
-            await state.update_data(count_free_attempts=data['count_free_attempts'] - 1)
-        else:
-            if not isnan(data['count_paid_attempts']):
+        if not isnan(data['count_paid_attempts']) and not isnan(data['count_free_attempts']):
+            if data['count_free_attempts'] > 0:
+                await state.update_data(count_free_attempts=data['count_free_attempts'] - 1)
+            else:
                 await state.update_data(count_paid_attempts=data['count_paid_attempts'] - 1)
 
 

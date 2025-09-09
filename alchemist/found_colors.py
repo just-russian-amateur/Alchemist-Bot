@@ -159,11 +159,10 @@ async def sorted_flasks(flasks_id_list: list) -> list:
             if flask[1] - layer[0][1] < 25:
                 layer.append(flask)
             else:
-                layer.sort()
-                sorted_flasks_list += layer.copy()
+                sorted_flasks_list += layer.sort().copy()
                 layer.clear()
                 layer.append(flask)
-    sorted_flasks_list += layer.copy()
+    sorted_flasks_list += layer.sort()
 
     return sorted_flasks_list
 
@@ -192,7 +191,7 @@ async def replace_undefined(flasks_id_list: list) -> dict:
     return added_colors
 
 
-async def found_colors_in_flasks(image_for_search: str, id_client: int, reload_image=False) -> tuple[dict, list]:
+async def found_colors_in_flasks(image_for_search: str, id_client: int) -> tuple[dict, list]:
     '''Основная функция для распознавания цветов на картинке и добавления их в массив'''
     # Чтение изображения в цветном формате
     original_image = cv2.imread(image_for_search)

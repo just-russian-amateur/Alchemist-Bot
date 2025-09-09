@@ -159,10 +159,12 @@ async def sorted_flasks(flasks_id_list: list) -> list:
             if flask[1] - layer[0][1] < 25:
                 layer.append(flask)
             else:
-                sorted_flasks_list += layer.sort().copy()
+                layer.sort()
+                sorted_flasks_list += layer.copy()
                 layer.clear()
                 layer.append(flask)
-    sorted_flasks_list += layer.sort()
+    layer.sort()
+    sorted_flasks_list += layer.copy()
 
     return sorted_flasks_list
 

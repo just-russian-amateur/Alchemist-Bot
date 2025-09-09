@@ -56,7 +56,7 @@ async def fill_undef_values(callback: CallbackQuery, bot: Bot, state: FSMContext
             if isnan(free_attempts):
                 msg_text = f'Upload a new screenshot as an image, please'
             elif isnan(paid_attempts):
-                msg_text = f'Upload a new screenshot as an image, please\nNow you have an unlimited 🎟️\n*Unlimited is available within two weeks from the date of payment'
+                msg_text = f'Upload a new screenshot as an image, please\nNow you have an unlimited 🎟️\n*Unlimited is available within 30 days from the date of payment'
             elif paid_attempts > 0 and free_attempts > 0:
                 msg_text = f'Upload a new screenshot as an image, please\nNow you have:\nFree 🎟️: {free_attempts}\nPaid 🎟️: {paid_attempts}'
             elif paid_attempts == 0 and free_attempts > 0:

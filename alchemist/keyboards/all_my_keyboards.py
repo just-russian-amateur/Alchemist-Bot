@@ -169,9 +169,9 @@ def pay_attempts():
         [
             InlineKeyboardButton(text='💰Buy 20🎟️ for 150⭐', callback_data='20_attempts')
         ],
-        # [
-        #     InlineKeyboardButton(text='💰Buy unlimited🎟️ for 250⭐', callback_data='unlimited_attempts')
-        # ],
+        [
+            InlineKeyboardButton(text='💰Buy unlimited🎟️ for 350⭐', callback_data='unlimited_attempts')
+        ],
         [
             InlineKeyboardButton(text='❌Cancel', callback_data='account')
         ]

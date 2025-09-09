@@ -41,7 +41,7 @@ async def start_solving(callback: CallbackQuery, state: FSMContext):
             if isnan(free_attempts):
                 msg_text = f"So let's get started😎\nUpload the screenshot as an image, please\nNow you have an unlimited 🎟️"
             elif isnan(paid_attempts):
-                msg_text = f"So let's get started😎\nUpload the screenshot as an image, please\nNow you have an unlimited 🎟️\n*Unlimited is available within two weeks from the date of payment"
+                msg_text = f"So let's get started😎\nUpload the screenshot as an image, please\nNow you have an unlimited 🎟️\n*Unlimited is available within 30 days from the date of payment"
             elif paid_attempts > 0 and free_attempts > 0:
                 msg_text = f"So let's get started😎\nUpload the screenshot as an image, please\nNow you have:\nFree 🎟️: {free_attempts}\nPaid 🎟️: {paid_attempts}"
             elif paid_attempts == 0 and free_attempts > 0:

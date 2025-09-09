@@ -24,15 +24,18 @@ async def my_account(message: Message, state: FSMContext):
         if isnan(all_users['count_paid_attempts']):
             paid_attempts = "unlimited"
             added_text = f"\n<i><b>🗓️Unlimited plan end date:</b> {all_users['end_unlimited']}</i>"
+            await message.answer(
+                f"🔐<b>Your personal account</b>\n\n👤<b>Username:</b> {message.from_user.full_name}\n🆔<b>ID:</b> {message.from_user.id}\n\n<b>Free 🎟️:</b> {all_users['count_free_attempts']}\n{free_attempts_note}<b>Paid 🎟️:</b> {paid_attempts}{added_text}\n\nYou can continue by clicking one of the buttons below",
+                parse_mode='HTML',
+                reply_markup=account(True)
+            )
         else:
             paid_attempts = all_users['count_paid_attempts']
-            added_text = ""
-
-        await message.answer(
-            f"🔐<b>Your personal account</b>\n\n👤<b>Username:</b> {message.from_user.full_name}\n🆔<b>ID:</b> {message.from_user.id}\n\n<b>Free 🎟️:</b> {all_users['count_free_attempts']}\n{free_attempts_note}<b>Paid 🎟️:</b> {paid_attempts}{added_text}\n\nYou can continue by clicking one of the buttons below",
-            parse_mode='HTML',
-            reply_markup=account(False)
-        )
+            await message.answer(
+                f"🔐<b>Your personal account</b>\n\n👤<b>Username:</b> {message.from_user.full_name}\n🆔<b>ID:</b> {message.from_user.id}\n\n<b>Free 🎟️:</b> {all_users['count_free_attempts']}\n{free_attempts_note}<b>Paid 🎟️:</b> {paid_attempts}\n\nYou can continue by clicking one of the buttons below",
+                parse_mode='HTML',
+                reply_markup=account(False)
+            )
     else:
         free_attempts_note = '<i><b>❗You have an unlimited 🎟️ forever</b></i>\n'
         await message.answer(
@@ -62,15 +65,18 @@ async def my_account(callback: CallbackQuery, state: FSMContext):
         if isnan(attempts['count_paid_attempts']):
             paid_attempts = "unlimited"
             added_text = f"\n<i><b>🗓️Unlimited plan end date:</b> {attempts['end_unlimited']}</i>"
+            await callback.message.edit_text(
+                f"🔐<b>Your personal account</b>\n\n👤<b>Username:</b> {callback.from_user.full_name}\n🆔<b>ID:</b> {callback.from_user.id}\n\n<b>Free 🎟️:</b> {attempts['count_free_attempts']}\n{free_attempts_note}<b>Paid 🎟️:</b> {paid_attempts}{added_text}\n\nYou can continue by clicking one of the buttons below",
+                parse_mode='HTML',
+                reply_markup=account(True)
+            )
         else:
             paid_attempts = attempts['count_paid_attempts']
-            added_text = ""
-
-        await callback.message.edit_text(
-            f"🔐<b>Your personal account</b>\n\n👤<b>Username:</b> {callback.from_user.full_name}\n🆔<b>ID:</b> {callback.from_user.id}\n\n<b>Free 🎟️:</b> {attempts['count_free_attempts']}\n{free_attempts_note}<b>Paid 🎟️:</b> {paid_attempts}{added_text}\n\nYou can continue by clicking one of the buttons below",
-            parse_mode='HTML',
-            reply_markup=account(False)
-        )
+            await callback.message.edit_text(
+                f"🔐<b>Your personal account</b>\n\n👤<b>Username:</b> {callback.from_user.full_name}\n🆔<b>ID:</b> {callback.from_user.id}\n\n<b>Free 🎟️:</b> {attempts['count_free_attempts']}\n{free_attempts_note}<b>Paid 🎟️:</b> {paid_attempts}\n\nYou can continue by clicking one of the buttons below",
+                parse_mode='HTML',
+                reply_markup=account(False)
+            )
     else:
         free_attempts_note = '<i><b>❗You have an unlimited 🎟️ forever</b></i>\n'
         await callback.message.edit_text(

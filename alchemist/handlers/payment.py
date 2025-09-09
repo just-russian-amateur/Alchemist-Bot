@@ -1,7 +1,6 @@
 from aiogram import Router, F  # Подключение библиотек
 from aiogram.types import Message, CallbackQuery, LabeledPrice, PreCheckoutQuery
 from aiogram.fsm.context import FSMContext
-from aiogram.fsm.storage.redis import RedisStorage
 
 from math import nan, isnan
 
@@ -12,18 +11,30 @@ from config import scheduler, redis
 import asyncio
 from datetime import datetime, timedelta
 from pytz import utc
+import json
 
 
 rtr = Router()
 logger = amc.ConfigLogger(__name__)
 
 
-async def reset_unlimited_attempts(user_id):
+async def reset_unlimited_attempts(user_id: int):
     '''Функция сброса безлимита'''
-    storage = RedisStorage(redis=redis)
-    key = amc.UserKey(user_id)
-    state = FSMContext(storage=storage, key=key)
-    await state.update_data(count_paid_attempts=0)
+    # Пропускаем пользователей из списка друзей
+    key = f"fsm:{user_id}:{user_id}:data"
+    target_user = int(key.split(':')[1])
+
+    # Получаем строку с переменными для пользователя
+    value = await redis.get(key)
+    if value:
+        try:
+            # Парсим строку на отдельные параметры и сбрасываем безлимит
+            data = json.loads(value)
+            data['count_paid_attempts'] = 0
+            await redis.set(key, json.dumps(data))
+            logger.log_info(f'Безлимит для пользователя {target_user} обнулен')
+        except:
+            logger.log_error(f'Ошибка при обнулении безлимита для пользователя {target_user}')
 
 
 @rtr.callback_query(
@@ -53,7 +64,7 @@ async def payment(callback: CallbackQuery, state: FSMContext):
             LabeledPrice(label='20 attempts', amount=150)
         ],
         [
-            LabeledPrice(label='Unlimited attempts', amount=250)
+            LabeledPrice(label='Unlimited attempts', amount=350)
         ]
     ]
     
@@ -67,7 +78,7 @@ async def payment(callback: CallbackQuery, state: FSMContext):
         attempts_info = ('Please pay for 20🎟️', Prices[2], '💰Pay 150⭐')
         await state.update_data(add_attempts=20)
     elif callback.data == 'unlimited_attempts':
-        attempts_info = ('Please pay for unlimited 🎟️ (unlimited is available within two weeks from the date of payment)', Prices[3], '💰Pay 250⭐')
+        attempts_info = ('Please pay for unlimited 🎟️ (unlimited is available within 30 days from the date of payment)', Prices[3], '💰Pay 350⭐')
         await state.update_data(add_attempts=nan)
     
     await callback.message.answer_invoice(
@@ -96,20 +107,11 @@ async def succesful_payment(message: Message, state: FSMContext):
     paid_attempts = attemptes['count_paid_attempts']
     if isnan(add_attempts):
         paid_attempts = nan
-        # Добавляем расписание с бесконечным количеством попыток на 14 дней
+        # Добавляем расписание с бесконечным количеством попыток на 30 дней
         now = datetime.now(tz=utc)
-        run_date = now + timedelta(days=14)
+        run_date = now + timedelta(days=30)
 
         scheduler.add_job(reset_unlimited_attempts, 'date', run_date=run_date, args=(message.from_user.id,), misfire_grace_time=300)
-        # Удаление дубликатов задачи
-        if len(scheduler.get_jobs()) > 1:
-            cnt = 0
-            for job in scheduler.get_jobs():
-                if job.name == 'reset_unlimited_attempts':
-                    cnt += 1
-                if cnt > 1:
-                    scheduler.remove_job(job.id)
-                    cnt -= 1
         await state.update_data(end_unlimited=run_date.isoformat(" ", "minutes"))
     else:
         paid_attempts += add_attempts

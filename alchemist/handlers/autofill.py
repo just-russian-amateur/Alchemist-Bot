@@ -122,7 +122,7 @@ async def autofill(callback: CallbackQuery, bot: Bot, state: FSMContext):
                 else:
                     if not isnan(free_attempts):
                         if isnan(paid_attempts):
-                            msg_text = f'Now you have an unlimited 🎟️\n*Unlimited is available within two weeks from the date of payment'
+                            msg_text = f'Now you have an unlimited 🎟️\n*Unlimited is available within 30 days from the date of payment'
                         elif paid_attempts > 0 and free_attempts > 0:
                             msg_text = f'Now you have:\nFree 🎟️: {free_attempts}\nPaid 🎟️: {paid_attempts}'
                         elif paid_attempts == 0 and free_attempts > 0:

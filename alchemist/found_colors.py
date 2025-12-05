@@ -9,8 +9,10 @@ class BreakAction(Exception):
     pass
 
 
-# Вместо строк с названиями цветов используются индексы (19 = 'UNDEFINED', 20 = 'EMPTY' - зарезервированные индексы)
+# Вместо строк с названиями цветов используются индексы
 # Последние 5 цветов были добавлены позже
+UNDEFINED = 30
+EMPTY = 31
 variations = {
     'LIGHT BLUE': (0, (np.array((30, 50, 210), np.uint8), np.array((106, 255, 255), np.uint8)), (224, 161, 103)),
     'ORANGE': (1, (np.array((0, 165, 203), np.uint8), np.array((19, 255, 255), np.uint8)), (68, 144, 226)),
@@ -23,14 +25,24 @@ variations = {
     'PINK': (8, (np.array((140, 0, 197), np.uint8), np.array((154, 255, 255), np.uint8)), (219, 153, 212)),
     'PEACH': (9, (np.array((140, 88, 183), np.uint8), np.array((195, 255, 255), np.uint8)), (128, 109, 218)),
     'CREAM': (10, (np.array((0, 0, 241), np.uint8), np.array((20, 255, 255), np.uint8)), (194, 218, 248)),
-    'PURPLE': (11, (np.array((131, 157, 186), np.uint8), np.array((255, 255, 255), np.uint8)), (201, 64, 132)),
+    'PURPLE': (11, (np.array((131, 157, 192), np.uint8), np.array((255, 255, 255), np.uint8)), (201, 64, 132)),
     'GRAY': (12, (np.array((0, 0, 94), np.uint8), np.array((255, 29, 116), np.uint8)), (109, 107, 106)),
     'LILAC': (13, (np.array((117, 155, 136), np.uint8), np.array((125, 255, 255), np.uint8)), (187, 62, 71)),
     'LIME': (14, (np.array((70, 135, 70), np.uint8), np.array((81, 255, 255), np.uint8)), (106, 203, 52)),
-    'MOSS': (15, (np.array((50, 135, 57), np.uint8), np.array((68, 255, 95), np.uint8)), (27, 87, 16)),
+    'MOSS': (15, (np.array((50, 135, 57), np.uint8), np.array((68, 255, 138), np.uint8)), (27, 87, 16)),
     'BROWN': (16, (np.array((12, 149, 82), np.uint8), np.array((23, 255, 132), np.uint8)), (23, 76, 119)),
     'CRIMSON': (17, (np.array((145, 199, 55), np.uint8), np.array((160, 255, 168), np.uint8)), (122, 5, 162)),
-    'COCOA': (18, (np.array((0, 90, 184), np.uint8), np.array((10, 141, 255), np.uint8)), (111, 138, 202))
+    'COCOA': (18, (np.array((0, 90, 184), np.uint8), np.array((10, 141, 255), np.uint8)), (111, 138, 202)),
+    'SWAMP': (20, (np.array((17, 106, 114), np.uint8), np.array((27, 255, 169), np.uint8)), (29, 101, 135)),
+    'PLATINUM': (21, (np.array((0, 0, 123), np.uint8), np.array((255, 36, 188), np.uint8)), (146, 148, 148)),
+    'DARK BLUE': (22, (np.array((115, 108, 105), np.uint8), np.array((130, 191, 151), np.uint8)), (128, 42, 50)),
+    'PALE BLUE': (23, (np.array((100, 0, 141), np.uint8), np.array((113, 187, 215), np.uint8)), (201, 125, 59)),
+    'PALE GREEN': (24, (np.array((44, 23, 130), np.uint8), np.array((71, 121, 181), np.uint8)), (92, 157, 101)),
+    'PALE PINK': (25, (np.array((151, 32, 97), np.uint8), np.array((172, 112, 255), np.uint8)), (228, 151, 242)),
+    'DIRTY CREAM': (26, (np.array((16, 76, 172), np.uint8), np.array((30, 142, 255), np.uint8)), (109, 174, 219)),
+    'AQUA': (27, (np.array((73, 58, 141), np.uint8), np.array((98, 255, 255), np.uint8)), (197, 202, 87)),
+    'DIRTY PURPLE': (28, (np.array((135, 69, 47), np.uint8), np.array((155, 255, 181), np.uint8)), (161, 2, 158)),
+    'DIRTY CRIMSON': (29, (np.array((160, 75, 122), np.uint8), np.array((179, 184, 212), np.uint8)), (104, 61, 188))
 }
 
 
@@ -134,7 +146,7 @@ async def create_color_list(image: str) -> list:
             previous_coord = colors_info[idx_line - 1][1][1] - colors_info[idx_line - 1][2][previos_idx_height] / 2
             current_coord = colors_info[idx_line][1][1] + colors_info[idx_line][2][current_idx_height] / 2
             if previous_coord - current_coord > min_color_rect:
-                colors_info.insert(idx_line, [19, (0, colors_info[idx_line][1][1] + 1), (0, 0), 0])
+                colors_info.insert(idx_line, [UNDEFINED, (0, colors_info[idx_line][1][1] + 1), (0, 0), 0])
                 idx_line += 1
             idx_line += 1
 
@@ -142,7 +154,7 @@ async def create_color_list(image: str) -> list:
     if len(colors_info) < 4 and len(colors_info) > 0: 
         # Добавляем неопределившиеся значения список цветов в колбе
         for _ in range(4 - len(colors_info)):
-            colors_info.insert(0, [19, (0, height), (0, 0), 0])
+            colors_info.insert(0, [UNDEFINED, (0, height), (0, 0), 0])
     
     return colors_info
 
@@ -179,7 +191,7 @@ async def replace_undefined(flasks_id_list: list) -> dict:
     added_colors = dict()
     for key in colors_dict.keys():
         if colors_dict[key] < 4:
-            if key != 19:
+            if key != UNDEFINED:
                 added_colors[key] = int(4 - colors_dict[key])
     
     # Случай, когда пользователь еще не открыл все варианты цветов хотя бы в одном экземпляре
@@ -224,7 +236,7 @@ async def found_colors_in_flasks(image_for_search: str, id_client: int) -> tuple
     
     # Вручную добавляем 2 пустые колбы
     for _ in range(2):
-        flasks_id_list.append([20, 20, 20, 20])
+        flasks_id_list.append([EMPTY, EMPTY, EMPTY, EMPTY])
 
     # Удаление всех временных файлов для экономии места
     for flask_info in images_of_flasks:
@@ -238,7 +250,7 @@ async def replace_in_list(flasks_id_list: list, color_id: int) -> list:
     try:
         for flask in flasks_id_list:
             for color in range(len(flask)):
-                if flask[color] == 19:
+                if flask[color] == UNDEFINED:
                     flask[color] = color_id
                     raise BreakAction
     except BreakAction:
@@ -283,7 +295,7 @@ async def create_image_for_replace(flasks_id_list: list, id_client: int):
         for color in range(len(flasks_id_list[colors])):
             circle_x, circle_y = flasks_centers[colors][0], y2 - (y2 - y1) * (2 * color + 1) / 8
             for variation in variations.values():
-                if flasks_id_list[colors][color] == 19:
+                if flasks_id_list[colors][color] == UNDEFINED:
                     cnt_undef += 1
                     if cnt_undef == 1:
                         color_circle = cv2.circle(template, (int(circle_x), int(circle_y)), 47, (0, 255, 0), 6)
@@ -300,11 +312,11 @@ async def create_image_for_replace(flasks_id_list: list, id_client: int):
 async def add_empty_flask(flasks_id_list: list, idx_segment: int) -> list:
     '''Функция для добавления пустой части колбы в конец'''
     if idx_segment == 1:
-        flasks_id_list.append([20])
+        flasks_id_list.append([EMPTY])
     else:
         flasks_id_list.pop()
         new_segment = []
         for _ in range(idx_segment):
-            new_segment.append(20)
+            new_segment.append(EMPTY)
         flasks_id_list.append(new_segment)
     return flasks_id_list

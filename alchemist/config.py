@@ -26,7 +26,17 @@ color_variations = {
     15: 'MOSS',
     16: 'BROWN',
     17: 'CRIMSON',
-    18: 'COCOA'
+    18: 'COCOA',
+    19: 'SWAMP',
+    20: 'PLATINUM',
+    21: 'DARK BLUE',
+    22: 'PALE BLUE',
+    23: 'PALE GREEN',
+    24: 'PALE PINK',
+    25: 'DIRTY CREAM',
+    26: 'AQUA',
+    27: 'DIRTY PURPLE',
+    28: 'DIRTY CRIMSON'
 }
 
 # Создание RedisJobStore

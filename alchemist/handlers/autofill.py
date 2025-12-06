@@ -9,7 +9,7 @@ from random import shuffle
 
 import classes.all_my_classes as amc
 from keyboards.all_my_keyboards import autofill_buttons, autofill_options, no_result, upload_new, pay_attempts
-from found_colors import replace_in_list, create_image_for_replace, add_empty_flask, BreakAction, UNDEFINED
+from found_colors import replace_in_list, create_image_for_replace, add_empty_flask, BreakAction, EMPTY
 from transfusion_of_liquids import transfusion_manage
 
 from itertools import permutations
@@ -243,7 +243,7 @@ async def autofill(callback: CallbackQuery, bot: Bot, state: FSMContext):
             try:
                 for flask in autofill_flasks_id_list:
                     for color in range(len(flask) - 1):
-                        if flask[color] == flask[color + 1] and flask[color] != UNDEFINED:
+                        if flask[color] == flask[color + 1] and flask[color] != EMPTY:
                             raise BreakAction
                 unique_sequence = True
             except BreakAction:

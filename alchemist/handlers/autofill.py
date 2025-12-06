@@ -8,9 +8,8 @@ from math import isnan
 from random import shuffle
 
 import classes.all_my_classes as amc
-import found_colors
 from keyboards.all_my_keyboards import autofill_buttons, autofill_options, no_result, upload_new, pay_attempts
-from found_colors import replace_in_list, create_image_for_replace, add_empty_flask, BreakAction
+from found_colors import replace_in_list, create_image_for_replace, add_empty_flask, BreakAction, UNDEFINED
 from transfusion_of_liquids import transfusion_manage
 
 from itertools import permutations

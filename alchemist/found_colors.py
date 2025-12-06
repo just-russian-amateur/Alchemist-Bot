@@ -11,8 +11,8 @@ class BreakAction(Exception):
 
 # Вместо строк с названиями цветов используются индексы
 # Последние 5 цветов были добавлены позже
-UNDEFINED = 30
-EMPTY = 31
+UNDEFINED = 29
+EMPTY = 30
 variations = {
     'LIGHT BLUE': (0, (np.array((30, 50, 210), np.uint8), np.array((106, 255, 255), np.uint8)), (224, 161, 103)),
     'ORANGE': (1, (np.array((0, 165, 203), np.uint8), np.array((19, 255, 255), np.uint8)), (68, 144, 226)),
@@ -33,16 +33,16 @@ variations = {
     'BROWN': (16, (np.array((12, 149, 82), np.uint8), np.array((23, 255, 132), np.uint8)), (23, 76, 119)),
     'CRIMSON': (17, (np.array((145, 199, 55), np.uint8), np.array((160, 255, 168), np.uint8)), (122, 5, 162)),
     'COCOA': (18, (np.array((0, 90, 184), np.uint8), np.array((10, 141, 255), np.uint8)), (111, 138, 202)),
-    'SWAMP': (20, (np.array((17, 106, 114), np.uint8), np.array((27, 255, 169), np.uint8)), (29, 101, 135)),
-    'PLATINUM': (21, (np.array((0, 0, 123), np.uint8), np.array((255, 36, 188), np.uint8)), (146, 148, 148)),
-    'DARK BLUE': (22, (np.array((115, 108, 105), np.uint8), np.array((130, 191, 151), np.uint8)), (128, 42, 50)),
-    'PALE BLUE': (23, (np.array((100, 0, 141), np.uint8), np.array((113, 187, 215), np.uint8)), (201, 125, 59)),
-    'PALE GREEN': (24, (np.array((44, 23, 130), np.uint8), np.array((71, 121, 181), np.uint8)), (92, 157, 101)),
-    'PALE PINK': (25, (np.array((151, 32, 97), np.uint8), np.array((172, 112, 255), np.uint8)), (228, 151, 242)),
-    'DIRTY CREAM': (26, (np.array((16, 76, 172), np.uint8), np.array((30, 142, 255), np.uint8)), (109, 174, 219)),
-    'AQUA': (27, (np.array((73, 58, 141), np.uint8), np.array((98, 255, 255), np.uint8)), (197, 202, 87)),
-    'DIRTY PURPLE': (28, (np.array((135, 69, 47), np.uint8), np.array((155, 255, 181), np.uint8)), (161, 2, 158)),
-    'DIRTY CRIMSON': (29, (np.array((160, 75, 122), np.uint8), np.array((179, 184, 212), np.uint8)), (104, 61, 188))
+    'SWAMP': (19, (np.array((17, 106, 114), np.uint8), np.array((27, 255, 169), np.uint8)), (29, 101, 135)),
+    'PLATINUM': (20, (np.array((0, 0, 123), np.uint8), np.array((255, 36, 188), np.uint8)), (146, 148, 148)),
+    'DARK BLUE': (21, (np.array((115, 108, 105), np.uint8), np.array((130, 191, 151), np.uint8)), (128, 42, 50)),
+    'PALE BLUE': (22, (np.array((100, 0, 141), np.uint8), np.array((113, 187, 215), np.uint8)), (201, 125, 59)),
+    'PALE GREEN': (23, (np.array((44, 23, 130), np.uint8), np.array((71, 121, 181), np.uint8)), (92, 157, 101)),
+    'PALE PINK': (24, (np.array((151, 32, 97), np.uint8), np.array((172, 112, 255), np.uint8)), (228, 151, 242)),
+    'DIRTY CREAM': (25, (np.array((16, 76, 172), np.uint8), np.array((30, 142, 255), np.uint8)), (109, 174, 219)),
+    'AQUA': (26, (np.array((73, 58, 141), np.uint8), np.array((98, 255, 255), np.uint8)), (197, 202, 87)),
+    'DIRTY PURPLE': (27, (np.array((135, 69, 47), np.uint8), np.array((155, 255, 181), np.uint8)), (161, 2, 158)),
+    'DIRTY CRIMSON': (28, (np.array((160, 75, 122), np.uint8), np.array((179, 184, 212), np.uint8)), (104, 61, 188))
 }
 
 

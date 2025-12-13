@@ -6,7 +6,6 @@ from aiogram.utils.chat_action import ChatActionSender
 from math import isnan
 
 from found_colors import replace_in_list, create_image_for_replace
-import config
 import classes.all_my_classes as amc
 from keyboards.all_my_keyboards import colors, pay_attempts
 from handlers.autofill import reply
@@ -24,8 +23,8 @@ logger = amc.ConfigLogger(__name__)
     F.data.in_(
         [
             "0", "1", "2", "3", "4", "5", "6", "7", "8", "9", "10", "11", "12", "13",
-            "14", "15", "16", "17", "18", "19", "20", "21", "22", "23", "24", "25",
-            "26", "27", "28", 'upload_new_image', 'manually', 'no'
+            "14", "15", "16", "17", "18", "19", "20", "21", "22", "23", "24",
+            'upload_new_image', 'manually', 'no'
         ]
     )
 )
@@ -118,23 +117,19 @@ async def fill_undef_values(callback: CallbackQuery, bot: Bot, state: FSMContext
     edit_undef_colors, edit_flasks_id_list = props['edit_undefined_colors'], props['edit_flasks_id_list']
     # Удаление цвета нажатой кнопки из словаря и замена неопределенного цвета цветом кнопки
     if edit_undef_colors:
-        for variation in config.color_variations.keys():
-            if int(callback.data) == variation:
-                edit_undef_colors[str(variation)] -= 1
-                if edit_undef_colors[str(variation)] == 0:
-                    edit_undef_colors.pop(str(variation))
-                edit_flasks_id_list = await replace_in_list(flasks_id_list=edit_flasks_id_list, color_id=variation)
-                break
+        edit_undef_colors[callback.data] -= 1
+        if edit_undef_colors[callback.data] == 0:
+            edit_undef_colors.pop(callback.data)
+        edit_flasks_id_list = await replace_in_list(flasks_id_list=edit_flasks_id_list, color_id=int(callback.data))
         await state.update_data(edit_undefined_colors=edit_undef_colors)
         await state.update_data(edit_flasks_id_list=edit_flasks_id_list)
 
     # Автозаполнение цвета, если остался только один неопределенный
     if len(edit_undef_colors) == 1:
-        for variation in edit_undef_colors:
-            while edit_undef_colors[variation] != 0:
-                edit_undef_colors[variation] -= 1
-                edit_flasks_id_list = await replace_in_list(flasks_id_list=edit_flasks_id_list, color_id=int(variation))
-        edit_undef_colors.pop(variation)
+        while edit_undef_colors[list(edit_undef_colors.keys())[0]] != 0:
+            edit_undef_colors[list(edit_undef_colors.keys())[0]] -= 1
+            edit_flasks_id_list = await replace_in_list(flasks_id_list=edit_flasks_id_list, color_id=int(list(edit_undef_colors.keys())[0]))
+        edit_undef_colors.pop(list(edit_undef_colors.keys())[0])
         await state.update_data(edit_undefined_colors=edit_undef_colors)
         await state.update_data(edit_flasks_id_list=edit_flasks_id_list)
 

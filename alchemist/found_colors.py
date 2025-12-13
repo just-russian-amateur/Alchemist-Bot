@@ -1,7 +1,6 @@
 '''Этот модуль отвечает за поиск и распознавание цветов в каждой колбе'''
 import cv2
 import numpy as np
-import os
 from config import model
 
 
@@ -11,152 +10,81 @@ class BreakAction(Exception):
 
 # Вместо строк с названиями цветов используются индексы
 # Последние 5 цветов были добавлены позже
-UNDEFINED = 29
-EMPTY = 30
+UNDEFINED = 25
+EMPTY = 26
 variations = {
     'LIGHT BLUE': (0, (np.array((30, 50, 210), np.uint8), np.array((106, 255, 255), np.uint8)), (224, 161, 103)),
-    'ORANGE': (1, (np.array((0, 165, 203), np.uint8), np.array((19, 255, 255), np.uint8)), (68, 144, 226)),
-    'YELLOW': (2, (np.array((22, 46, 192), np.uint8), np.array((34, 255, 255), np.uint8)), (64, 185, 227)),
-    'RED': (3, (np.array((0, 148, 114), np.uint8), np.array((7, 255, 255), np.uint8)), (30, 43, 173)),
-    'LIGHT GREEN': (4, (np.array((41, 0, 160), np.uint8), np.array((65, 255, 255), np.uint8)), (70, 187, 108)),
-    'BLUE': (5, (np.array((103, 181, 135), np.uint8), np.array((120, 255, 255), np.uint8)), (207, 90, 39)),
-    'BURGUNDY': (6, (np.array((158, 135, 84), np.uint8), np.array((255, 255, 127), np.uint8)), (53, 32, 95)),
-    'GREEN': (7, (np.array((86, 121, 86), np.uint8), np.array((96, 255, 255), np.uint8)), (100, 97, 46)),
-    'PINK': (8, (np.array((140, 0, 197), np.uint8), np.array((154, 255, 255), np.uint8)), (219, 153, 212)),
-    'PEACH': (9, (np.array((140, 88, 183), np.uint8), np.array((195, 255, 255), np.uint8)), (128, 109, 218)),
-    'CREAM': (10, (np.array((0, 0, 241), np.uint8), np.array((20, 255, 255), np.uint8)), (194, 218, 248)),
-    'PURPLE': (11, (np.array((131, 157, 192), np.uint8), np.array((255, 255, 255), np.uint8)), (201, 64, 132)),
-    'GRAY': (12, (np.array((0, 0, 94), np.uint8), np.array((255, 29, 116), np.uint8)), (109, 107, 106)),
-    'LILAC': (13, (np.array((117, 155, 136), np.uint8), np.array((125, 255, 255), np.uint8)), (187, 62, 71)),
+    'ORANGE': (1, (np.array((0, 136, 203), np.uint8), np.array((19, 227, 255), np.uint8)), (68, 144, 226)),
+    'YELLOW': (2, (np.array((22, 125, 192), np.uint8), np.array((34, 255, 255), np.uint8)), (64, 185, 227)),
+    'RED': (3, (np.array((0, 148, 69), np.uint8), np.array((7, 255, 255), np.uint8)), (30, 43, 173)),
+    'LIGHT GREEN': (4, (np.array((41, 0, 162), np.uint8), np.array((65, 255, 255), np.uint8)), (70, 187, 108)),
+    'BLUE': (5, (np.array((103, 183, 135), np.uint8), np.array((120, 255, 255), np.uint8)), (207, 90, 39)),
+    'BURGUNDY': (6, (np.array((167, 143, 84), np.uint8), np.array((178, 255, 127), np.uint8)), (53, 32, 95)),
+    'GREEN': (7, (np.array((86, 121, 86), np.uint8), np.array((96, 255, 100), np.uint8)), (100, 97, 46)),
+    'PINK': (8, (np.array((140, 11, 130), np.uint8), np.array((162, 173, 255), np.uint8)), (219, 153, 212)),
+    'PEACH': (9, (np.array((140, 103, 183), np.uint8), np.array((195, 191, 255), np.uint8)), (128, 109, 218)),
+    'CREAM': (10, (np.array((0, 25, 230), np.uint8), np.array((20, 82, 255), np.uint8)), (194, 218, 248)),
+    'PURPLE': (11, (np.array((131, 137, 90), np.uint8), np.array((152, 255, 255), np.uint8)), (201, 64, 132)),
+    'GRAY': (12, (np.array((0, 0, 94), np.uint8), np.array((255, 37, 152), np.uint8)), (109, 107, 106)),
+    'LILAC': (13, (np.array((117, 16, 135), np.uint8), np.array((132, 255, 255), np.uint8)), (187, 62, 71)),
     'LIME': (14, (np.array((70, 135, 70), np.uint8), np.array((81, 255, 255), np.uint8)), (106, 203, 52)),
     'MOSS': (15, (np.array((50, 135, 57), np.uint8), np.array((68, 255, 138), np.uint8)), (27, 87, 16)),
-    'BROWN': (16, (np.array((12, 149, 82), np.uint8), np.array((23, 255, 132), np.uint8)), (23, 76, 119)),
-    'CRIMSON': (17, (np.array((145, 199, 55), np.uint8), np.array((160, 255, 168), np.uint8)), (122, 5, 162)),
-    'COCOA': (18, (np.array((0, 90, 184), np.uint8), np.array((10, 141, 255), np.uint8)), (111, 138, 202)),
-    'SWAMP': (19, (np.array((17, 106, 114), np.uint8), np.array((27, 255, 169), np.uint8)), (29, 101, 135)),
-    'PLATINUM': (20, (np.array((0, 0, 123), np.uint8), np.array((255, 36, 188), np.uint8)), (146, 148, 148)),
-    'DARK BLUE': (21, (np.array((115, 108, 105), np.uint8), np.array((130, 191, 151), np.uint8)), (128, 42, 50)),
-    'PALE BLUE': (22, (np.array((100, 0, 141), np.uint8), np.array((113, 187, 215), np.uint8)), (201, 125, 59)),
-    'PALE GREEN': (23, (np.array((44, 23, 130), np.uint8), np.array((71, 121, 181), np.uint8)), (92, 157, 101)),
-    'PALE PINK': (24, (np.array((151, 32, 97), np.uint8), np.array((172, 112, 255), np.uint8)), (228, 151, 242)),
-    'DIRTY CREAM': (25, (np.array((16, 76, 172), np.uint8), np.array((30, 142, 255), np.uint8)), (109, 174, 219)),
-    'AQUA': (26, (np.array((73, 58, 141), np.uint8), np.array((98, 255, 255), np.uint8)), (197, 202, 87)),
-    'DIRTY PURPLE': (27, (np.array((135, 69, 47), np.uint8), np.array((155, 255, 181), np.uint8)), (161, 2, 158)),
-    'DIRTY CRIMSON': (28, (np.array((160, 75, 122), np.uint8), np.array((179, 184, 212), np.uint8)), (104, 61, 188))
+    'BROWN': (16, (np.array((14, 66, 65), np.uint8), np.array((23, 255, 141), np.uint8)), (23, 76, 119)),
+    'CRIMSON': (17, (np.array((153, 146, 104), np.uint8), np.array((167, 255, 255), np.uint8)), (122, 5, 162)),
+    'COCOA': (18, (np.array((0, 78, 184), np.uint8), np.array((11, 141, 255), np.uint8)), (111, 138, 202)),
+    'DARK BLUE': (19, (np.array((119, 68, 41), np.uint8), np.array((139, 173, 132), np.uint8)), (128, 42, 50)),
+    'INDIGO': (20, (np.array((105, 114, 160), np.uint8), np.array((108, 182, 205), np.uint8)), (201, 125, 59)),
+    'PALE GREEN': (21, (np.array((52, 35, 139), np.uint8), np.array((59, 120, 161), np.uint8)), (92, 157, 101)),
+    'DIRTY CREAM': (22, (np.array((16, 76, 126), np.uint8), np.array((30, 142, 246), np.uint8)), (109, 174, 219)),
+    'AQUA': (23, (np.array((80, 58, 127), np.uint8), np.array((98, 255, 255), np.uint8)), (197, 202, 87)),
+    'DARK ORANGE': (24, (np.array((9, 151, 124), np.uint8), np.array((13, 255, 213), np.uint8)), (13, 86, 207))
 }
 
 
-async def crop_rects(contours: list, cropped_image: np.ndarray, id_client: int) -> list:
-    '''Функция для выделения каждой отдельной колбы или цвета в ней для распознавания цветов'''
-    flasks_info = []
-    for cnt in contours:
-        filename = f'./tmp/{id_client}_flask_{cnt}.jpg'
-        flask = cropped_image[cnt[1]:cnt[3], cnt[0]:cnt[2]]
-        cv2.imwrite(filename, flask)
-        flasks_info.append(filename)
-
-    return flasks_info
-
-
-async def create_color_list(image: str) -> list:
+async def create_color_list(image: cv2.typing.MatLike) -> list:
     '''Функция для создания списка колб с цветами вместо числовых значений'''
-    # Более агрессивный подход для удаления ненужных шумов с изображения с использованием эрозии
-    morph_kernel = np.ones((3, 3))
-    erode_image = cv2.erode(cv2.imread(image), kernel=morph_kernel, iterations=3)
-    cv2.imwrite(image, erode_image)
-    color_pixels = cv2.imread(image)
-    height, _, _ = color_pixels.shape
-    hsv_colors = cv2.cvtColor(color_pixels, cv2.COLOR_BGR2HSV)
+    # Делим колбу на 4 равных сегмента и работаем с каждым сегментом отдельно
+    segments = []
+    height, width, _ = image.shape
+    cnt_undefined = 0
+    for i in range(3, 33, 8):
+        height_seg, width_seg = round(height*(i+2)/32) - round(height*i/32), round(width*5/8) - round(width*3/8)
 
-    colors_info, count_colors = [], []
-    # Подбор коэффициентов
-    height_color = round(height / 6.8)
-    for variation in variations.values():
-        # Проверяем пороговое значение для каждой вариации цвета на картинке и находим контуры
-        thresholder = cv2.inRange(hsv_colors, variation[1][0], variation[1][1])
-        contours_color, _ = cv2.findContours(
-            thresholder,
-            cv2.RETR_TREE,
-            cv2.CHAIN_APPROX_SIMPLE
-        )
-        if contours_color:
-            # В случае если контур был найден, определяем координаты и размеры прямоугольника с цветом
-            color_coords = []
-            for cnt in contours_color:
-                rect = cv2.minAreaRect(cnt)
-                if rect[1][0] >= height_color and rect[1][1] >= height_color:
-                    color_coords.append(rect)
-            for cnt in color_coords:
-                # Исключаем наложение прямоугольников друг на друга
-                add_flag = True
-                if len(colors_info) > 0:
-                    for add_color in colors_info:
-                        if abs(cnt[0][1] - add_color[1][1]) < height_color:
-                            add_flag = False
-                            break
-                if add_flag == True:
-                    # Добавляем в список информацию о цвете и его местоположении
-                    color_id = variation[0]
-                    colors_info.append([color_id, cnt[0], cnt[1], cnt[2]])
-                    count_colors.append([variation[0]])
-                    
-    # Поддержка 2 и более цветов друг за другом
-    if len(colors_info) > 1 and len(colors_info) < 4:
-        min_color_rect = min(
-            colors_info,
-            key=lambda
-            item:
-            item[2][0]
-        )[2][0]
-        idx_line = 0
-        while idx_line < len(colors_info):
-            idx_height = 0
-            if colors_info[idx_line][3] < 45:
-                idx_height = 1
+        segment = image[round(height*i/32):round(height*(i+2)/32), round(width*3/8):round(width*5/8)]
+        # Более агрессивный подход для удаления ненужных шумов с изображения с использованием эрозии
+        morph_kernel = np.ones((3, 3))
+        erode_image = cv2.erode(segment, kernel=morph_kernel, iterations=3)
+        hsv_colors = cv2.cvtColor(erode_image, cv2.COLOR_BGR2HSV)
 
-            if colors_info[idx_line][2][idx_height] > 3.25 * min_color_rect:
-                for _ in range(2):
-                    colors_info.insert(idx_line, colors_info[idx_line])
-                idx_line += 3
-            elif colors_info[idx_line][2][idx_height] > 1.75 * min_color_rect:
-                colors_info.insert(idx_line, colors_info[idx_line])
-                idx_line += 2
-            else:
-                idx_line += 1
+        try:
+            OK_COLOR = False
+            for variation in variations.values():
+                # Проверяем пороговое значение для каждой вариации цвета на картинке и находим контуры
+                thresholder = cv2.inRange(hsv_colors, variation[1][0], variation[1][1])
+                contours_color, _ = cv2.findContours(
+                    thresholder,
+                    cv2.RETR_TREE,
+                    cv2.CHAIN_APPROX_SIMPLE
+                )
+                if contours_color:
+                    # В случае если контур был найден, определяем координаты и размеры прямоугольника с цветом
+                    for cnt in contours_color:
+                        rect = cv2.minAreaRect(cnt)
+                        if rect[1][0] * rect[1][1] >= height_seg * width_seg * 0.51:
+                            segments.insert(0, variation[0])
+                            OK_COLOR = True
+                            raise BreakAction
+        except BreakAction:
+            pass
 
-    # Сортировка распознанных цветов
-    colors_info = sorted(
-        colors_info,
-        key=lambda
-        item:
-        item[1][1],
-        reverse=True
-    )
-
-    if len(colors_info) < 4 and len(colors_info) > 1:
-        # Добавляем функционал для донатеров (когда между двумя элементами может быть неопределенный цвет)
-        idx_line = 1
-        while idx_line < len(colors_info): 
-            current_idx_height, previos_idx_height = 0, 0
-            if colors_info[idx_line][3] < 45:
-                current_idx_height = 1
-            if colors_info[idx_line - 1][3] < 45:
-                previos_idx_height = 1
-            
-            previous_coord = colors_info[idx_line - 1][1][1] - colors_info[idx_line - 1][2][previos_idx_height] / 2
-            current_coord = colors_info[idx_line][1][1] + colors_info[idx_line][2][current_idx_height] / 2
-            if previous_coord - current_coord > min_color_rect:
-                colors_info.insert(idx_line, [UNDEFINED, (0, colors_info[idx_line][1][1] + 1), (0, 0), 0])
-                idx_line += 1
-            idx_line += 1
-
-    # Не учитываем пустые списки (пустые колбы будут добавляться отдельно)
-    if len(colors_info) < 4 and len(colors_info) > 0: 
-        # Добавляем неопределившиеся значения список цветов в колбе
-        for _ in range(4 - len(colors_info)):
-            colors_info.insert(0, [UNDEFINED, (0, height), (0, 0), 0])
+        if not OK_COLOR:
+            cnt_undefined += 1
+            segments.insert(0, UNDEFINED)
+        
+        if cnt_undefined == 4:
+            segments = [EMPTY, EMPTY, EMPTY, EMPTY]
     
-    return colors_info
+    return segments
 
 
 async def sorted_flasks(flasks_id_list: list) -> list:
@@ -205,7 +133,7 @@ async def replace_undefined(flasks_id_list: list) -> dict:
     return added_colors
 
 
-async def found_colors_in_flasks(image_for_search: str, id_client: int) -> tuple[dict, list]:
+async def found_colors_in_flasks(image_for_search: str) -> tuple[dict, list]:
     '''Основная функция для распознавания цветов на картинке и добавления их в массив'''
     # Чтение изображения в цветном формате
     original_image = cv2.imread(image_for_search)
@@ -222,25 +150,16 @@ async def found_colors_in_flasks(image_for_search: str, id_client: int) -> tuple
             flasks.append([x1, y1, x2, y2])
 
     flasks = await sorted_flasks(flasks)
-    images_of_flasks = await crop_rects(flasks, original_image, id_client)
+    flasks_info = []
+    for cnt in flasks:
+        flask = original_image[cnt[1]:cnt[3], cnt[0]:cnt[2]]
+        flasks_info.append(flask)
 
     flasks_id_list = []    # Список цветов в колбах
-    for images_contour in images_of_flasks:
+    for flask_contour in flasks_info:
         # Находим контуры цветов внутри каждой колбы
-        colors_list = await create_color_list(images_contour)
-        if colors_list:
-            colors = []
-            for color in colors_list:
-                colors.append(color[0])
-            flasks_id_list.append(colors)
-    
-    # Вручную добавляем 2 пустые колбы
-    for _ in range(2):
-        flasks_id_list.append([EMPTY, EMPTY, EMPTY, EMPTY])
-
-    # Удаление всех временных файлов для экономии места
-    for flask_info in images_of_flasks:
-        os.remove(flask_info)
+        colors_list = await create_color_list(flask_contour)
+        flasks_id_list.append(colors_list)
 
     return await replace_undefined(flasks_id_list), flasks_id_list
 
@@ -294,19 +213,17 @@ async def create_image_for_replace(flasks_id_list: list, id_client: int):
 
         for color in range(len(flasks_id_list[colors])):
             circle_x, circle_y = flasks_centers[colors][0], y2 - (y2 - y1) * (2 * color + 1) / 8
-            for variation in variations.values():
-                if flasks_id_list[colors][color] == UNDEFINED:
-                    cnt_undef += 1
-                    if cnt_undef == 1:
-                        color_circle = cv2.circle(template, (int(circle_x), int(circle_y)), 47, (0, 255, 0), 6)
-                    else:
-                        color_circle = cv2.circle(template, (int(circle_x), int(circle_y)), 47, (255, 255, 255), 6)
-                    cv2.imwrite(filename, color_circle)
-                    break
-                elif flasks_id_list[colors][color] == variation[0]:
-                    color_circle = cv2.circle(template, (int(circle_x), int(circle_y)), 47, variation[2], -1)
-                    cv2.imwrite(filename, color_circle)
-                    break
+            idx_color = flasks_id_list[colors][color]
+            if idx_color == UNDEFINED:
+                cnt_undef += 1
+                if cnt_undef == 1:
+                    color_circle = cv2.circle(template, (int(circle_x), int(circle_y)), 47, (0, 255, 0), 6)
+                else:
+                    color_circle = cv2.circle(template, (int(circle_x), int(circle_y)), 47, (255, 255, 255), 6)
+                cv2.imwrite(filename, color_circle)
+            elif idx_color < UNDEFINED:
+                color_circle = cv2.circle(template, (int(circle_x), int(circle_y)), 47, list(variations.values())[idx_color][2], -1)
+                cv2.imwrite(filename, color_circle)
 
 
 async def add_empty_flask(flasks_id_list: list, idx_segment: int) -> list:

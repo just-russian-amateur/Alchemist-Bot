@@ -35,7 +35,7 @@ async def get_photo(message: Message, bot: Bot, state: FSMContext):
     
         try:
             # Распознаем цвета и добавляем их в список
-            undef_colors, flasks_id_list = await found_colors_in_flasks(image_for_search=image_for_load, id_client=message.from_user.id)
+            undef_colors, flasks_id_list = await found_colors_in_flasks(image_for_search=image_for_load)
             await state.update_data(undefined_colors=undef_colors)
             await state.update_data(flasks_id_list=flasks_id_list)
             await state.update_data(edit_undefined_colors=undef_colors)
@@ -53,11 +53,10 @@ async def get_photo(message: Message, bot: Bot, state: FSMContext):
         
         # Автозаполнение цвета, если остался только один неопределенный
         if len(undef_colors) == 1:
-            for variation in undef_colors:
-                while undef_colors[variation] != 0:
-                    undef_colors[variation] -= 1
-                    flasks_id_list = await replace_in_list(flasks_id_list=flasks_id_list, color_id=variation)
-            undef_colors.pop(variation)
+            while undef_colors[list(undef_colors.keys())[0]] != 0:
+                undef_colors[list(undef_colors.keys())[0]] -= 1
+                flasks_id_list = await replace_in_list(flasks_id_list=flasks_id_list, color_id=list(undef_colors.keys())[0])
+            undef_colors.pop(list(undef_colors.keys())[0])
             await state.update_data(undefined_colors=undef_colors)
             await state.update_data(flasks_id_list=flasks_id_list)
 

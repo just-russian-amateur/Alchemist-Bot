@@ -116,8 +116,8 @@ async def possible_moves(position: list, last_move=None) -> list:
                     (target_upper_color[1][0] == EMPTY and len(set(solve_flask)) == 2 and EMPTY in solve_flask):
                     continue
 
-                # Избавляемся от "глупых" ходов с переливанием в ту колбу из которой выливали на прошлом ходу
-                if last_move and target_upper_color[0][0] == last_move[0][0][0] and solve_upper_color[0][0] == last_move[1][0][0]:
+                # Избавляемся от "глупых" ходов с переливанием из той колбы, в которую вливали на прошлом ходу
+                if last_move and solve_upper_color[0][0] == last_move[1][0][0]:
                     continue
 
                 # Переливание возможно только если верхние цвета совпадают или если переливаем в пустую колбу и места в целевой колбе достаточно

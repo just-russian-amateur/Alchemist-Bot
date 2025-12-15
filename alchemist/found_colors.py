@@ -20,7 +20,7 @@ variations = {
     'LIGHT GREEN': (4, (np.array((41, 0, 162), np.uint8), np.array((65, 255, 255), np.uint8)), (70, 187, 108)),
     'BLUE': (5, (np.array((103, 183, 135), np.uint8), np.array((120, 255, 255), np.uint8)), (207, 90, 39)),
     'BURGUNDY': (6, (np.array((167, 143, 84), np.uint8), np.array((178, 255, 127), np.uint8)), (53, 32, 95)),
-    'GREEN': (7, (np.array((86, 121, 86), np.uint8), np.array((96, 255, 100), np.uint8)), (100, 97, 46)),
+    'GREEN': (7, (np.array((86, 121, 86), np.uint8), np.array((96, 255, 108), np.uint8)), (100, 97, 46)),
     'PINK': (8, (np.array((140, 11, 130), np.uint8), np.array((162, 173, 255), np.uint8)), (219, 153, 212)),
     'PEACH': (9, (np.array((140, 103, 183), np.uint8), np.array((195, 191, 255), np.uint8)), (128, 109, 218)),
     'CREAM': (10, (np.array((0, 25, 230), np.uint8), np.array((20, 82, 255), np.uint8)), (194, 218, 248)),

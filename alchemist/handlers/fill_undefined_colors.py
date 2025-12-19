@@ -50,7 +50,7 @@ async def edit_image(callback: CallbackQuery, state: FSMContext, new_caption: st
             )
 
     if fill_color:
-        with open('color_examples.jpg', 'rb') as open_image:
+        with open('../color_examples.jpg', 'rb') as open_image:
             msg = await callback.message.answer_photo(
                 BufferedInputFile(
                     open_image.read(),

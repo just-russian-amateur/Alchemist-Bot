@@ -6,7 +6,7 @@ from config import color_variations
 logger = amc.ConfigLogger(__name__)
 
 
-def create_undef_buttons(color_buttons_list):
+def create_undef_buttons(color_buttons_list: list):
     '''Функция для расстановки кнопок с цветами'''
     color_buttons, button_line = [], []
     # "Красивая" расстановка кнопок
@@ -48,7 +48,7 @@ def start_keyboard():
     return kb
 
 
-def account(free_mode):
+def account(free_mode: bool):
     if free_mode == True:
         account_button = [
             [
@@ -94,7 +94,7 @@ def error_image():
     return kb
 
 
-def colors(undef_colors):
+def colors(undef_colors: dict):
     color_buttons_list = []
     # Создание списка кнопок с цветмаи, которыми можно будет заменить неопределенные значения
     for color_id in undef_colors.keys():
@@ -120,7 +120,7 @@ def feedback():
     return kb
 
 
-def upload_new(mode):
+def upload_new(mode: str):
     if mode == 'upload_new_or_reload':
         upload_new_button = [
             [
@@ -183,7 +183,7 @@ def pay_attempts():
     return kb
 
 
-def payment_kb(btn_text):
+def payment_kb(btn_text: str):
     payment_button = [
         [
             InlineKeyboardButton(text=btn_text, pay=True)
@@ -222,14 +222,66 @@ def ok():
 def recognition_check():
     check_button = [
         [
-            InlineKeyboardButton(text='Yes👍', callback_data='yes'),
-            InlineKeyboardButton(text='No, try again👎', callback_data='no')
+            InlineKeyboardButton(text='👌Confirm', callback_data='yes'),
+            InlineKeyboardButton(text='🔁Change color', callback_data='no')
         ],
         [
             InlineKeyboardButton(text='➕🧪Add 1/4 flask', callback_data='add_an_empty_flask')
+        ],
+        [
+            InlineKeyboardButton(text='➖🧪Remove excess flask', callback_data='remove_flask')
         ]
     ]
     kb = InlineKeyboardMarkup(inline_keyboard=check_button)
+
+    return kb
+
+
+def change_flask(num_of_lasks: int):
+    cnt = 0
+    button_list, button_line = [], []
+    for i in range(num_of_lasks - 2):
+        cnt += 1
+        button_line.append(InlineKeyboardButton(text=f'{i + 1}', callback_data=f'{i}'))
+        if cnt == 4:
+            cnt = 0
+            button_list.append(button_line)
+            button_line = []
+        elif i == num_of_lasks - 3:
+            button_list.append(button_line)
+    kb = InlineKeyboardMarkup(inline_keyboard=button_list)
+
+    return kb
+
+
+def change_segment():
+    segment_buttons = [
+        [
+            InlineKeyboardButton(text='1', callback_data='0'),
+            InlineKeyboardButton(text='2', callback_data='1'),
+            InlineKeyboardButton(text='3', callback_data='2'),
+            InlineKeyboardButton(text='4', callback_data='3')
+        ]
+    ]
+    kb = InlineKeyboardMarkup(inline_keyboard=segment_buttons)
+
+    return kb
+
+
+def change_color():
+    buttons_list, buttons_line = [], []
+    cnt = 0
+    for id in color_variations.keys():
+        cnt += 1
+        buttons_line.append(InlineKeyboardButton(text=color_variations[id], callback_data=str(id)))
+        if cnt == 3:
+            buttons_list.append(buttons_line)
+            buttons_line = []
+            cnt = 0
+    if buttons_line:
+        buttons_list.append(buttons_line)
+
+    kb = InlineKeyboardMarkup(inline_keyboard=buttons_list)
 
     return kb
 
@@ -253,7 +305,7 @@ def autofill_options(mode=None):
             InlineKeyboardButton(text='➡️Next option', callback_data='next')
         ],
         [
-            InlineKeyboardButton(text='☑️Confirm selection', callback_data='confirm')
+            InlineKeyboardButton(text='✅Confirm selection', callback_data='confirm')
         ]
     ]
     first_options = [
@@ -261,7 +313,7 @@ def autofill_options(mode=None):
             InlineKeyboardButton(text='➡️Next option', callback_data='next')
         ],
         [
-            InlineKeyboardButton(text='☑️Confirm selection', callback_data='confirm')
+            InlineKeyboardButton(text='✅Confirm selection', callback_data='confirm')
         ]
     ]
     last_options = [
@@ -269,7 +321,7 @@ def autofill_options(mode=None):
             InlineKeyboardButton(text='⬅️Previous option', callback_data='previous')
         ],
         [
-            InlineKeyboardButton(text='☑️Confirm selection', callback_data='confirm')
+            InlineKeyboardButton(text='✅Confirm selection', callback_data='confirm')
         ]
     ]
     if mode == 'first':

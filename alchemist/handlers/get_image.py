@@ -70,7 +70,7 @@ async def get_photo(message: Message, bot: Bot, state: FSMContext):
                     open_image.read(),
                     filename='solve_flasks'
                 ),
-                caption="This is what I saw in your screenshot. Compare the colors here with the original image and please tell me if I succeeded so I can continue with the solution. You can also add an empty segment right away if you think it is necessary (the image is considered correctly recognized in this case)! If something is wrong, I can try again, or you can send this screenshot for feedback using the /support command🙂\nYou can also read about how to solve the most common recognition problems yourself using the /faq command🙂",
+                caption="This is what I saw in your screenshot. Compare the colors here with the original image and please let me know if I was successful so I can continue solving the problem. You can also immediately add a blank segment if you deem it necessary (in this case, the image is considered correctly recognized)! If something is wrong, you can replace the incorrectly recognized colors or delete the extra flask",
                 reply_markup=recognition_check()
             )
         await state.set_state(amc.SolveFlasks.set_color)

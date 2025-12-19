@@ -3,7 +3,7 @@ from aiogram.types import BotCommand
 from aiogram.exceptions import TelegramNetworkError
 from aiogram.fsm.storage.redis import RedisStorage
 
-from handlers import send_welcome, start_solving, payment, fill_undefined_colors, get_image, faq, terms, support, autofill, account, check_updates
+from handlers import send_welcome, start_solving, payment, fill_undefined_colors, get_image, terms, support, autofill, account, check_updates
 import config
 import classes.all_my_classes as amc
 
@@ -46,7 +46,6 @@ async def clue(bot: Bot):
     bot_commands = [
         BotCommand(command='/start', description='🔄️Restarting me'),
         BotCommand(command='/account', description='📒Your account'),
-        BotCommand(command='/faq', description='🛠️Solving the most common problems'),
         BotCommand(command='/terms', description='📃Terms of use me'),
         BotCommand(command='/support', description='❓Support from my developer')
     ]
@@ -95,7 +94,7 @@ async def main():
         config.scheduler.add_job(recovery_attempts, 'cron', month='*', misfire_grace_time=300)
     
     dp.startup.register(clue)
-    dp.include_routers(send_welcome.rtr, account.rtr, faq.rtr, terms.rtr, support.rtr, start_solving.rtr, payment.rtr, get_image.rtr, autofill.rtr, fill_undefined_colors.rtr, check_updates.rtr)
+    dp.include_routers(send_welcome.rtr, account.rtr, terms.rtr, support.rtr, start_solving.rtr, payment.rtr, get_image.rtr, autofill.rtr, fill_undefined_colors.rtr, check_updates.rtr)
     
     try:
         config.scheduler.start()

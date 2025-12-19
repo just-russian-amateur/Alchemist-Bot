@@ -178,6 +178,20 @@ async def replace_in_list(flasks_id_list: list, color_id: int) -> list:
     return flasks_id_list
 
 
+async def replace_selected_color(flasks_id_list: list, color_id: int, choosen_flask: int, choosen_segment: int) -> list:
+    '''Функция для замены выбранного пользователем сегмента в колбе другим цветом'''
+    flasks_id_list[choosen_flask][choosen_segment] = color_id
+
+    return flasks_id_list
+
+
+async def remove_selected_flask(flasks_id_list: list, choosen_flask: int) -> list:
+    '''Функция для удаления лишней колбы, выбранной пользователем'''
+    flasks_id_list.pop(choosen_flask)
+
+    return flasks_id_list
+
+
 async def create_image_for_replace(flasks_id_list: list, id_client: int):
     '''Функция для отрисовки изображения с подсветкой того цвета, который нужно заполнить'''
     # Создание и сохранение пустого черного изображения

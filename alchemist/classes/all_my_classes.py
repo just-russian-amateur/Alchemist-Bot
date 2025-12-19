@@ -46,6 +46,10 @@ class SolveFlasks(StatesGroup):
     send_photo = State()
     set_color = State()
     pay_attempts = State()
+    choose_segment = State()
+    choose_color = State()
+    confirm_changing = State()
+    remove_flask = State()
 
 
 class UserKey:

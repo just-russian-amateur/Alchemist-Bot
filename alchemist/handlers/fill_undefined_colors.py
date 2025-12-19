@@ -1,5 +1,5 @@
 from aiogram import Bot, Router, F
-from aiogram.types import Message, CallbackQuery, BufferedInputFile, InputMediaPhoto, InlineKeyboardMarkup
+from aiogram.types import Message, CallbackQuery, BufferedInputFile, InputMediaPhoto
 from aiogram.fsm.context import FSMContext
 from aiogram.utils.chat_action import ChatActionSender
 
@@ -18,7 +18,7 @@ rtr = Router()
 logger = amc.ConfigLogger(__name__)
 
 
-async def edit_image(callback: CallbackQuery, state: FSMContext, new_caption: str, keyboard: InlineKeyboardMarkup, new_state=None, edit_media=True, fill_color=False):
+async def edit_image(callback: CallbackQuery, state: FSMContext, new_caption: str, keyboard=None, new_state=None, edit_media=True, fill_color=False):
     '''Функция для изменения надписей под изображением'''
     # Получаем данные с путями к файлам
     props = await state.get_data()
@@ -35,7 +35,8 @@ async def edit_image(callback: CallbackQuery, state: FSMContext, new_caption: st
                 ),
                 reply_markup=keyboard
             )
-        await state.set_state(new_state)
+        if new_state:
+            await state.set_state(new_state)
         await callback.answer()
     else:
         # Изображение, где подсвечивается первый неопределенный цвет
@@ -162,16 +163,8 @@ async def fill_undef_values(callback: CallbackQuery, bot: Bot, state: FSMContext
             return
         
         # Промежуточный кадр без кнопок
-        with open(lvl_file, 'rb') as open_image:
-            await callback.message.edit_media(
-                InputMediaPhoto(
-                    media=BufferedInputFile(
-                        open_image.read(),
-                        filename='solve_flasks'
-                    ),
-                    caption="Please select from the options provided the color that should be in place of the green circle",
-                )
-            )
+        new_caption= "Please select from the options provided the color that should be in place of the green circle"
+        await edit_image(callback, state, new_caption)
             
         edit_undef_colors, edit_flasks_id_list = props['edit_undefined_colors'], props['edit_flasks_id_list']
         # Удаление цвета нажатой кнопки из словаря и замена неопределенного цвета цветом кнопки
@@ -197,18 +190,9 @@ async def fill_undef_values(callback: CallbackQuery, bot: Bot, state: FSMContext
 
         if edit_undef_colors:
             # Изображение, где подсвечивается первый неопределенный цвет
-            with open(lvl_file, 'rb') as open_image:
-                await callback.message.edit_media(
-                    InputMediaPhoto(
-                        media=BufferedInputFile(
-                            open_image.read(),
-                            filename='solve_flasks'
-                        ),
-                        caption="Please select from the options provided the color that should be in place of the green circle",
-                    ),
-                    reply_markup=colors(edit_undef_colors)
-                )
-            await callback.answer()
+            new_caption = "Please select from the options provided the color that should be in place of the green circle"
+            kb = colors(edit_undef_colors)
+            await edit_image(callback, state, new_caption, kb)
             logger.log_info(f'Изображение для пользователя {callback.from_user.id} дополнено и отправлено для дальнейшего редактирования')
         else:
             await reply(callback, bot, state, edit_flasks_id_list, 'upload_new_or_reload', False)
@@ -227,6 +211,8 @@ async def fill_undef_values(callback: CallbackQuery, bot: Bot, state: FSMContext
                 await state.update_data(removed_flask=int(callback.data))
                 flasks_id_list = await remove_selected_flask(flasks_id_list, int(callback.data))
             else:
+                new_caption = "Select a new color for the segment"
+                await edit_image(callback, state, new_caption)
                 logger.log_info(f'Пользователь {callback.from_user.id} заменяет цвет')
                 await state.update_data(choosen_color=int(callback.data))
                 choosen_flask, choosen_segment = props["choosen_flask"], props["choosen_segment"]

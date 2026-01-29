@@ -81,17 +81,7 @@ async def main():
     bot = Bot(token=config.API_TOKEN)
 
     # Добавляем задачу в расписание
-    saved_jobs = config.scheduler.get_jobs()
-    if saved_jobs:
-        is_active_job = False
-        for job in saved_jobs:
-            if job.name == 'recovery_attempts':
-                is_active_job = True
-                break
-        if not is_active_job:
-            config.scheduler.add_job(recovery_attempts, 'cron', month='*', misfire_grace_time=300)
-    else:
-        config.scheduler.add_job(recovery_attempts, 'cron', month='*', misfire_grace_time=300)
+    config.scheduler.add_job(recovery_attempts, 'cron', month='*', id='recovery_attempts', replace_existing=True, misfire_grace_time=300)
     
     dp.startup.register(clue)
     dp.include_routers(send_welcome.rtr, account.rtr, terms.rtr, support.rtr, start_solving.rtr, payment.rtr, get_image.rtr, autofill.rtr, fill_undefined_colors.rtr, check_updates.rtr)

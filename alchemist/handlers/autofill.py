@@ -22,6 +22,9 @@ logger = amc.ConfigLogger(__name__)
 async def reply(callback: CallbackQuery, bot: Bot, state: FSMContext, flasks_id_list: list, keyboard_name: str, new_message: bool):
     '''Функция для вызова поиска решения'''
     data = await state.get_data()
+    if not 'count_fail_attempts' in data:
+        await state.update_data(count_fail_attempts=0)
+        data = await state.get_data()
     lvl_file = data['level_file']
 
     # Подставляем нужную клавиатуру в зависимости от начальной картинки
@@ -65,6 +68,8 @@ async def reply(callback: CallbackQuery, bot: Bot, state: FSMContext, flasks_id_
 
         # В случае, если флаг выставлен в False сообщаем, что решение не найдено, иначе выводим решение
         if not is_solved:
+            await state.update_data(count_fail_attempts=data['count_fail_attempts'] + 1)
+            data = await state.get_data()
             await callback.message.answer(
                 f'😖😖😖I have looked through all {count_states} possible variants of pouring liquids and unfortunately, it is impossible to find a solution for this arrangement.\nIf you want to change the order of undefined colors, click "🔄️🖼️Update image".\nIf you know all the colors, but the solution is still not found, then I can add another empty flask, for this click "➕🧪Add empty flask"\nOr you can upload a new image, for this click "📩🖼️Upload new image"',
                 reply_markup=no_result()
@@ -78,6 +83,9 @@ async def reply(callback: CallbackQuery, bot: Bot, state: FSMContext, flasks_id_
     
         # Отнимаем попытку у пользователя только после того, как он получил решение или получил в ответ, что решения нет
         if not isnan(data['count_paid_attempts']) and not isnan(data['count_free_attempts']):
+            if data['count_fail_attempts'] == 3:
+                await state.update_data(count_fail_attempts=0)
+                await state.update_data(count_free_attempts=data['count_free_attempts'] + 1)
             if data['count_free_attempts'] > 0:
                 await state.update_data(count_free_attempts=data['count_free_attempts'] - 1)
             else:

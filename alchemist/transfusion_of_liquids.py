@@ -9,21 +9,15 @@ from found_colors import EMPTY
 
 async def check_solving(position: list) -> bool:
     '''Функция проверки получения решения'''
-    full_color = 0
+    full_colors = 0
     for flask in position:
         # После очередного перемещения проходим по списку колб
-        full_flask = 0
-        for color in flask:
-            if color == flask[0]:
-                full_flask += 1
-            else:
-                break
-        if full_flask == len(flask):
-            full_color += 1
+        if len(set(flask)) == 1:
+            full_colors += 1
         else:
             break
 
-    if full_color == len(position):
+    if full_colors == len(position):
         # Количество одноцветных колб совпадает с количеством колб
         return True
     
@@ -55,6 +49,19 @@ async def possible_moves(position: list, last_move=None) -> list:
     # Перебираем все колбы из которых можно перелить
     for idx_solve_flask, solve_flask in enumerate(position):
         count_segments = len(solve_flask)
+        
+        # Из пустой колбы ничего перелить нельзя
+        if solve_flask[0] == EMPTY:
+            continue
+
+        # Нельзя переливать полностью заполненную колбу
+        if len(set(solve_flask)) == 1 and count_segments == 4:
+            continue
+
+        # Избавляемся от "глупых" ходов с переливанием из той колбы, в которую вливали на прошлом ходу
+        if last_move and idx_solve_flask == last_move:
+            continue
+            
         # Перебираем все цвета, начиная с верхнего (последний в списке)
         mono_color_height = 0
         solve_upper_color = [
@@ -70,10 +77,6 @@ async def possible_moves(position: list, last_move=None) -> list:
                 solve_upper_color[1][0] = solve_flask[idx_color]
                 break
 
-        # Из пустой колбы ничего перелить нельзя
-        if solve_upper_color[1][0] == EMPTY:
-            continue
-
         # Проверка того, что следующие блоки такого же цвета (переливаться будет сразу весь цвет и это влияет на решение)
         idx_upper_color = solve_upper_color[0][1]
         for idx_color in range(idx_upper_color - 1, -1, -1):
@@ -82,50 +85,49 @@ async def possible_moves(position: list, last_move=None) -> list:
             else:
                 break
 
-        # Нельзя переливать полностью заполненную колбу
-        if mono_color_height == count_segments and count_segments == 4:
-            continue
-
         solve_upper_color[1][1] = mono_color_height
 
         # Перебираем все колбы в которые можно перелить
         for idx_target_flask, target_flask in enumerate(position):
-            count_segments = len(target_flask)
+            
             # Переливать колбу саму в себя нельзя
-            if idx_solve_flask != idx_target_flask:
-                # Перебираем все цвета, начиная с верхнего (последний в списке)
-                count_empty_slots = 0
-                target_upper_color = [
-                    [idx_target_flask, 0],
-                    [EMPTY, count_empty_slots]
-                ]   # Пустая колба
+            if idx_solve_flask == idx_target_flask:
+                continue
 
-                for idx_color in range(count_segments - 1, -1, -1):
-                    if target_flask[idx_color] != EMPTY:
-                        target_upper_color[0][1] = idx_color
-                        target_upper_color[1][0] = target_flask[idx_color]
-                        break
-                    else:
-                        count_empty_slots += 1
+            # В полную колбу ничего перелить нельзя
+            if len(set(target_flask)) == 1 and target_flask[0] != EMPTY:
+                continue
 
-                if count_empty_slots > 0:
-                    target_upper_color[1][1] = count_empty_slots
+            # Моно цвет в пустую колбу переливать бессмысленно
+            if target_flask[0] == EMPTY and len(set(solve_flask)) == 2 and EMPTY in solve_flask:
+                continue
 
-                # В полную колбу ничего перелить нельзя, моно цвет в пустую колбу переливать бессмысленно
-                if (target_upper_color[0][1] == count_segments - 1 and count_segments != 1) or \
-                    (target_upper_color[1][0] == EMPTY and len(set(solve_flask)) == 2 and EMPTY in solve_flask):
-                    continue
+            count_segments = len(target_flask)
+            # Перебираем все цвета, начиная с верхнего (последний в списке)
+            count_empty_slots = 0
+            target_upper_color = [
+                [idx_target_flask, 0],
+                [EMPTY, count_empty_slots]
+            ]   # Пустая колба
 
-                # Избавляемся от "глупых" ходов с переливанием из той колбы, в которую вливали на прошлом ходу
-                if last_move and solve_upper_color[0][0] == last_move[1][0][0]:
-                    continue
+            for idx_color in range(count_segments - 1, -1, -1):
+                if target_flask[idx_color] != EMPTY:
+                    target_upper_color[0][1] = idx_color
+                    target_upper_color[1][0] = target_flask[idx_color]
+                    break
+                else:
+                    count_empty_slots += 1
 
-                # Переливание возможно только если верхние цвета совпадают или если переливаем в пустую колбу и места в целевой колбе достаточно
-                if solve_upper_color[1][0] == target_upper_color[1][0] and target_upper_color[1][1] >= solve_upper_color[1][1]:
+            if count_empty_slots > 0:
+                target_upper_color[1][1] = count_empty_slots
+
+            # Переливание возможно только если верхние цвета совпадают или если переливаем в пустую колбу и места в целевой колбе достаточно
+            if target_upper_color[1][1] >= solve_upper_color[1][1]:
+                if solve_upper_color[1][0] == target_upper_color[1][0]:
                     target_upper_color[0][1] += 1
                     target_upper_color[1][0] = EMPTY
                     moves.append([solve_upper_color, target_upper_color])
-                elif target_upper_color[1][0] == EMPTY and target_upper_color[1][1] >= solve_upper_color[1][1]:
+                elif target_flask[0] == EMPTY:
                     moves.append([solve_upper_color, target_upper_color])
 
     if len(moves) > 1:
@@ -196,7 +198,7 @@ async def transfusion_of_liquids(bot: Bot, chat_id: int, position: list) -> tupl
             # Добавляем текущую позицию в список посещенных
             visited_states.add(canonical_position)
             steps.append(step)
-            stack.insert(0, [now_position_tuple, tuple(steps), deque(await possible_moves(now_position, move))])
+            stack.insert(0, [now_position_tuple, tuple(steps), deque(await possible_moves(now_position, move[1][0][0]))])
 
     return False, None, len(visited_states)
 

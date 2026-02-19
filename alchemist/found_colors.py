@@ -66,14 +66,18 @@ async def create_color_list(image: cv2.typing.MatLike) -> list:
                     cv2.RETR_TREE,
                     cv2.CHAIN_APPROX_SIMPLE
                 )
-                if contours_color:
-                    # В случае если контур был найден, определяем координаты и размеры прямоугольника с цветом
-                    for cnt in contours_color:
-                        rect = cv2.minAreaRect(cnt)
-                        if rect[1][0] * rect[1][1] >= height_seg * width_seg * 0.51:
-                            segments.insert(0, variation[0])
-                            OK_COLOR = True
-                            raise BreakAction
+                if not contours_color:
+                    continue
+                    
+                # В случае если контур был найден, определяем координаты и размеры прямоугольника с цветом
+                for cnt in contours_color:
+                    rect = cv2.minAreaRect(cnt)
+                    if rect[1][0] * rect[1][1] < height_seg * width_seg * 0.51:
+                        continue
+                        
+                    segments.insert(0, variation[0])
+                    OK_COLOR = True
+                    raise BreakAction
         except BreakAction:
             pass
 
@@ -118,9 +122,11 @@ async def replace_undefined(flasks_id_list: list) -> dict:
     colors_dict = {int(k): int(v) for k, v in zip(colors_id, counts)}
     added_colors = dict()
     for key in colors_dict.keys():
-        if colors_dict[key] < 4:
-            if key != UNDEFINED:
-                added_colors[key] = int(4 - colors_dict[key])
+        if colors_dict[key] >= 4:
+            continue
+            
+        if key != UNDEFINED:
+            added_colors[key] = int(4 - colors_dict[key])
     
     # Случай, когда пользователь еще не открыл все варианты цветов хотя бы в одном экземпляре
     if flasks_id_list.shape[0] > len(colors_dict):

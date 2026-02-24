@@ -7,12 +7,12 @@ from collections import deque
 from found_colors import EMPTY
 
 
-async def check_solving(position: list) -> bool:
+async def check_solving(position: tuple) -> bool:
     '''Функция проверки получения решения'''
     full_colors = 0
     for flask in position:
         # После очередного перемещения проходим по списку колб
-        if len(set(flask)) == 1:
+        if flask.count(flask[0]) == len(flask):
             full_colors += 1
         else:
             break
@@ -24,7 +24,7 @@ async def check_solving(position: list) -> bool:
     return False
 
 
-async def possible_moves(position: list, last_move=None) -> list:
+async def possible_moves(position: tuple, last_move=None) -> list:
     '''
     Функция для определения всех возможных перемещений для конкретной ситуации
 
@@ -49,13 +49,14 @@ async def possible_moves(position: list, last_move=None) -> list:
     # Перебираем все колбы из которых можно перелить
     for idx_solve_flask, solve_flask in enumerate(position):
         count_segments = len(solve_flask)
+        solve_colors_count = len(set(solve_flask))
         
         # Из пустой колбы ничего перелить нельзя
         if solve_flask[0] == EMPTY:
             continue
 
         # Нельзя переливать полностью заполненную колбу
-        if len(set(solve_flask)) == 1 and count_segments == 4:
+        if solve_colors_count == 1 and count_segments == 4:
             continue
 
         # Избавляемся от "глупых" ходов с переливанием из той колбы, в которую вливали на прошлом ходу
@@ -89,20 +90,20 @@ async def possible_moves(position: list, last_move=None) -> list:
 
         # Перебираем все колбы в которые можно перелить
         for idx_target_flask, target_flask in enumerate(position):
+            count_segments = len(target_flask)
             
             # Переливать колбу саму в себя нельзя
             if idx_solve_flask == idx_target_flask:
                 continue
 
             # В полную колбу ничего перелить нельзя
-            if len(set(target_flask)) == 1 and target_flask[0] != EMPTY:
+            if target_flask.count(target_flask[0]) == count_segments and target_flask[0] != EMPTY:
                 continue
 
             # Моно цвет в пустую колбу переливать бессмысленно
-            if target_flask[0] == EMPTY and len(set(solve_flask)) == 2 and EMPTY in solve_flask:
+            if target_flask[0] == EMPTY and solve_colors_count == 2 and EMPTY in solve_flask:
                 continue
 
-            count_segments = len(target_flask)
             # Перебираем все цвета, начиная с верхнего (последний в списке)
             count_empty_slots = 0
             target_upper_color = [
@@ -136,69 +137,67 @@ async def possible_moves(position: list, last_move=None) -> list:
     return moves
 
 
-async def apply_move(position: list, move: tuple) -> tuple[list, str]:
+async def apply_move(position: tuple, move: list) -> tuple[tuple, str]:
     '''Функция для применения перемещения к текущему положению для получения нового'''
     # Получение данных о колбах, которые задействуются
     solve_flask, target_flask = move
+
+    # Замена цвета в решающей колбе на пустое и заполнение места в целевой колбе
+    update_position = ()
+    for cnt in range(len(position)):
+        if cnt == solve_flask[0][0]:
+            flask = position[cnt]
+            bottom_flask = flask[:solve_flask[0][1] - (solve_flask[1][1] - 1)]
+            moved_segments = (EMPTY,) * solve_flask[1][1]
+            up_flask = flask[len(bottom_flask) + solve_flask[1][1]:]
+            new_solve_flask = bottom_flask + moved_segments + up_flask
+            update_position += (new_solve_flask,)
+        elif cnt == target_flask[0][0]:
+            flask = position[cnt]
+            bottom_flask = flask[:target_flask[0][1]]
+            moved_segments = (solve_flask[1][0],) * solve_flask[1][1]
+            up_flask = flask[len(bottom_flask) + solve_flask[1][1]:]
+            new_target_flask = bottom_flask + moved_segments + up_flask
+            update_position += (new_target_flask,)
+        else:
+            update_position += (position[cnt],)
     
-    # Замена цвета в решающей колбе на пустое и заполнение места в целевой колбе 
-    for cnt in range(solve_flask[1][1]):
-        position[target_flask[0][0]][target_flask[0][1] + cnt] = solve_flask[1][0]
-        position[solve_flask[0][0]][solve_flask[0][1] - cnt] = EMPTY
     step = f'{solve_flask[0][0] + 1} ➡️ {target_flask[0][0] + 1}'
 
-    return position, step
+    return update_position, step
 
 
-async def go_back_move(position: list, move: tuple) -> list:
-    '''Функция отмены перемещения'''
-    # Получение данных о колбах, которые задействуются
-    solve_flask, target_flask = move
-
-    # Замена цвета в целевой колбе на пустое и заполнение места в решающей колбе
-    for cnt in range(solve_flask[1][1]):
-        position[solve_flask[0][0]][solve_flask[0][1] - cnt] = solve_flask[1][0]
-        position[target_flask[0][0]][target_flask[0][1] + cnt] = target_flask[1][0]
-
-    return position
-
-
-async def transfusion_of_liquids(bot: Bot, chat_id: int, position: list) -> tuple[bool, any, any]:
+async def transfusion_of_liquids(bot: Bot, chat_id: int, position: tuple) -> tuple[bool, any, any]:
     '''Функция перемещения цвета в текущей позиции и записи последовательности шагов'''
-    now_position_tuple = tuple(tuple(flask) for flask in position)
     visited_states = set()
-    stack = [[now_position_tuple, [], deque(await possible_moves(position))]]
+    stack = [[position, (), deque(await possible_moves(position))]]
 
     while stack:
         async with ChatActionSender.typing(bot=bot, chat_id=chat_id):
-            now_position, steps, moves = stack[0]
-            now_position = list(list(flask) for flask in now_position)
-            steps = list(steps)
+            now_position, steps, moves = stack[-1]
 
             # Проверяем решена ли задача
             if await check_solving(now_position):
                 return True, steps, None
             
             if not moves:
-                stack.pop(0)
+                stack.pop()
                 continue
 
             move = moves.popleft()
 
             # Применяем действие
-            now_position, step = await apply_move(now_position, move)
-            now_position_tuple = tuple(tuple(flask) for flask in now_position)
+            new_position, step = await apply_move(now_position, move)
 
-            # Если текущая позиция уже была посещена ранее, то возвращаем движение назад
-            canonical_position = tuple(sorted(tuple(flask) for flask in now_position))
+            # Если текущая позиция уже была посещена ранее, то переходим к следующей
+            canonical_position = tuple(sorted(new_position))
             if canonical_position in visited_states:
-                await go_back_move(now_position, move)
                 continue
 
             # Добавляем текущую позицию в список посещенных
             visited_states.add(canonical_position)
-            steps.append(step)
-            stack.insert(0, [now_position_tuple, tuple(steps), deque(await possible_moves(now_position, move[1][0][0]))])
+            steps += (step,)
+            stack.append([new_position, tuple(steps), deque(await possible_moves(new_position, move[1][0][0]))])
 
     return False, None, len(visited_states)
 
@@ -206,16 +205,14 @@ async def transfusion_of_liquids(bot: Bot, chat_id: int, position: list) -> tupl
 async def transfusion_manage(bot: Bot, chat_id: int, task: list) -> tuple[bool, any]:
     '''Основная функция модуля, регулирующая процесс переливания'''
     # Возвращаем флаг решения и список шагов, если решение есть
-    is_solved, steps_list, count_states = await transfusion_of_liquids(bot, chat_id, task)
+    position_tuple = tuple(tuple(flask) for flask in task)
+    is_solved, steps_list, count_states = await transfusion_of_liquids(bot, chat_id, position_tuple)
     if is_solved:
         result = ''
-        cnt_block_moves = 0
-        for step in steps_list:
-            cnt_block_moves += 1
+        for idx_step, step in enumerate(steps_list):
             result += step + '\n'
-            if cnt_block_moves == 4:
+            if idx_step + 1 % 4 == 0:
                 # Добавляем пустую строку, разбивая решение на блоки по 4 хода для удобства отслеживания
-                cnt_block_moves = 0
                 result += '\n'
         return is_solved, result, None
 

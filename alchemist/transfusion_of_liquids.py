@@ -6,7 +6,8 @@ from found_colors import EMPTY
 async def check_solving(position: tuple) -> bool:
     '''Функция проверки получения решения'''
     for flask in position:
-        if any(color != flask[0] for color in flask):
+        first = flask[0]
+        if any(color != first for color in flask):
             return False
 
     return True
@@ -85,7 +86,8 @@ async def possible_moves(position: tuple, last_move=None) -> list:
                 continue
 
             # В полную колбу ничего перелить нельзя
-            if target_flask.count(target_flask[0]) == count_segments and target_flask[0] != EMPTY:
+            first = target_flask[0]
+            if all(color == first for color in target_flask) and target_flask[0] != EMPTY:
                 continue
 
             # Моно цвет в пустую колбу переливать бессмысленно

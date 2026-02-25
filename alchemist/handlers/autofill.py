@@ -62,7 +62,7 @@ async def reply(callback: CallbackQuery, bot: Bot, state: FSMContext, flasks_id_
 
         try:
             # Вызываем функцию перебора переливаний
-            is_solved, steps, count_states = await transfusion_manage(bot=bot, chat_id=callback.from_user.id, task=flasks_id_list)
+            is_solved, steps, count_states = await transfusion_manage(flasks_id_list)
         except TelegramBadRequest:
             logger.log_error('Превышено время ожидания ответа на начало поиска решения')
 

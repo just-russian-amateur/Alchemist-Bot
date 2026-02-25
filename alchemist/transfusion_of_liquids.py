@@ -157,7 +157,7 @@ async def apply_move(position: tuple, move: list) -> tuple[tuple, str]:
 
 async def transfusion_of_liquids(position: tuple) -> tuple[bool, any, any]:
     '''Функция перемещения цвета в текущей позиции и записи последовательности шагов'''
-    visited_states = set()
+    visited_states = {tuple(sorted(position))}
     steps = []
     stack = [[position, await possible_moves(position)]]
 

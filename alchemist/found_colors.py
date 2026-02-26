@@ -47,48 +47,33 @@ async def create_color_list(image: cv2.typing.MatLike) -> list:
     segments = []
     height, width, _ = image.shape
     cnt_undefined = 0
+    morph_kernel = np.ones((3, 3))
+    hsv_colors = cv2.cvtColor(image, cv2.COLOR_BGR2HSV)
+
     for i in range(3, 33, 8):
-        height_seg, width_seg = round(height*(i+2)/32) - round(height*i/32), round(width*5/8) - round(width*3/8)
+        y1, y2, x1, x2 = round(height*i/32), round(height*(i+2)/32), round(width*3/8), round(width*5/8)
+        segment = hsv_colors[y1:y2, x1:x2]
 
-        segment = image[round(height*i/32):round(height*(i+2)/32), round(width*3/8):round(width*5/8)]
         # Более агрессивный подход для удаления ненужных шумов с изображения с использованием эрозии
-        morph_kernel = np.ones((3, 3))
-        erode_image = cv2.erode(segment, kernel=morph_kernel, iterations=3)
-        hsv_colors = cv2.cvtColor(erode_image, cv2.COLOR_BGR2HSV)
+        segment = cv2.erode(segment, kernel=morph_kernel, iterations=3)
 
-        try:
-            OK_COLOR = False
-            for variation in variations.values():
-                # Проверяем пороговое значение для каждой вариации цвета на картинке и находим контуры
-                thresholder = cv2.inRange(hsv_colors, variation[1][0], variation[1][1])
-                contours_color, _ = cv2.findContours(
-                    thresholder,
-                    cv2.RETR_TREE,
-                    cv2.CHAIN_APPROX_SIMPLE
-                )
-                if not contours_color:
-                    continue
-                    
-                # В случае если контур был найден, определяем координаты и размеры прямоугольника с цветом
-                for cnt in contours_color:
-                    rect = cv2.minAreaRect(cnt)
-                    if rect[1][0] * rect[1][1] < height_seg * width_seg * 0.51:
-                        continue
-                        
-                    segments.insert(0, variation[0])
-                    OK_COLOR = True
-                    raise BreakAction
-        except BreakAction:
-            pass
+        OK_COLOR = False
+        for variation in variations.values():
+            # Проверяем пороговое значение для каждой вариации цвета на картинке и находим площадь, которую занимает цвет
+            thresholder = cv2.inRange(segment, variation[1][0], variation[1][1])
+            if cv2.countNonZero(thresholder) / thresholder.size > 0.51:
+                segments.append(variation[0])
+                OK_COLOR = True
+                break
 
         if not OK_COLOR:
             cnt_undefined += 1
-            segments.insert(0, UNDEFINED)
+            segments.append(UNDEFINED)
         
         if cnt_undefined == 4:
-            segments = [EMPTY, EMPTY, EMPTY, EMPTY]
+            return [EMPTY] * 4
     
-    return segments
+    return segments[::-1]
 
 
 async def sorted_flasks(flasks_id_list: list) -> list:
@@ -99,16 +84,18 @@ async def sorted_flasks(flasks_id_list: list) -> list:
     for flask in flasks_id_list:
         if not layer:
             layer.append(flask)
+            continue
+
+        if flask[1] - layer[0][1] < 25:
+            layer.append(flask)
         else:
-            if flask[1] - layer[0][1] < 25:
-                layer.append(flask)
-            else:
-                layer.sort()
-                sorted_flasks_list += layer.copy()
-                layer.clear()
-                layer.append(flask)
-    layer.sort()
-    sorted_flasks_list += layer.copy()
+            layer.sort()
+            sorted_flasks_list.extend(layer)
+            layer = [flask]
+    
+    if layer:
+        layer.sort()
+        sorted_flasks_list.extend(layer)
 
     return sorted_flasks_list
 
@@ -116,7 +103,7 @@ async def sorted_flasks(flasks_id_list: list) -> list:
 async def replace_undefined(flasks_id_list: list) -> dict:
     '''Функция для составления списка неопределенных значений недостающими цветами'''
     # Подготовление списка с цвтеами и их количеством, которые нужно добавить
-    flasks_id_list = np.asarray(flasks_id_list)
+    flasks_id_list = np.array(flasks_id_list)
     colors_id, counts = np.unique(flasks_id_list, return_counts=True)
     # Приведение ключей numpy.int32 к типу int
     colors_dict = {int(k): int(v) for k, v in zip(colors_id, counts)}
@@ -128,11 +115,11 @@ async def replace_undefined(flasks_id_list: list) -> dict:
         if key != UNDEFINED:
             added_colors[key] = int(4 - colors_dict[key])
     
-    # Случай, когда пользователь еще не открыл все варианты цветов хотя бы в одном экземпляре
-    if flasks_id_list.shape[0] > len(colors_dict):
+    # Случай, когда пользователь еще не открыл все варианты цветов хотя бы в одном экземпляре (+1 потому что пустые колбы считаются за одну уникальную)
+    if flasks_id_list.shape[0] > len(colors_dict) + 1:
         for _ in range(flasks_id_list.shape[0] - len(colors_dict)):
             for variation in variations.keys():
-                if not variations[variation][0] in sorted(added_colors.keys()):
+                if not variations[variation][0] in added_colors.keys():
                     added_colors[variations[variation][0]] = 4
                     break
 
@@ -144,15 +131,14 @@ async def found_colors_in_flasks(image_for_search: str) -> tuple[dict, list]:
     # Чтение изображения в цветном формате
     original_image = cv2.imread(image_for_search)
 
-    boxes = model(image_for_search)[0].boxes
+    boxes = model(original_image)[0].boxes
     flasks = [] # Список прямоугольников-колб
 
     for box in boxes:
         x1, y1, x2, y2 = map(int, box.xyxy[0])
         w, h = x2 - x1, y2 - y1
-        ratio = h / w
         
-        if 3 < ratio < 4:
+        if 3 * w < h < 4 * w:
             flasks.append([x1, y1, x2, y2])
 
     flasks = await sorted_flasks(flasks)
@@ -172,15 +158,12 @@ async def found_colors_in_flasks(image_for_search: str) -> tuple[dict, list]:
 
 async def replace_in_list(flasks_id_list: list, color_id: int) -> list:
     '''Функция для замены неопределенных цветов на выбранные пользователем'''
-    try:
-        for flask in flasks_id_list:
-            for color in range(len(flask)):
-                if flask[color] == UNDEFINED:
-                    flask[color] = color_id
-                    raise BreakAction
-    except BreakAction:
-        pass
-
+    for flask in flasks_id_list:
+        for i, color in enumerate(flask):
+            if color == UNDEFINED:
+                flask[i] = color_id
+                return flasks_id_list
+            
     return flasks_id_list
 
 
@@ -204,46 +187,50 @@ async def create_image_for_replace(flasks_id_list: list, id_client: int):
     filename = f'./tmp/level_for_{id_client}.jpg'
     height, width = 1800, 1400
     template = np.zeros((height, width, 3), np.uint8)
-    cv2.imwrite(filename, template)
 
     # Установка количества линий с колбами и размеров колбы
     count_flasks = len(flasks_id_list)
     width_flask = 100
-    count_lines = np.trunc(count_flasks / 6) + 1
+    count_lines = int(np.ceil(count_flasks / 6))
     flasks_centers = []
+
     # Заполнение массива с центрами колб
-    try:
-        for y in range(int(height / (count_lines + 1)), height, int(height / (count_lines + 1))):
-            for x in range(int(width / 7), width, int(width / 7)):
-                flasks_centers.append([x, y])
-                if len(flasks_centers) == count_flasks:
-                    raise BreakAction
-    except BreakAction:
-        pass
+    step_y = height / (count_lines + 1)
+    step_x = width / 7
+    for i in range(count_lines):
+        for j in range(1, 7):
+            flasks_centers.append([int(j * step_x), int((i + 1) * step_y)])
+            if len(flasks_centers) >= count_flasks:
+                break
+
+        if len(flasks_centers) >= count_flasks:
+            break
     
     cnt_undef = 0
     # Отрисовка всех колб с цветами и пустыми полями внутри них
-    for colors in range(count_flasks):
-        height_flask = width_flask * len(flasks_id_list[colors])
+    for idx_flask, colors in enumerate(flasks_id_list):
+        height_flask = width_flask * len(colors)
+        cx, cy = flasks_centers[idx_flask]
         
-        x1, y1 = flasks_centers[colors][0] - width_flask / 2, flasks_centers[colors][1] - height_flask / 2
-        x2, y2 = flasks_centers[colors][0] + width_flask / 2, flasks_centers[colors][1] + height_flask / 2
-        flask_rect = cv2.rectangle(template, (int(x1), int(y1)), (int(x2), int(y2)), (176, 176, 90), 6)
-        cv2.imwrite(filename, flask_rect)
+        x1, y1 = int(cx - width_flask / 2), int(cy - height_flask / 2)
+        x2, y2 = int(cx + width_flask / 2), int(cy + height_flask / 2)
+        
+        cv2.rectangle(template, (x1, y1), (x2, y2), (176, 176, 90), 6)
 
-        for color in range(len(flasks_id_list[colors])):
-            circle_x, circle_y = flasks_centers[colors][0], y2 - (y2 - y1) * (2 * color + 1) / 8
-            idx_color = flasks_id_list[colors][color]
-            if idx_color == UNDEFINED:
+        for idx_color, color in enumerate(colors):
+            circle_x, circle_y = cx, int(y2 - (y2 - y1) * (2 * idx_color + 1) / 8)
+            
+            if color == UNDEFINED:
                 cnt_undef += 1
                 if cnt_undef == 1:
-                    color_circle = cv2.circle(template, (int(circle_x), int(circle_y)), 47, (0, 255, 0), 6)
+                    circle_color = (0, 255, 0)
                 else:
-                    color_circle = cv2.circle(template, (int(circle_x), int(circle_y)), 47, (255, 255, 255), 6)
-                cv2.imwrite(filename, color_circle)
-            elif idx_color < UNDEFINED:
-                color_circle = cv2.circle(template, (int(circle_x), int(circle_y)), 47, list(variations.values())[idx_color][2], -1)
-                cv2.imwrite(filename, color_circle)
+                    circle_color = (255, 255, 255)
+                cv2.circle(template, (circle_x, circle_y), 47, circle_color, 6)
+            elif color < UNDEFINED:
+                cv2.circle(template, (circle_x, circle_y), 47, list(variations.values())[color][2], -1)
+
+    cv2.imwrite(filename, template)
 
 
 async def add_empty_flask(flasks_id_list: list, idx_segment: int) -> list:
@@ -252,8 +239,6 @@ async def add_empty_flask(flasks_id_list: list, idx_segment: int) -> list:
         flasks_id_list.append([EMPTY])
     else:
         flasks_id_list.pop()
-        new_segment = []
-        for _ in range(idx_segment):
-            new_segment.append(EMPTY)
-        flasks_id_list.append(new_segment)
+        flasks_id_list.append([EMPTY] * idx_segment)
+        
     return flasks_id_list

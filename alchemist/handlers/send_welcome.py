@@ -43,15 +43,13 @@ async def send_welcome(message: Message,  state: FSMContext):
     all_users = await state.get_data()
 
     if message.from_user.id in all_users['id_my_friends']:
-        await message.answer(
-            f"Hello, <b>{message.from_user.first_name}</b>!😁\n\nIf this is your first time interacting with me, I strongly recommend that you read about some rules that you need to follow to work correctly by clicking the appropriate button below👇\nIf this is not the first time you have done this, then I just remind you that to restart me, you can enter the /start command.\n\nEvery month I will give you unlimited free 🎟️. You can see all the information in your account",
-            parse_mode='HTML',
-            reply_markup=start_keyboard()
-        )
+        condition_text = "Every month I will give you unlimited free 🎟️. You can see all the information in your account"
     else:
-        await message.answer(
-            f"Hello, <b>{message.from_user.first_name}</b>!😁\n\nIf this is your first time interacting with me, I strongly recommend that you read about some rules that you need to follow to work correctly by clicking the appropriate button below👇\nIf this is not the first time you have done this, then I just remind you that to restart me, you can enter the /start command.\n\nEvery month I will give you 5 free 🎟️ and 1 bonus 🎟️ for every third unsuccessful attempt to find a solution (unless you have activated unlimited 🎟️ for 30 days), if they are not enough for you, you can buy more for a small fee. You can see all the information in your account",
-            parse_mode='HTML',
-            reply_markup=start_keyboard()
-        )
+        condition_text = "Every month I'll give you 5 free 🎟️ and 1 bonus 🎟️ for every third unsuccessful attempt to find a solution (unless you have activated unlimited 🎟️ for 30 days), if they are not enough for you, you can buy more for a small fee. You can see all the information in your account"
+
+    await message.answer(
+        f"Hello, <b>{message.from_user.first_name}</b>!😁\n\nIf this is your first time interacting with me, I strongly recommend that you read about some rules that you need to follow to work correctly by clicking the appropriate button below👇\nIf this is not the first time you have done this, then I just remind you that to restart me, you can enter the /start command.\n\n{condition_text}",
+        parse_mode='HTML',
+        reply_markup=start_keyboard()
+    )
     await state.set_state(amc.SolveFlasks.start_solving)

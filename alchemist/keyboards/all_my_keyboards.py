@@ -8,23 +8,10 @@ logger = amc.ConfigLogger(__name__)
 
 def create_undef_buttons(color_buttons_list: list):
     '''Функция для расстановки кнопок с цветами'''
-    color_buttons, button_line = [], []
+    color_buttons = []
     # "Красивая" расстановка кнопок
-    for i in range(len(color_buttons_list)):
-        if i % 3 == 0 and i == len(color_buttons_list) - 1:
-            color_buttons.append(button_line)
-            button_line = []
-            button_line.append(color_buttons_list[i])
-            color_buttons.append(button_line)
-        elif i % 3 == 0 and i != 0:
-            color_buttons.append(button_line)
-            button_line = []
-            button_line.append(color_buttons_list[i])
-        elif i == len(color_buttons_list) - 1:
-            button_line.append(color_buttons_list[i])
-            color_buttons.append(button_line)
-        else:
-            button_line.append(color_buttons_list[i])
+    for i in range(0, len(color_buttons_list), 3):
+        color_buttons.append([color_buttons_list[i:i + 3]])
 
     logger.log_info('Расстановка кнопок в правильном порядке')
     
@@ -49,7 +36,7 @@ def start_keyboard():
 
 
 def account(free_mode: bool):
-    if free_mode == True:
+    if free_mode:
         account_button = [
             [
                 InlineKeyboardButton(text='📃User Agreement', callback_data='terms')
@@ -78,7 +65,7 @@ def account(free_mode: bool):
         ]
     kb = InlineKeyboardMarkup(inline_keyboard=account_button)
 
-    logger.log_info('Вывод приветствия')
+    logger.log_info('Вывод личного аккаунта пользователя')
 
     return kb
 

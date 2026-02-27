@@ -61,7 +61,7 @@ async def main():
     if os.name == 'nt':
         free_space = shutil.disk_usage('C:/').free / 10**9
     elif os.name == 'posix':
-        free_space = shutil.disk_usage('/dev/sda').free / 10**9
+        free_space = shutil.disk_usage('/').free / 10**9
 
     # Создаем папку для хранения временных файлов
     if not os.path.isdir('./tmp'):

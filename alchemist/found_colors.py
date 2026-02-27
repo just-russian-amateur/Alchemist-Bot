@@ -108,6 +108,10 @@ async def replace_undefined(flasks_id_list: list) -> dict:
     # Приведение ключей numpy.int32 к типу int
     colors_dict = {int(k): int(v) for k, v in zip(colors_id, counts)}
     added_colors = dict()
+
+    if UNDEFINED not in colors_dict:
+        return added_colors
+    
     for key in colors_dict.keys():
         if colors_dict[key] >= 4:
             continue
@@ -115,8 +119,8 @@ async def replace_undefined(flasks_id_list: list) -> dict:
         if key != UNDEFINED:
             added_colors[key] = int(4 - colors_dict[key])
     
-    # Случай, когда пользователь еще не открыл все варианты цветов хотя бы в одном экземпляре (+1 потому что пустые колбы считаются за одну уникальную)
-    if flasks_id_list.shape[0] > len(colors_dict) + 1:
+    # Случай, когда пользователь еще не открыл все варианты цветов хотя бы в одном экземпляре
+    if flasks_id_list.shape[0] > len(colors_dict):
         for _ in range(flasks_id_list.shape[0] - len(colors_dict)):
             for variation in variations.keys():
                 if not variations[variation][0] in added_colors.keys():

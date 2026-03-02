@@ -11,7 +11,7 @@ def create_undef_buttons(color_buttons_list: list):
     color_buttons = []
     # "Красивая" расстановка кнопок
     for i in range(0, len(color_buttons_list), 3):
-        color_buttons.append([color_buttons_list[i:i + 3]])
+        color_buttons.append(color_buttons_list[i:i + 3])
 
     logger.log_info('Расстановка кнопок в правильном порядке')
     

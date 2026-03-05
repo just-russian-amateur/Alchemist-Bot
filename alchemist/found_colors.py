@@ -143,7 +143,7 @@ async def replace_undefined(flasks_id_list: list) -> dict:
         for _ in range(int((colors_dict[UNDEFINED] - count_added_colors) / 4)):
             for variation in variations.keys():
 
-                if not variations[variation][0] in colors_dict.keys():
+                if not variations[variation][0] in colors_dict.keys() and not variations[variation][0] in added_colors.keys():
                     added_colors[variations[variation][0]] = 4
                     break
 

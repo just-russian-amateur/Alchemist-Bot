@@ -6,6 +6,9 @@ from aiogram.fsm.storage.redis import RedisStorage
 from handlers import send_welcome, start_solving, payment, fill_undefined_colors, get_image, terms, support, autofill, account, check_updates
 import config
 import classes.all_my_classes as amc
+from texts.all_my_texts import KeyboardTexts, AlchemistBot
+from texts.redis_keys import RedisKeys
+from callbacks.all_my_callbacks import CallbacksData
 
 import asyncio
 import shutil
@@ -18,6 +21,7 @@ logger = amc.ConfigLogger(__name__)
 
 async def recovery_attempts():
     '''Функция для восстановления количества бесплатных попыток для всех пользователей сразу (кроме друзей)'''
+
     # Получаем списки id друзей и всех игроков
     with open('id_friends.txt', 'r') as id_friends:
         friends = list(int(friend.split('\n')[0]) for friend in id_friends.readlines())
@@ -34,7 +38,7 @@ async def recovery_attempts():
             try:
                 # Парсим строку на отдельные параметры и восстанавливаем попытки
                 data = json.loads(value)
-                data['count_free_attempts'] = 5
+                data[RedisKeys.FREE_ATTEMPTS] = 5
                 await config.redis.set(key, json.dumps(data))
                 logger.log_info(f'Попытки для пользователя {user_id} восстановлены')
             except:
@@ -42,21 +46,24 @@ async def recovery_attempts():
 
 
 async def clue(bot: Bot):
+
     # Реализация меню команд
     bot_commands = [
-        BotCommand(command='/start', description='🔄️Restarting me'),
-        BotCommand(command='/account', description='📒Your account'),
-        BotCommand(command='/terms', description='📃Terms of use me'),
-        BotCommand(command='/support', description='❓Support from my developer')
+        BotCommand(command=CallbacksData.CLUE_START, description=KeyboardTexts.CLUE_RESTART),
+        BotCommand(command=CallbacksData.CLUE_ACCOUNT, description=KeyboardTexts.CLUE_ACCOUNT),
+        BotCommand(command=CallbacksData.CLUE_TERMS, description=KeyboardTexts.CLUE_TERMS),
+        BotCommand(command=CallbacksData.CLUE_SUPPORT, description=KeyboardTexts.CLUE_SUPPORT)
     ]
+
     await bot.set_my_commands(bot_commands)
     # Реализация описания бота
-    await bot.set_my_description("Hello, I'm the Alchemist!🧪🧑‍🔬🧪🧑‍🔬🧪🧑‍🔬\nI can help you transfer the different colored liquids into your flasks so that you get flasks with liquids filtered by color.\nI can work with pictures so you don't have to fill the flasks completely by hand, and I can also change the level a little by adding an empty flask if your level cannot be solved with two empty flasks😊")
-    await bot.set_my_short_description("Alchemist - telegram bot for solving your levels for games with transfusion of colored liquids")
+    await bot.set_my_description(AlchemistBot.FULL_DESCRIPTION)
+    await bot.set_my_short_description(AlchemistBot.SHORT_DESCRITPION)
 
 
 async def main():
     """Главная функция с инициализацией бота"""
+
     # Определяем количество свободного пространства на диске в Гб
     if os.name == 'nt':
         free_space = shutil.disk_usage('C:/').free / 10**9
@@ -90,6 +97,7 @@ async def main():
         config.scheduler.start()
         await bot.delete_webhook(drop_pending_updates=True)
         await dp.start_polling(bot)
+        
     except TelegramNetworkError:
         logger.log_error('Ошибка подключения клиента к API')
 

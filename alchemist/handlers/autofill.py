@@ -9,8 +9,11 @@ from random import shuffle
 
 import classes.all_my_classes as amc
 from keyboards.all_my_keyboards import autofill_buttons, autofill_options, no_result, upload_new, pay_attempts
-from found_colors import replace_in_list, create_image_for_replace, add_empty_flask, BreakAction, EMPTY
+from found_colors import replace_in_list, create_image_for_replace, add_empty_flask, create_colors_dict, EMPTY, UNDEFINED
 from transfusion_of_liquids import transfusion_manage
+from texts.all_my_texts import AutofillTexts
+from texts.redis_keys import RedisKeys
+from callbacks.all_my_callbacks import CallbacksData
 
 from itertools import permutations
 
@@ -18,26 +21,39 @@ from itertools import permutations
 rtr = Router()
 logger = amc.ConfigLogger(__name__)
 
+class BreakAction(Exception):
+    pass
+
 
 async def reply(callback: CallbackQuery, bot: Bot, state: FSMContext, flasks_id_list: list, keyboard_name: str, new_message: bool):
     '''Функция для вызова поиска решения'''
-    data = await state.get_data()
-    if not 'count_fail_attempts' in data:
+
+    user_data = await state.get_data()
+
+    if not RedisKeys.FAIL_ATTEMPTS in user_data:
         await state.update_data(count_fail_attempts=0)
-        data = await state.get_data()
-    lvl_file = data['level_file']
+        user_data = await state.get_data()
+
+    lvl_file = user_data[RedisKeys.LVL_FILE]
 
     # Подставляем нужную клавиатуру в зависимости от начальной картинки
     if keyboard_name == 'upload_new':
         keyboard = upload_new('upload_new')
+        
     else:
         keyboard = upload_new('upload_new_or_reload')
         
     async with ChatActionSender.typing(bot=bot, chat_id=callback.from_user.id):
-        '''Запускаем процесс поиска решения'''
+        
+        '''
+        Запускаем процесс поиска решения
+        '''
+
         # Итоговое изображение
-        caption = "I'll look for a solution from this position. Wait, this may take a while"
+        caption = AutofillTexts.START_FIND_SOLUTION
+
         if new_message == False:
+
             with open(lvl_file, 'rb') as open_image:
                 await callback.message.edit_media(
                     InputMediaPhoto(
@@ -48,7 +64,9 @@ async def reply(callback: CallbackQuery, bot: Bot, state: FSMContext, flasks_id_
                         caption=caption
                     )
                 )
+
         else:
+
             with open(lvl_file, 'rb') as open_image:
                 await callback.message.answer_photo(
                     BufferedInputFile(
@@ -57,100 +75,138 @@ async def reply(callback: CallbackQuery, bot: Bot, state: FSMContext, flasks_id_
                     ),
                     caption=caption
                 )
+
         await callback.answer()
+
         logger.log_info(f'Пользователь {callback.from_user.id} заполнил все пустоты')
 
-        try:
-            # Вызываем функцию перебора переливаний
-            is_solved, steps, count_states = await transfusion_manage(flasks_id_list)
-        except TelegramBadRequest:
-            logger.log_error('Превышено время ожидания ответа на начало поиска решения')
+        colors_dict = await create_colors_dict(flasks_id_list)
 
-        # В случае, если флаг выставлен в False сообщаем, что решение не найдено, иначе выводим решение
-        if not is_solved:
-            await state.update_data(count_fail_attempts=data['count_fail_attempts'] + 1)
-            data = await state.get_data()
-            await callback.message.answer(
-                f'😖😖😖I have looked through all {count_states} possible variants of pouring liquids and unfortunately, it is impossible to find a solution for this arrangement.\nIf you want to change the order of undefined colors, click "🔄️🖼️Update image".\nIf you know all the colors, but the solution is still not found, then I can add another empty flask, for this click "➕🧪Add empty flask"\nOr you can upload a new image, for this click "📩🖼️Upload new image"',
-                reply_markup=no_result()
-            )
+        if UNDEFINED not in colors_dict and all(key == EMPTY or colors_dict[key] == 4 for key in colors_dict.keys()):
+
+            try:
+                # Вызываем функцию перебора переливаний (только если количество сегментов каждого цвета соответствует вместимости колбы)
+                is_solved, steps, count_states = await transfusion_manage(flasks_id_list)
+
+            except TelegramBadRequest:
+                logger.log_error('Превышено время ожидания ответа на начало поиска решения')
+
+            # В случае, если флаг выставлен в False сообщаем, что решение не найдено, иначе выводим решение
+            if not is_solved:
+                await state.update_data(count_fail_attempts=user_data[RedisKeys.FAIL_ATTEMPTS] + 1)
+
+                user_data = await state.get_data()
+
+                await callback.message.answer(
+                    AutofillTexts.NOT_SOLVED.format(count_states=count_states),
+                    parse_mode='HTML',
+                    reply_markup=no_result()
+                )
+
+            else:
+                await callback.message.answer(
+                    AutofillTexts.SUCCESSFUL_SOLVED.format(steps=steps),
+                    reply_markup=keyboard
+                )
+
         else:
+            # Выводим сообщение о том, что изображение не подходит для поиска решения
             await callback.message.answer(
-                f'Yay!🥳🥳🥳I found a solution for you!!!🥳🥳🥳\n{steps}\nLet me know if you want a solution for another screenshot :)',
-                reply_markup=keyboard
+                AutofillTexts.BAD_IMAGE,
+                reply_markup=upload_new('upload_new')
             )
+
         await state.set_state(amc.SolveFlasks.set_color)
     
         # Отнимаем попытку у пользователя только после того, как он получил решение или получил в ответ, что решения нет
-        if not isnan(data['count_paid_attempts']) and not isnan(data['count_free_attempts']):
-            if data['count_fail_attempts'] == 3:
+        if not isnan(user_data[RedisKeys.PAID_ATTEMPTS]) and not isnan(user_data[RedisKeys.FREE_ATTEMPTS]):
+
+            if user_data[RedisKeys.FAIL_ATTEMPTS] == 3:
                 await state.update_data(count_fail_attempts=0)
-                await state.update_data(count_free_attempts=data['count_free_attempts'] + 1)
-            if data['count_free_attempts'] > 0:
-                await state.update_data(count_free_attempts=data['count_free_attempts'] - 1)
+                await state.update_data(count_free_attempts=user_data[RedisKeys.FREE_ATTEMPTS] + 1)
+            if user_data[RedisKeys.FREE_ATTEMPTS] > 0:
+                await state.update_data(count_free_attempts=user_data[RedisKeys.FREE_ATTEMPTS] - 1)
             else:
-                await state.update_data(count_paid_attempts=data['count_paid_attempts'] - 1)
+                await state.update_data(count_paid_attempts=user_data[RedisKeys.PAID_ATTEMPTS] - 1)
 
 
 @rtr.callback_query(
     amc.SolveFlasks.set_color,
     F.data.in_(
         [
-            'yes', 'autofill', 'previous', 'next', 'confirm', 'reload_image', 'add_an_empty_flask'
+            CallbacksData.YES, CallbacksData.AUTOFILL, CallbacksData.PREVIOUS, CallbacksData.NEXT,
+            CallbacksData.CONFIRM, CallbacksData.RELOAD_IMAGE, CallbacksData.EMPTY_FLASK
         ]
     )
 )
 async def autofill(callback: CallbackQuery, bot: Bot, state: FSMContext):
     '''Функция выбора режима работы и реализации логики втозаполнения'''
+
     logger.log_info(f'Пользователь {callback.from_user.id} выбрал режим автозаполнения')
-    if callback.data in ['yes', 'reload_image', 'add_an_empty_flask']:
-        '''Если пользователь подтвердил, что изображение было распознано правильно'''
+
+    if callback.data in [CallbacksData.YES, CallbacksData.RELOAD_IMAGE, CallbacksData.EMPTY_FLASK]:
+
+        '''
+        Если пользователь подтвердил, что изображение было распознано правильно
+        '''
+
         # Получаем доступ к сохраненному набору неопределенных цветов
-        data = await state.get_data()
-        undef_colors, flasks_id_list = data['undefined_colors'], data['flasks_id_list']
-        lvl_file = data['level_file']
+        user_data = await state.get_data()
+        undef_colors, flasks_id_list = user_data[RedisKeys.UNDEF_COLORS], user_data[RedisKeys.FLASKS_LIST]
+        lvl_file = user_data[RedisKeys.LVL_FILE]
         new_message = False
 
         async with ChatActionSender.typing(bot=bot, chat_id=callback.from_user.id):
-            if callback.data in ['reload_image', 'add_an_empty_flask']:
-                # Предлагаем купить попытки, если они закончились
+            if callback.data in [CallbacksData.RELOAD_IMAGE, CallbacksData.EMPTY_FLASK]:
+
+                # Предлагаем купить попытки, если они закончились 
                 await callback.message.delete()
+
                 new_message = True
-                free_attempts = data['count_free_attempts']
-                paid_attempts = data['count_paid_attempts']
+                free_attempts = user_data[RedisKeys.FREE_ATTEMPTS]
+                paid_attempts = user_data[RedisKeys.PAID_ATTEMPTS]
+
                 if free_attempts == 0 and paid_attempts == 0:
+
                     logger.log_info(f'У пользователя {callback.from_user.id} закончились попытки')
+
                     await callback.message.answer(
-                        "Sorry, you've run out of attempts😞\nIf you want to continue now, you can buy multiple attempts for a small fee",
+                        AutofillTexts.OUT_ATTEMPTS,
                         reply_markup=pay_attempts()
                     )
+
                     await callback.answer()
                     await state.set_state(amc.SolveFlasks.pay_attempts)
                     return
+
                 else:
-                    if not isnan(free_attempts):
-                        if isnan(paid_attempts):
-                            msg_text = f'Now you have an unlimited 🎟️\n*Unlimited is available within 30 days from the date of payment'
-                        elif paid_attempts > 0 and free_attempts > 0:
-                            msg_text = f'Now you have:\nFree 🎟️: {free_attempts}\nPaid 🎟️: {paid_attempts}'
+
+                    if not isnan(free_attempts) and not isnan(paid_attempts):
+                        if paid_attempts > 0 and free_attempts > 0:
+                            msg_text = AutofillTexts.RELOAD_FREE_PAID.format(free_attempts=free_attempts, paid_attempts=paid_attempts)
                         elif paid_attempts == 0 and free_attempts > 0:
-                            msg_text = f'Now you have:\nFree 🎟️: {free_attempts}'
+                            msg_text = AutofillTexts.RELOAD_FREE.format(free_attempts=free_attempts)
                         elif paid_attempts > 0 and free_attempts == 0:
-                            msg_text = f'Now you have:\nPaid 🎟️: {paid_attempts}'
+                            msg_text = AutofillTexts.RELOAD_PAID.format(paid_attempts=paid_attempts)
                         await callback.message.answer(msg_text)
+
                     await callback.answer()
+
                 logger.log_info(f'Изображение от пользователя {callback.from_user.id} отправлено на перезагрузку с/без добавления пустой колбы')
             
-                if callback.data == 'add_an_empty_flask':
+                if callback.data == CallbacksData.EMPTY_FLASK:
+                    
                     # Добавляем пустую четверть колбы
-                    if data['new_segment'] == 0 or data['new_segment'] == 3:
+                    if user_data[RedisKeys.NEW_SEGMENTS] == 0 or user_data[RedisKeys.NEW_SEGMENTS] == 3:
                         idx_segment = 1
                         await state.update_data(new_segment=idx_segment)
-                    elif data['new_segment'] < 3:
-                        idx_segment = data['new_segment'] + 1
+                    elif user_data[RedisKeys.NEW_SEGMENTS] < 3:
+                        idx_segment = user_data[RedisKeys.NEW_SEGMENTS] + 1
                         await state.update_data(new_segment=idx_segment)
+
                     flasks_id_list = await add_empty_flask(flasks_id_list=flasks_id_list, idx_segment=idx_segment)
                     await state.update_data(flasks_id_list=flasks_id_list)
+
                     logger.log_info(f'В изображение пользователя {callback.from_user.id} была добавлена пустая четверть колбы')
 
                     # Подготавливаем картинку, в которой подсвечиваем неопределенные области
@@ -160,30 +216,36 @@ async def autofill(callback: CallbackQuery, bot: Bot, state: FSMContext):
                 await reply(callback, bot, state, flasks_id_list, 'upload_new', new_message)
                 return
 
-            if callback.data == 'yes':
+            if callback.data == CallbacksData.YES:
                 await callback.message.delete()
                 await state.update_data(serial_number=0)
+            
             await callback.message.answer(
-                "Tell me if you want to fill in the undefined colors manually or should I do it automatically?🙂",
+                AutofillTexts.SELECT_MODE,
                 reply_markup=autofill_buttons()
             )
+
             await callback.answer()
             return
     
     '''Начало перебора всех решений, генерация картинки и сообщения'''
     # Получаем доступ к сохраненному набору неопределенных цветов
-    data = await state.get_data()
-    undef_colors = data['undefined_colors']
-    lvl_file = data['level_file']
+    user_data = await state.get_data()
+    undef_colors = user_data[RedisKeys.UNDEF_COLORS]
+    lvl_file = user_data[RedisKeys.LVL_FILE]
 
-    if callback.data == 'autofill':
+    if callback.data == CallbacksData.AUTOFILL:
         async with ChatActionSender.typing(bot=bot, chat_id=callback.from_user.id):
-            await callback.message.edit_text("Now I'll show you my options for filling undefined colors\nYou can switch between all the options until you find the one that suits you")
+
+            await callback.message.edit_text(AutofillTexts.PREPARING_START_POSITION)
+
             # Создание списка цветов
             variations = []
+
             for key in undef_colors.keys():
                 for _ in range(undef_colors[key]):
                     variations.append(int(key))
+
             if len(variations) < 5:
                 # Получение всевозможных уникальных перестановок
                 all_permutations = list(list(permutation) for permutation in set(permutations(variations)))
@@ -191,19 +253,23 @@ async def autofill(callback: CallbackQuery, bot: Bot, state: FSMContext):
             else:
                 shuffle(variations)
                 await state.update_data(permutations=[variations])
+
             await callback.answer()
 
-    if callback.data == 'confirm':
+    if callback.data == CallbacksData.CONFIRM:
         logger.log_info(f'Пользователь {callback.from_user.id} выбрал вариант для поиска решения')
-        autofill_flasks_id_list = data['autofill_flasks_id_list']
+
+        autofill_flasks_id_list = user_data[RedisKeys.AUTOFILL_FLASKS_LIST]
+
         await reply(callback, bot, state, autofill_flasks_id_list, 'upload_new_or_reload', False)
         return
     
-    autofill_flasks_id_list = data['flasks_id_list']
-    data = await state.get_data()
-    all_permutations = data['permutations']
+    autofill_flasks_id_list = user_data[RedisKeys.FLASKS_LIST]
+    user_data = await state.get_data()
+    all_permutations = user_data[RedisKeys.PERMUTATIONS]
 
-    if callback.data in ['previous', 'next']:
+    if callback.data in [CallbacksData.PREVIOUS, CallbacksData.NEXT]:
+
         # Отоброжаем промежуточный вариант
         with open(lvl_file, 'rb') as open_image:
             await callback.message.edit_media(
@@ -212,37 +278,46 @@ async def autofill(callback: CallbackQuery, bot: Bot, state: FSMContext):
                         open_image.read(),
                         filename='solve_flasks'
                     ),
-                    caption='Click on one of the buttons below to get another option or select the current option'
+                    caption=AutofillTexts.SELECT_START_POSITION
                 )
             )
 
-    if callback.data == 'previous':
-        number = data['serial_number']
+    # Обработка логики переключения между вариациями автоматической расстановки неизвестных цветов
+    if callback.data == CallbacksData.PREVIOUS:
+
+        number = user_data[RedisKeys.SERIAL_NUMBER]
         number -= 1
         await state.update_data(serial_number=number)
 
-    if callback.data == 'next':
+    if callback.data == CallbacksData.NEXT:
+
         if len(all_permutations) == 1:
             shuffle(all_permutations[0])
             await state.update_data(permutations=all_permutations)
+
         else:
-            number = data['serial_number']
+            number = user_data[RedisKeys.SERIAL_NUMBER]
             if number < len(all_permutations) - 1:
-                number += 1
+                number += 1   
             await state.update_data(serial_number=number)
 
-    data = await state.get_data()
-    all_permutations = data['permutations']
+    user_data = await state.get_data()
+    all_permutations = user_data[RedisKeys.PERMUTATIONS]
+
     if len(all_permutations) == 1:
         autofill_variation = all_permutations[0]
+
     else:
-        number = data['serial_number']
+        number = user_data[RedisKeys.SERIAL_NUMBER]
         autofill_variation = all_permutations[number]
 
     unique_sequence = False # Флаг для отслеживания перемешки без повторений последовательных цветов
+
     while not unique_sequence:
+
         if len(all_permutations) != 1:
             unique_sequence = True
+
         # Дозаполняем неопределенные места
         for color in autofill_variation:
             await replace_in_list(autofill_flasks_id_list, color)
@@ -254,13 +329,15 @@ async def autofill(callback: CallbackQuery, bot: Bot, state: FSMContext):
                         if flask[color] == flask[color + 1] and flask[color] != EMPTY:
                             raise BreakAction
                 unique_sequence = True
+
             except BreakAction:
                 pass
 
         if unique_sequence == False:
             shuffle(autofill_variation)
-            data = await state.get_data()
-            autofill_flasks_id_list = data['flasks_id_list']
+            user_data = await state.get_data()
+            autofill_flasks_id_list = user_data[RedisKeys.FLASKS_LIST]
+
     await state.update_data(autofill_flasks_id_list=autofill_flasks_id_list)
 
     # Подготавливаем картинку
@@ -268,8 +345,10 @@ async def autofill(callback: CallbackQuery, bot: Bot, state: FSMContext):
 
     if len(all_permutations) == 1:
         mode = 'first'
-        caption = 'Click on one of the buttons below to get another option or select the current option'
+        caption = AutofillTexts.SELECT_START_POSITION
+
     else:
+
         if number == 0:
             mode = 'first'
         elif number == len(all_permutations) - 1:
@@ -278,7 +357,8 @@ async def autofill(callback: CallbackQuery, bot: Bot, state: FSMContext):
             mode = None
         caption = f"Option {number + 1} of {len(all_permutations)}"
         
-    if callback.data in ['previous', 'next']:
+    if callback.data in [CallbacksData.PREVIOUS, CallbacksData.NEXT]:
+
         # Рисуем картинки с вариантами автозаполнений
         with open(lvl_file, 'rb') as open_image:
             await callback.message.edit_media(
@@ -291,8 +371,10 @@ async def autofill(callback: CallbackQuery, bot: Bot, state: FSMContext):
                 ),
                 reply_markup=autofill_options(mode)
             )
+            
     else:
         async with ChatActionSender.upload_photo(bot=bot, chat_id=callback.from_user.id):
+
             # Рисуем картинку после первого автозаполнения
             with open(lvl_file, 'rb') as open_image:
                 await callback.message.answer_photo(
@@ -303,4 +385,5 @@ async def autofill(callback: CallbackQuery, bot: Bot, state: FSMContext):
                     caption=caption,
                     reply_markup=autofill_options(mode)
                 )
+
     await callback.answer()

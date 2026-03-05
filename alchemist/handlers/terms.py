@@ -4,6 +4,8 @@ from aiogram.types import Message, CallbackQuery
 
 import classes.all_my_classes as amc
 from keyboards.all_my_keyboards import ok
+from texts.all_my_texts import TermsTexts
+from callbacks.all_my_callbacks import CallbacksData
 
 
 rtr = Router()
@@ -12,22 +14,24 @@ logger = amc.ConfigLogger(__name__)
 
 async def handle_terms(update_type: Message | CallbackQuery):
     '''Вспомогательная функция для вывода текста в зависимости от формата сообщения'''
+
     user_id = update_type.from_user.id
+
     if isinstance(update_type, CallbackQuery):
         send_func = update_type.message.edit_text
     else:
         await update_type.delete()
         send_func = update_type.answer
+        
     logger.log_info(f'Пользователем {user_id} был вызван показ пользовательского соглашения')
 
-    text = 'By starting to work with me you agree to the <a href="https://just-russian-amateur.github.io/terms_for_alchemist_bot/Terms_of_Service.html">User Agreement</a> and <a href="https://just-russian-amateur.github.io/terms_for_alchemist_bot/Privacy_Policy.html">Privacy Policy</a>\n\nYou can ask my developer any questions you have regarding the operation of the bot or the payment system through the feedback system using the command /support🙂\n\nAfter clicking the button below you can continue from where you left off'
-    await send_func(text, parse_mode='HTML', reply_markup=ok())
+    await send_func(TermsTexts.TERMS, parse_mode='HTML', reply_markup=ok())
     
     if isinstance(update_type, CallbackQuery):
         await update_type.answer()
 
 
-@rtr.message(Command('terms'))  # Команда для показа пользовательского соглашения
+@rtr.message(Command(CallbacksData.TERMS))  # Команда для показа пользовательского соглашения
 async def terms_message(message: Message):
     '''Функция для показа пользовательского соглашения'''
     await handle_terms(message)
@@ -35,7 +39,7 @@ async def terms_message(message: Message):
 
 @rtr.callback_query(
     amc.SolveFlasks.start_solving,
-    F.data == 'terms'
+    F.data == CallbacksData.TERMS
 )
 async def terms_callback(callback: CallbackQuery):
     '''Функция для показа пользовательского соглашения'''

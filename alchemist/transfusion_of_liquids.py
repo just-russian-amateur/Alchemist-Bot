@@ -5,8 +5,11 @@ from found_colors import EMPTY
 
 async def check_solving(position: tuple) -> bool:
     '''Функция проверки получения решения'''
+
     for flask in position:
+
         first = flask[0]
+
         if any(color != first for color in flask):
             return False
 
@@ -33,10 +36,12 @@ async def possible_moves(position: tuple, last_move=None) -> list:
 
     Порядковые номера цветов можно увидеть в файле "found_colors.py"
     '''
+
     moves = []  # Список перемещений
 
     # Перебираем все колбы из которых можно перелить
     for idx_solve_flask, solve_flask in enumerate(position):
+
         count_segments = len(solve_flask)
         solve_colors_count = len(set(solve_flask))
         
@@ -60,8 +65,10 @@ async def possible_moves(position: tuple, last_move=None) -> list:
         ]  # Пустая колба
 
         for idx_color in range(count_segments - 1, -1, -1):
+
             # Получаем необходимую информацию о самом верхнем цвете
             if solve_flask[idx_color] != EMPTY:
+
                 mono_color_height += 1
                 solve_upper_color[0][1] = idx_color
                 solve_upper_color[1][0] = solve_flask[idx_color]
@@ -69,7 +76,9 @@ async def possible_moves(position: tuple, last_move=None) -> list:
 
         # Проверка того, что следующие блоки такого же цвета (переливаться будет сразу весь цвет и это влияет на решение)
         idx_upper_color = solve_upper_color[0][1]
+
         for idx_color in range(idx_upper_color - 1, -1, -1):
+
             if solve_flask[idx_color] == solve_upper_color[1][0]:
                 mono_color_height += 1
             else:
@@ -79,6 +88,7 @@ async def possible_moves(position: tuple, last_move=None) -> list:
 
         # Перебираем все колбы в которые можно перелить
         for idx_target_flask, target_flask in enumerate(position):
+
             count_segments = len(target_flask)
             
             # Переливать колбу саму в себя нельзя
@@ -102,6 +112,7 @@ async def possible_moves(position: tuple, last_move=None) -> list:
             ]   # Пустая колба
 
             for idx_color in range(count_segments - 1, -1, -1):
+
                 if target_flask[idx_color] != EMPTY:
                     target_upper_color[0][1] = idx_color
                     target_upper_color[1][0] = target_flask[idx_color]
@@ -114,6 +125,7 @@ async def possible_moves(position: tuple, last_move=None) -> list:
 
             # Переливание возможно только если верхние цвета совпадают или если переливаем в пустую колбу и места в целевой колбе достаточно
             if target_upper_color[1][1] >= solve_upper_color[1][1]:
+
                 if solve_upper_color[1][0] == target_upper_color[1][0]:
                     target_upper_color[0][1] += 1
                     target_upper_color[1][0] = EMPTY
@@ -129,12 +141,15 @@ async def possible_moves(position: tuple, last_move=None) -> list:
 
 async def apply_move(position: tuple, move: list) -> tuple[tuple, str]:
     '''Функция для применения перемещения к текущему положению для получения нового'''
+
     # Получение данных о колбах, которые задействуются
     solve_flask, target_flask = move
 
     # Замена цвета в решающей колбе на пустое и заполнение места в целевой колбе
     update_position = []
+
     for idx_flask, flask in enumerate(position):
+        
         if idx_flask == solve_flask[0][0]:
             new_flask = tuple(
                 EMPTY if solve_flask[0][1] - solve_flask[1][1] < idx_color <= solve_flask[0][1] else color
@@ -155,13 +170,15 @@ async def apply_move(position: tuple, move: list) -> tuple[tuple, str]:
     return tuple(update_position), step
 
 
-async def transfusion_of_liquids(position: tuple) -> tuple[bool, any, any]:
+async def transfusion_of_liquids(position: tuple) -> tuple[bool, str | None, int | None]:
     '''Функция перемещения цвета в текущей позиции и записи последовательности шагов'''
+
     visited_states = {tuple(sorted(position))}
     steps = []
     stack = [[position, await possible_moves(position)]]
 
     while stack:
+
         now_position, moves = stack[-1]
 
         # Проверяем решена ли задача
@@ -169,9 +186,12 @@ async def transfusion_of_liquids(position: tuple) -> tuple[bool, any, any]:
             return True, steps, None
         
         if not moves:
+
             stack.pop()
+
             if steps:
                 steps.pop()
+                
             continue
 
         move = moves.pop()
@@ -181,6 +201,7 @@ async def transfusion_of_liquids(position: tuple) -> tuple[bool, any, any]:
 
         # Если текущая позиция уже была посещена ранее, то переходим к следующей
         canonical_position = tuple(sorted(new_position))
+
         if canonical_position in visited_states:
             continue
 
@@ -194,16 +215,23 @@ async def transfusion_of_liquids(position: tuple) -> tuple[bool, any, any]:
 
 async def transfusion_manage(task: list) -> tuple[bool, str | None, int | None]:
     '''Основная функция модуля, регулирующая процесс переливания'''
+
     # Возвращаем флаг решения и список шагов, если решение есть
     position_tuple = tuple(tuple(flask) for flask in task)
     is_solved, steps_list, count_states = await transfusion_of_liquids(position_tuple)
+    
     if is_solved:
+
         lines = []
+
         for idx_step, step in enumerate(steps_list, 1):
+
             lines.append(step)
+
             if idx_step % 4 == 0:
                 # Добавляем пустую строку, разбивая решение на блоки по 4 хода для удобства отслеживания
                 lines.append('')
+
         result = '\n'.join(lines)
 
         return is_solved, result, None

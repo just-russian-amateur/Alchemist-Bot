@@ -2,6 +2,7 @@ from aiogram import Router
 from aiogram.types import Message, CallbackQuery
 
 import classes.all_my_classes as amc
+from texts.all_my_texts import CheckUpdatesTexts
 
 
 rtr = Router()
@@ -10,9 +11,13 @@ logger = amc.ConfigLogger(__name__)
 
 async def handle_updates(update_type: Message | CallbackQuery):
     '''Вспомогательная функция для вывода текста в зависимости от формата сообщения'''
+
     user_id = update_type.from_user.id
+
     logger.log_info(f'Данные пользователя {user_id} были изменены в redis-хранилище')
-    await update_type.answer('I have received important updates, to continue using me please restart me by typing /start🙂')
+    
+    await update_type.answer(CheckUpdatesTexts.RESTART_MESSAGE)
+
     if isinstance(update_type, CallbackQuery):
         await update_type.answer()
 

@@ -1,14 +1,20 @@
 from aiogram.types import InlineKeyboardButton, InlineKeyboardMarkup
+
 import classes.all_my_classes as amc
 from config import color_variations
+from texts.all_my_texts import KeyboardTexts
+from callbacks.all_my_callbacks import CallbacksData
 
 
 logger = amc.ConfigLogger(__name__)
+MY_URL = "t.me/alchemist_bot_support"
 
 
-def create_undef_buttons(color_buttons_list: list):
+def create_undef_buttons(color_buttons_list: list) -> list:
     '''Функция для расстановки кнопок с цветами'''
+
     color_buttons = []
+
     # "Красивая" расстановка кнопок
     for i in range(0, len(color_buttons_list), 3):
         color_buttons.append(color_buttons_list[i:i + 3])
@@ -18,75 +24,80 @@ def create_undef_buttons(color_buttons_list: list):
     return color_buttons
 
 
-def start_keyboard():
-    start_button = [
-        [
-            InlineKeyboardButton(text='🚀Start solving', callback_data='start_solving'),
-            InlineKeyboardButton(text='📝Rules of use', callback_data='rules')
-        ],
-        [
-            InlineKeyboardButton(text='📒Account', callback_data='account')
-        ]
-    ]
-    kb = InlineKeyboardMarkup(inline_keyboard=start_button)
+def start_keyboard() -> list:
 
     logger.log_info('Вывод приветствия')
 
-    return kb
-
-
-def account(free_mode: bool):
-    if free_mode:
-        account_button = [
+    return InlineKeyboardMarkup(
+        inline_keyboard=[
             [
-                InlineKeyboardButton(text='📃User Agreement', callback_data='terms')
+                InlineKeyboardButton(text=KeyboardTexts.START_SOLVING, callback_data=CallbacksData.START_SOLVING),
+                InlineKeyboardButton(text=KeyboardTexts.RULES, callback_data=CallbacksData.RULES)
             ],
             [
-                InlineKeyboardButton(text='❓Support', url="t.me/alchemist_bot_support"),
-            ],
-            [
-                InlineKeyboardButton(text='⏭️Continue solving', callback_data='continue')
+                InlineKeyboardButton(text=KeyboardTexts.ACCOUNT, callback_data=CallbacksData.ACCOUNT)
             ]
         ]
-    else:
-        account_button = [
-            [
-                InlineKeyboardButton(text='📃User Agreement', callback_data='terms')
-            ],
-            [
-                InlineKeyboardButton(text='❓Support', url="t.me/alchemist_bot_support"),
-            ],
-            [
-                InlineKeyboardButton(text='🎟️Buy attempts', callback_data='buy_attempts'),
-            ],
-            [
-                InlineKeyboardButton(text='⏭️Continue solving', callback_data='continue')
-            ]
-        ]
-    kb = InlineKeyboardMarkup(inline_keyboard=account_button)
+    )
+
+
+def account(free_mode: bool) -> list:
 
     logger.log_info('Вывод личного аккаунта пользователя')
+    
+    if free_mode:
+        return InlineKeyboardMarkup(
+            inline_keyboard=[
+                [
+                    InlineKeyboardButton(text=KeyboardTexts.TERMS, callback_data=CallbacksData.TERMS)
+                ],
+                [
+                    InlineKeyboardButton(text=KeyboardTexts.SUPPORT, url=MY_URL),
+                ],
+                [
+                    InlineKeyboardButton(text=KeyboardTexts.CONTINUE, callback_data=CallbacksData.CONTINUE)
+                ]
+            ]
+        )
 
-    return kb
-
-
-def error_image():
-    reload_img = [
-        [
-            InlineKeyboardButton(text='📩🖼️Upload new image', callback_data='start_solving')
+    return InlineKeyboardMarkup(
+        inline_keyboard=[
+            [
+                InlineKeyboardButton(text=KeyboardTexts.TERMS, callback_data=CallbacksData.TERMS)
+            ],
+            [
+                InlineKeyboardButton(text=KeyboardTexts.SUPPORT, url=MY_URL),
+            ],
+            [
+                InlineKeyboardButton(text=KeyboardTexts.BUY_ATTEMPTS, callback_data=CallbacksData.BUY_ATTEMPTS),
+            ],
+            [
+                InlineKeyboardButton(text=KeyboardTexts.CONTINUE, callback_data=CallbacksData.CONTINUE)
+            ]
         ]
-    ]
-    kb = InlineKeyboardMarkup(inline_keyboard=reload_img)
-
-    return kb
+    )
 
 
-def colors(undef_colors: dict):
+def error_image() -> list:
+
+    return InlineKeyboardMarkup(
+        inline_keyboard=[
+            [
+                InlineKeyboardButton(text=KeyboardTexts.UPLOAD_IMAGE, callback_data=CallbacksData.START_SOLVING)
+            ]
+        ]
+    )
+
+
+def colors(undef_colors: dict) -> list:
+
     color_buttons_list = []
+
     # Создание списка кнопок с цветмаи, которыми можно будет заменить неопределенные значения
     for color_id in undef_colors.keys():
         for _ in range(undef_colors[color_id]):
             color_buttons_list.append(InlineKeyboardButton(text=color_variations[int(color_id)], callback_data=color_id))
+
     color_buttons = create_undef_buttons(color_buttons_list)
     kb = InlineKeyboardMarkup(inline_keyboard=color_buttons)
 
@@ -95,176 +106,189 @@ def colors(undef_colors: dict):
     return kb
 
 
-def feedback():
-    feedback_button = [
-        [
-            InlineKeyboardButton(text='Feedback to me🙃', url="t.me/alchemist_bot_support"),
-            InlineKeyboardButton(text='📩🖼️Upload new image', callback_data='start_solving')
-        ]
-    ]
-    kb = InlineKeyboardMarkup(inline_keyboard=feedback_button)
+def feedback() -> list:
 
-    return kb
-
-
-def upload_new(mode: str):
-    if mode == 'upload_new_or_reload':
-        upload_new_button = [
+    return InlineKeyboardMarkup(
+        inline_keyboard=[
             [
-                InlineKeyboardButton(text='🔄️🖼️Reload image', callback_data='reload_image'),
-                InlineKeyboardButton(text='📩🖼️Upload new image', callback_data='upload_new_image')
+                InlineKeyboardButton(text=KeyboardTexts.FEEDBACK, url=MY_URL),
+                InlineKeyboardButton(text=KeyboardTexts.UPLOAD_IMAGE, callback_data=CallbacksData.START_SOLVING)
             ]
         ]
-    else:
-        upload_new_button = [
-            [
-                InlineKeyboardButton(text='📩🖼️Upload new image', callback_data='upload_new_image')
-            ]
-        ]
-    kb = InlineKeyboardMarkup(inline_keyboard=upload_new_button)
+    )
+    
+
+def upload_new(mode: str) -> list:
 
     logger.log_info('Результат успешно найден')
+    
+    if mode == 'upload_new_or_reload':
+        return InlineKeyboardMarkup(
+            inline_keyboard=[
+                [
+                    InlineKeyboardButton(text=KeyboardTexts.RELOAD_IMAGE, callback_data=CallbacksData.RELOAD_IMAGE),
+                    InlineKeyboardButton(text=KeyboardTexts.UPLOAD_IMAGE, callback_data=CallbacksData.UPLOAD_IMAGE)
+                ]
+            ]
+        )
 
-    return kb
-
-
-def no_result():
-    no_result_button = [
-        [
-            InlineKeyboardButton(text='🔄️🖼️Reload image', callback_data='reload_image'),
-            InlineKeyboardButton(text='➕🧪Add 1/4 flask', callback_data='add_an_empty_flask')
-        ],
-        [
-            InlineKeyboardButton(text='📩🖼️Upload new image', callback_data='upload_new_image')
+    return InlineKeyboardMarkup(
+        inline_keyboard=[
+            [
+                InlineKeyboardButton(text=KeyboardTexts.UPLOAD_IMAGE, callback_data=CallbacksData.UPLOAD_IMAGE)
+            ]
         ]
-    ]
-    kb = InlineKeyboardMarkup(inline_keyboard=no_result_button)
+    )
+    
+
+def no_result() -> list:
 
     logger.log_info('Результат не найден')
-
-    return kb
-
-
-def pay_attempts():
-    pay_button = [
-        [
-            InlineKeyboardButton(text='💰Buy 5🎟️ for 50⭐', callback_data='5_attempts')
-        ],
-        [
-            InlineKeyboardButton(text='💰Buy 12🎟️ for 100⭐', callback_data='12_attempts')
-        ],
-        [
-            InlineKeyboardButton(text='💰Buy 20🎟️ for 150⭐', callback_data='20_attempts')
-        ],
-        [
-            InlineKeyboardButton(text='💰Buy unlimited🎟️ for 350⭐', callback_data='unlimited_attempts')
-        ],
-        [
-            InlineKeyboardButton(text='❌Cancel', callback_data='account')
+    
+    return InlineKeyboardMarkup(
+        inline_keyboard=[
+            [
+                InlineKeyboardButton(text=KeyboardTexts.RELOAD_IMAGE, callback_data=CallbacksData.RELOAD_IMAGE),
+                InlineKeyboardButton(text=KeyboardTexts.ADD_SEGMENT, callback_data=CallbacksData.EMPTY_FLASK)
+            ],
+            [
+                InlineKeyboardButton(text=KeyboardTexts.UPLOAD_IMAGE, callback_data=CallbacksData.UPLOAD_IMAGE)
+            ]
         ]
-    ]
-    kb = InlineKeyboardMarkup(inline_keyboard=pay_button)
+    )
+
+
+def pay_attempts() -> list:
 
     logger.log_info('Кончились попытки')
 
-    return kb
-
-
-def payment_kb(btn_text: str):
-    payment_button = [
-        [
-            InlineKeyboardButton(text=btn_text, pay=True)
-        ],
-        [
-            InlineKeyboardButton(text='❌Cancel', callback_data='cancel')
+    return InlineKeyboardMarkup(
+        inline_keyboard=[
+            [
+                InlineKeyboardButton(text=KeyboardTexts.BUY_5_ATTEMPTS, callback_data=CallbacksData.ATTEMPTS_5)
+            ],
+            [
+                InlineKeyboardButton(text=KeyboardTexts.BUY_12_ATTEMPTS, callback_data=CallbacksData.ATTEMPTS_12)
+            ],
+            [
+                InlineKeyboardButton(text=KeyboardTexts.BUY_20_ATTEMPTS, callback_data=CallbacksData.ATTEMPTS_20)
+            ],
+            [
+                InlineKeyboardButton(text=KeyboardTexts.BUY_UNLIM_ATTEMPTS, callback_data=CallbacksData.ATTEMPTS_UNLIM)
+            ],
+            [
+                InlineKeyboardButton(text=KeyboardTexts.CANCEL, callback_data=CallbacksData.ACCOUNT)
+            ]
         ]
-    ]
-    kb = InlineKeyboardMarkup(inline_keyboard=payment_button)
+    )
+    
 
-    return kb
+def payment_kb(btn_text: str) -> list:
 
-
-def continue_solving():
-    continue_button = [
-        [
-            InlineKeyboardButton(text='⏭️Continue solving', callback_data='continue')
+    return InlineKeyboardMarkup(
+        inline_keyboard=[
+            [
+                InlineKeyboardButton(text=btn_text, pay=True)
+            ],
+            [
+                InlineKeyboardButton(text=KeyboardTexts.CANCEL, callback_data=CallbacksData.CANCEL)
+            ]
         ]
-    ]
-    kb = InlineKeyboardMarkup(inline_keyboard=continue_button)
-
-    return kb
+    )
 
 
-def ok():
-    ok_button = [
-        [
-            InlineKeyboardButton(text='✅I understand', callback_data='ok')
+def continue_solving() -> list:
+
+    return InlineKeyboardMarkup(
+        inline_keyboard=[
+            [
+                InlineKeyboardButton(text=KeyboardTexts.CONTINUE, callback_data=CallbacksData.CONTINUE)
+            ]
         ]
-    ]
-    kb = InlineKeyboardMarkup(inline_keyboard=ok_button)
+    )
+    
 
-    return kb
+def ok() -> list:
 
-
-def recognition_check():
-    check_button = [
-        [
-            InlineKeyboardButton(text='👌Confirm', callback_data='yes'),
-            InlineKeyboardButton(text='🔁Change color', callback_data='no')
-        ],
-        [
-            InlineKeyboardButton(text='➕🧪Add 1/4 flask', callback_data='add_an_empty_flask')
-        ],
-        [
-            InlineKeyboardButton(text='➖🧪Remove excess flask', callback_data='remove_flask')
+    return InlineKeyboardMarkup(
+        inline_keyboard=[
+            [
+                InlineKeyboardButton(text=KeyboardTexts.ACCEPT, callback_data=CallbacksData.OK)
+            ]
         ]
-    ]
-    kb = InlineKeyboardMarkup(inline_keyboard=check_button)
+    )
+    
 
-    return kb
+def recognition_check() -> list:
+
+    return InlineKeyboardMarkup(
+        inline_keyboard=[
+            [
+                InlineKeyboardButton(text=KeyboardTexts.CONFIRM, callback_data=CallbacksData.YES),
+                InlineKeyboardButton(text=KeyboardTexts.CHANGE_COLOR, callback_data=CallbacksData.NO)
+            ],
+            [
+                InlineKeyboardButton(text=KeyboardTexts.ADD_SEGMENT, callback_data=CallbacksData.EMPTY_FLASK)
+            ],
+            [
+                InlineKeyboardButton(text=KeyboardTexts.REMOVE_FLASK, callback_data=CallbacksData.REMOVE_FLASK)
+            ]
+        ]
+    )
 
 
-def change_flask(num_of_lasks: int):
+def change_flask(num_of_lasks: int) -> list:
+
     cnt = 0
     button_list, button_line = [], []
+
     for i in range(num_of_lasks - 2):
+
         cnt += 1
         button_line.append(InlineKeyboardButton(text=f'{i + 1}', callback_data=f'{i}'))
+
         if cnt == 4:
             cnt = 0
             button_list.append(button_line)
             button_line = []
+
         elif i == num_of_lasks - 3:
             button_list.append(button_line)
+
     kb = InlineKeyboardMarkup(inline_keyboard=button_list)
 
     return kb
 
 
-def change_segment():
-    segment_buttons = [
-        [
-            InlineKeyboardButton(text='1', callback_data='0'),
-            InlineKeyboardButton(text='2', callback_data='1'),
-            InlineKeyboardButton(text='3', callback_data='2'),
-            InlineKeyboardButton(text='4', callback_data='3')
+def change_segment() -> list:
+
+    return InlineKeyboardMarkup(
+        inline_keyboard=[
+            [
+                InlineKeyboardButton(text='1', callback_data='0'),
+                InlineKeyboardButton(text='2', callback_data='1'),
+                InlineKeyboardButton(text='3', callback_data='2'),
+                InlineKeyboardButton(text='4', callback_data='3')
+            ]
         ]
-    ]
-    kb = InlineKeyboardMarkup(inline_keyboard=segment_buttons)
-
-    return kb
+    )
 
 
-def change_color():
+def change_color() -> list:
+
     buttons_list, buttons_line = [], []
     cnt = 0
+    
     for id in color_variations.keys():
+    
         cnt += 1
         buttons_line.append(InlineKeyboardButton(text=color_variations[id], callback_data=str(id)))
+    
         if cnt == 3:
             buttons_list.append(buttons_line)
             buttons_line = []
             cnt = 0
+    
     if buttons_line:
         buttons_list.append(buttons_line)
 
@@ -273,49 +297,51 @@ def change_color():
     return kb
 
 
-def autofill_buttons():
-    autofill = [
-        [
-            InlineKeyboardButton(text='🙍‍♂️Manually', callback_data='manually'),
-            InlineKeyboardButton(text='🤖Autofill', callback_data='autofill')
-        ]
-    ]
-    kb = InlineKeyboardMarkup(inline_keyboard=autofill)
+def autofill_buttons() -> list:
 
-    return kb
+    return InlineKeyboardMarkup(
+        inline_keyboard=[
+            [
+                InlineKeyboardButton(text=KeyboardTexts.MANUALLY, callback_data=CallbacksData.MANUALLY),
+                InlineKeyboardButton(text=KeyboardTexts.AUTOFILL, callback_data=CallbacksData.AUTOFILL)
+            ]
+        ]
+    )
 
 
-def autofill_options(mode=None):
-    all_options = [
-        [
-            InlineKeyboardButton(text='⬅️Previous option', callback_data='previous'),
-            InlineKeyboardButton(text='➡️Next option', callback_data='next')
-        ],
-        [
-            InlineKeyboardButton(text='✅Confirm selection', callback_data='confirm')
-        ]
-    ]
-    first_options = [
-        [
-            InlineKeyboardButton(text='➡️Next option', callback_data='next')
-        ],
-        [
-            InlineKeyboardButton(text='✅Confirm selection', callback_data='confirm')
-        ]
-    ]
-    last_options = [
-        [
-            InlineKeyboardButton(text='⬅️Previous option', callback_data='previous')
-        ],
-        [
-            InlineKeyboardButton(text='✅Confirm selection', callback_data='confirm')
-        ]
-    ]
+def autofill_options(mode=None) -> list:
+    
     if mode == 'first':
-        kb = InlineKeyboardMarkup(inline_keyboard=first_options)
+        return InlineKeyboardMarkup(
+            inline_keyboard=[
+                [
+                    InlineKeyboardButton(text=KeyboardTexts.NEXT_OPTION, callback_data=CallbacksData.NEXT)
+                ],
+                [
+                    InlineKeyboardButton(text=KeyboardTexts.SELECT, callback_data=CallbacksData.CONFIRM)
+                ]
+            ]
+        )
     elif mode == 'last':
-        kb = InlineKeyboardMarkup(inline_keyboard=last_options)
-    else:
-        kb = InlineKeyboardMarkup(inline_keyboard=all_options)
-
-    return kb
+        return InlineKeyboardMarkup(
+            inline_keyboard=[
+                [
+                    InlineKeyboardButton(text=KeyboardTexts.PREVIOUS_OPTION, callback_data=CallbacksData.PREVIOUS)
+                ],
+                [
+                    InlineKeyboardButton(text=KeyboardTexts.SELECT, callback_data=CallbacksData.CONFIRM)
+                ]
+            ]
+        )
+    
+    return InlineKeyboardMarkup(
+        inline_keyboard=[
+            [
+                InlineKeyboardButton(text=KeyboardTexts.PREVIOUS_OPTION, callback_data=CallbacksData.PREVIOUS),
+                InlineKeyboardButton(text=KeyboardTexts.NEXT_OPTION, callback_data=CallbacksData.NEXT)
+            ],
+            [
+                InlineKeyboardButton(text=KeyboardTexts.SELECT, callback_data=CallbacksData.CONFIRM)
+            ]
+        ]
+    )

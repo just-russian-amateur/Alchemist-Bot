@@ -6,6 +6,7 @@ from aiogram.utils.chat_action import ChatActionSender
 from found_colors import found_colors_in_flasks, create_image_for_replace, replace_in_list
 import classes.all_my_classes as amc
 from keyboards.all_my_keyboards import error_image, recognition_check
+from texts.all_my_texts import GetImageTexts
 
 import asyncio
 
@@ -20,17 +21,21 @@ logger = amc.ConfigLogger(__name__)
 )
 async def get_photo(message: Message, bot: Bot, state: FSMContext):
     '''Функция получения и обработки фотографий'''
+
     async with ChatActionSender.upload_photo(bot=bot, chat_id=message.chat.id):
         image_for_load = f'./tmp/{message.from_user.id}.jpg'   # Сохраняем на всякий случай путь к картинке
         lvl_file = f'./tmp/level_for_{message.from_user.id}.jpg'
+
         # Сохраняем пути в машину состояний
         await state.update_data(original_image=image_for_load)
         await state.update_data(level_file=lvl_file)
+
         # Загрузка фото в буфер для последующей обработки
         await bot.download(
             message.photo[-1],
             destination=image_for_load
         )
+
         logger.log_info(f'Пользователь {message.from_user.id} отправил фото')
     
         try:
@@ -44,10 +49,12 @@ async def get_photo(message: Message, bot: Bot, state: FSMContext):
             # Если есть любое прерывание во время распознавания, то просим пользователя загрузить новое фото
             # (генерация прерывания говорит о том, что фото не является скриншотом колб или не соответствует условиям)
             await message.answer(
-                'Something went wrong...🤷‍♂️ Please take a new screenshot of the current level and upload it again or send another screenshot',
+                GetImageTexts.UPLOAD_ERROR,
                 reply_markup=error_image()
             )
+
             logger.log_error('Изображение не подходит для распознавания')
+
             await state.set_state(amc.SolveFlasks.start_solving)
             return
         
@@ -70,17 +77,21 @@ async def get_photo(message: Message, bot: Bot, state: FSMContext):
                     open_image.read(),
                     filename='solve_flasks'
                 ),
-                caption="This is what I saw in your screenshot. Compare the colors here with the original image and please let me know if I was successful so I can continue solving the problem. You can also immediately add a blank segment if you deem it necessary (in this case, the image is considered correctly recognized)! If something is wrong, you can replace the incorrectly recognized colors or delete the extra flask",
+                caption=GetImageTexts.CAPTION,
                 reply_markup=recognition_check()
             )
+
         await state.set_state(amc.SolveFlasks.set_color)
 
 
 @rtr.message(amc.SolveFlasks.send_photo)
 async def sending_photo_incorrectly(message: Message):
     '''Функция для отслеживания любых действий кроме отправки фото'''
+
     logger.log_info(f'Пользователь {message.from_user.id} отправил что-то кроме фото')
-    msg = await message.answer('Send a photo please')
+
+    msg = await message.answer(GetImageTexts.GET_IMAGE_ERROR)
+    
     await asyncio.sleep(10)
     await message.delete()
     await msg.delete()

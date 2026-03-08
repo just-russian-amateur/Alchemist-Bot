@@ -47,7 +47,7 @@ async def create_color_list(image: cv2.typing.MatLike) -> list:
     hsv_colors = cv2.cvtColor(image, cv2.COLOR_BGR2HSV)
 
     for i in range(3, 33, 8):
-        y1, y2, x1, x2 = round(height*i/32), round(height*(i+2)/32), round(width*3/8), round(width*5/8)
+        y1, y2, x1, x2 = round(height * i / 32), round(height * (i + 2) / 32), round(width * 3 / 8), round(width * 5 / 8)
         segment = hsv_colors[y1:y2, x1:x2]
 
         # Более агрессивный подход для удаления ненужных шумов с изображения с использованием эрозии

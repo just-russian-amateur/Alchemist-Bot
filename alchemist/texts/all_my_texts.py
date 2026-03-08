@@ -91,7 +91,7 @@ class SendWelcomeTexts:
     )
 
     CONDITION_TEXT = (
-        "Every month I'll give you 5 free 🎟️ and 1 bonus 🎟️ "
+        "Every month I'll give you 5 free 🎟️ and 1 bonus free 🎟️ "
         "for every third unsuccessful attempt to find a solution "
         "(unless you have activated unlimited 🎟️ for 30 days), "
         "if they are not enough for you, you can buy more for a "

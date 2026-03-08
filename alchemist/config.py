@@ -3,9 +3,15 @@ from apscheduler.schedulers.asyncio import AsyncIOScheduler
 from apscheduler.jobstores.redis import RedisJobStore
 from pytz import utc
 from ultralytics import YOLO
+from dotenv import load_dotenv
+import os
 
 
-API_TOKEN = '6987578051:AAG4TCXhhdMG1xSX2AjRJqu7Pqp4krpit_8'  # Токен для работы с API
+# Загружаем .env в окружение
+load_dotenv()
+
+API_TOKEN = os.getenv("BOT_TOKEN")  # Токен для работы с API
+
 # Вариации цветов
 color_variations = {
     0: 'LIGHT BLUE',

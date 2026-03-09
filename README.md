@@ -1,5 +1,7 @@
 # Alchemist Bot
 
+[EN](README.md) | [RU](README-RU.md)
+
 ## Preface
 
 I decided to open source this project due to potential (and very likely) issues with **Telegram** in Russia, as well as potential problems with monetization, which could limit the bot's availability to Russian users. This step was taken to ensure that any interested user can run a local copy of the bot and use it as they see fit, without violating **the User Agreement** (linked in the **_all_my_texts.py_** file), **the laws of your country**, or **the Apache 2.0 license** selected for the current repository. I also hope that any interested user can contribute to the project's development and help fix bugs (if any are discovered), improve and expand the bot's functionality, or make other optimizations.

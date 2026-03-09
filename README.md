@@ -1,60 +1,60 @@
 # Alchemist Bot
 
-## Предисловие
+## Preface
 
-Я решил сделать данный проект открытым из-за возможных (и весьма вероятных) проблем в работе **Telegram** в России, а также потенциальных проблем с монетизацией проекта и, как следствием, ограничением доступности бота для пользователей из России. Данный шаг предпринят для того, чтобы каждый желающий пользователь мог запустить у себя локальную копию бота и использовать его по своему усмотрению, не нарушая **Пользовательское Соглашение** (ссылка на него есть в файле **_all_my_texts.py_**), **законодательство вашей страны** и лицензию **Apache 2.0**, которая выбрана для текущего репозитория. Также, я рассчитываю, что любой заинтресованный пользователь может внести свой вклад в развитие проекта и помочь с исправлением багов (если таковые будут обнаружены) или с улучшением и расширением функционала бота или ругими оптимизациями.
+I decided to open source this project due to potential (and very likely) issues with **Telegram** in Russia, as well as potential problems with monetization, which could limit the bot's availability to Russian users. This step was taken to ensure that any interested user can run a local copy of the bot and use it as they see fit, without violating **the User Agreement** (linked in the **_all_my_texts.py_** file), **the laws of your country**, or **the Apache 2.0 license** selected for the current repository. I also hope that any interested user can contribute to the project's development and help fix bugs (if any are discovered), improve and expand the bot's functionality, or make other optimizations.
 
-Я был бы очень благодарен!
+I would be very grateful!
 
-## Системные требования
+## System Requirements
 
-В данном блоке я укажу лишь рекомендованные системные требования к боту для его стабильной и бесперебойной работы.
+In this section, I will only list the recommended system requirements for the bot to ensure its stable and uninterrupted operation.
 
-Вы можете запускать экземпляр бота как на локальном ПК или сервере, так и на VPS-сервере любого провайдера облачных услуг.
+You can run the bot instance on a local PC or server, or on a VPS server from any cloud service provider.
 
-### Рекомендованные требования
+### Recommended Requirements
 
-**CPU:** Intel или AMD с тактовой частотой 1.8+ ГГц, 1 ядро
+**CPU:** Intel or AMD, 1.8+ GHz, 1 core
 
-**ОС:** Ubuntu 22.04+/Debian 10+
+**OS:** Ubuntu 22.04+/Debian 10+
 
-**RAM:** 3+ ГБ
+**RAM:** 3+ GB
 
-**SSD:** 15+ ГБ (для VPS-сервера)/10+ ГБ свободного места на локальном ПК или сервере
+**SSD:** 15+ GB (for a VPS server)/10+ GB of free space on a local PC or server
 
-**Сеть:** любое стабильное интернет соединение, которое не блокирует запросы и ответы к/от Telegram Bot API (в России на локальных ПК и серверах могут наблюдаться проблемы, для VPS-провайдеров пока неактуально)
+**Network:** Any stable internet connection that doesn't block requests and responses to/from the Telegram Bot API (in Russia, local PCs and servers may experience issues; not yet applicable to VPS providers)
 
-**Интерпретатор:** Python 3.9+
+**Interpreter:** Python 3.9+
 
-Данной конфигурации достаточно как для работы бота, так и для установки всех необходимых зависимостей (о них будет сказано ниже).
+This configuration is sufficient for both the bot and the installation of all necessary dependencies (discussed below).
 
-## Установка зависимостей
+## Installing Dependencies
 
-Бот написан с использованием библиотеки aiogram 3.x и тестирвался на интерпретаторах Python 3.9 и Python 3.13, но должен одинаково работать на всех свежих версиях интерпретатора.
+The bot was written using the aiogram 3.x library and tested on Python 3.9 and 3.13, but should work equally well on all recent versions of the interpreter.
 
-Для работы бота необходимо 3 основных компонента:
+The bot requires three main components:
 
-* [Git](https://git-scm.com/install/linux) - распределённая система управления версиями.
-* [Интерпретатор Python](https://www.python.org/downloads/) c установленными зависимостями (установленными через PIP):
-  - aiogram;
-  - opencv-python;
-  - numpy;
-  - redis;
-  - apscheduler;
-  - ultralytics;
-  - dotenv;
-  - может понадобиться отдельная установка некоторых зависимостей, если они не были скачаны вместе с вышеперечисленными. 
-* Redis - NoSQL СУБД с открытым иходным кодом для хранения состояний пользователя в машине состояний и пользовательских данных. Установка и настройка Redis описаны на [официальном сайте (для пользователей из России могут потребоваться дополниетльные средства для доступа к сайту)](https://redis.io/docs/latest/get-started/).
+* [Git](https://git-scm.com/install/linux) - a distributed version control system.
+* [Python interpreter](https://www.python.org/downloads/) with the following dependencies installed (installed via PIP):
+- aiogram;
+- opencv-python;
+- numpy;
+- redis;
+- apscheduler;
+- ultralytics;
+- dotenv;
+- some dependencies may need to be installed separately if they were not downloaded along with the ones listed above.
+* Redis is an open-source NoSQL DBMS for storing user state in a state machine and user data. Installation and configuration of Redis are described on the [official website (users in Russia may require additional access to the site)](https://redis.io/docs/latest/get-started/).
 
-**Примечание:** данный бот использвет для своей работы обученную модель на базе [YOLOv11X](https://docs.ultralytics.com/models/yolo11/), которая представлена в данном репозитории, но не могла быть загружена целиком, поскольку превышала допустимый вес в 100 МБ, в связи с чем, чтобы получить данныую модель вам нужно установить и настроить не только [Git](https://git-scm.com/install/linux), но и [Git LFS](https://git-lfs.com/) для использования Git для хранения больших файлов.
+**Note:** This bot uses a trained model based on [YOLOv11X](https://docs.ultralytics.com/models/yolo11/), which is available in this repository. However, the entire model could not be downloaded because it exceeded the 100 MB size limit. Therefore, to obtain this model, you need to install and configure not only [Git](https://git-scm.com/install/linux) but also [Git LFS](https://git-lfs.com/) to use Git for storing large files.
 
-## Немного о структуре проекта и файлах
+## A little about the project structure and files
 
-**Примечание:** для создания копии бота вам нужно зарегистрировать нового бота через официального бота **@BotFather** в **Telegram** и получить **токен** для него. [Вот здесь можно посмотреть как это сделать](https://core.telegram.org/bots#how-do-i-create-a-bot).
+**Note:** To create a bot copy, you need to register a new bot through the official bot **@BotFather** in **Telegram** and obtain a **token** for it. [You can see how to do this here](https://core.telegram.org/bots#how-do-i-create-a-bot).
 
-Структура проекта представляет из себя иерархическую струкрутру логически отделенных друг от друга функциональных блоков. В корне проекта лежат, по сути, системные файлы и сгенерированное изображение с примерами цветов, которые умеет распознавать бот и пример файла окружения, в котором должен храниться полученный ранее токен (для большей безопасности бота). При использовании реального файла окружения постфикса **_.example_** быть не должно.
+The project structure is a hierarchical structure of logically separated functional blocks. The root of the project essentially contains system files and a generated image with example colors the bot can recognize, along with a sample environment file where the previously obtained token should be stored (for greater bot security). When using a real environment file, the **_.example_** postfix should not be present.
 
-Структура непосредственно бота выглядит следующим образом:
+The bot structure itself looks like this:
 
 ```text
 alchemist
@@ -85,32 +85,32 @@ alchemist
 └── transfusion_of_liquids.py
 ```
 
-Файл **_alchemist_bot.py_** является точкой входа для бота. В нем подключается шедулер для ежемесячного сброса попыток, реализуется меню команд и подключаются хэндлеры. В файле **_config.py_** хранятся большинство констант и переменных инициализации, а также загружается модель. Файл **_found_colors.py_** предназначен для обработки скриншотов с уровнями в игре от пользователей, а файл **_transfusion_of_liquids.py_** предназначен для поиска решения для обработанного уровня со скриншота.
+The **_alchemist_bot.py_** file is the entry point for the bot. It includes a scheduler for monthly reset attempts, implements the command menu, and includes handlers. The **_config.py_** file stores most of the constants and initialization variables, and also loads the model. The **_found_colors.py_** file is used for processing screenshots.with user-generated game levels, and the **_transfusion_of_liquids.py_** file is designed to find a solution for the processed level from the screenshot.
 
-Основную логику UI бота берут на себя хэндлеры, каждый из которых отвечает за обработку конкретного состояния бота в момент взаимодействия с пользователем. В данных хэндлнрах реализована ключевая логика работы бота, которая включает в себя обработку доступных текстовых команд, скриншотов с уровнями, нажатий кнопок, обработки транзакций в **Telegram Stars** и обращения к базе данных и машине состояний бота, хранящихся в **Redis**. Подробнее узнать о том, что делает каждый хэндлер вы можете, когда просмотрите исходный код каждого хэндлера.
+The main logic of the bot's UI is handled by handlers, each of which is responsible for processing a specific bot state at the moment of user interaction. These handlers implement the bot's key logic, which includes processing available text commands, level screenshots, button presses, processing transactions in **Telegram Stars**, and accessing the database and the bot's state machine stored in **Redis**. You can learn more about what each handler does by viewing its source code.
 
-**Примечание:** в боте также предусмотрено распределение ролей на обычных пользователей и "друзей". Оно реализовано, в первую очередь, для удобства тестирования бота на предмета логических ошибок после внесения изменений в код, когда тестирование осуществляют несколько человек, но также может использоваться и для возможности выделять привилегированных пользователей, на которых не будет распространяться лимит по количеству попыток (на случай, если вы планируете монетизировать бота каким-либо иным образом, например, введение подписочной системы).
+**Note:** The bot also provides for the distribution of roles between regular users and "friends". It was implemented primarily to facilitate testing the bot for logical errors after making changes to the code, when testing is performed by several people. However, it can also be used to designate privileged users who will not be subject to the attempt limit (in case you plan to monetize the bot in some other way, for example, by introducing a subscription system).
 
-**Примечание 2:** хэндлер для обработки платежей также можно использовать как пример работы с внутренней валютой - **Telegram Stars**, поскольку до сих пор я не находил большого количества примеров кода для обработки платежей с использованием этого метода оплаты.
+**Note 2:** The payment processing handler can also be used as an example of working with the internal currency - **Telegram Stars**, since I haven't found many code examples for processing payments using this payment method yet.
 
-## Функционал и возможности бота
+## Bot Functionality and Capabilities
 
-На данном этапе функционал бота включает в себя следующее:
+Currently, the bot's functionality includes the following:
 
-* Распознавание на изображении колб и ограниченного списка цветов внутри них, в том числе на сложных фонах (когда задний фон практичски сливается с контурами или даже цветами внутри колб, пример решения подобного уровня продемонстрирован в видео ниже).
-* Распознавание на изображении не полностью открытых колб (когда один или несколько сегментов колбы скрыты и не были открыты пользователем в результате переливаний), корректное определение положений открытых и скрытых сегментов.
-* Возможность ручного заполнения скрытых сегментов колб с выбором соответствующего цвета для каждого сегмента последовательно, даже если не все примеры цветов были открыты пользователем (например, из 14 колб - 2 были пустые и 12 колб должны иметь уникальные цвета, но пользователь открыл только 10 уникальных цветов).
-* Возможность автоматического заполнения скрытых сегментов колб (рекомендуется в большинстве случаев), в том числе, когда не открыты все уникальные цвета (см. предыдущий пункт).
-* Возможность выбора точного автоматического заполнения скрытых сегментов, когда количество скрытых сегментов относительно мало.
-* Возможность заменить любой сегмент внутри любой колбы на любой из доступных цветов, которые бот умеет распознавать (рекомендуется использовать в случае, когда один или несколько цветов были распознаны некорректно).
-* Возможность добавить пустой сегмент перед поиском решения.
-* Возможность удалить любую колбу целиком (в случае, если во время распознавания бот допустил ошибку(-и)).
-* Возможность выбрать другой вариант заполнения скрытых сегментов без необходимости повторной отправки скриншота.
+* Recognition of flasks and a limited list of colors within them in images, including on complex backgrounds (when the background practically blends in with the contours or even the colors within the flasks; an example of a similar solution is demonstrated in the video below).
+* Recognition of partially opened flasks in images (when one or more flask segments are hidden and were not revealed by the user as a result of pouring), and correct determination of the positions of open and hidden segments.
+* Ability to manually fill hidden flask segments by selecting the appropriate color for each segment sequentially, even if not all color examples were revealed by the user (e.g., out of 14 flasks, 2 were empty and 12 flasks should have unique colors, but the user only revealed 10 unique colors).
+* Ability to automatically fill hidden flask segments (recommended in most cases), including when not all unique colors were revealed (see the previous point).
+* Ability to select precise automatic filling of hidden segments when the number of hidden segments is relatively small.
+* Ability to replace any segment within any flask with any of the available colors that the bot can recognize (recommended when one or more colors were recognized incorrectly).
+* Ability to add an empty segment before searching for a solution.
+* Ability to delete any flask entirely (if the bot made an error(s) during recognition).
+* Ability to select a different option for filling hidden segments without having to re-submit a screenshot.
 
-## Пример использования
+## Usage Example
 
-[Пример использования бота для решения одного из уровней в игре на переливание жидкостей](https://youtube.com/shorts/1LuF7I0vwj4?si=c0fZsYv3RlSnkqTk)
+[Example of using the bot to solve one of the levels in a liquid-pouring game](https://youtube.com/shorts/1LuF7I0vwj4?si=c0fZsYv3RlSnkqTk)
 
-## Заключение
+## Conclusion
 
-На данном этапе проект является относительно законченным, реализован довольно широкий и рабочий функционал бота, каких-то критических багов в процессе тестирования найдено не было, но это не значит, что они отсутствуют, поэтому в случае обнаружения таковых, могут вноситься исправления в разумные сроки.
+At this stage, the project is relatively complete. The bot has implemented a fairly broad and functional set of features. No critical bugs were found during testing, but this does not mean they are absent. If any are discovered, fixes can be implemented within a reasonable timeframe.

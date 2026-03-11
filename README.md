@@ -16,17 +16,12 @@ You can run the bot instance on a local PC or server, or on a VPS server from an
 
 ### Recommended Requirements
 
-**CPU:** Intel or AMD, 1.8+ GHz, 1 core
-
-**OS:** Ubuntu 22.04+/Debian 10+
-
-**RAM:** 3+ GB
-
-**SSD:** 15+ GB (for a VPS server)/10+ GB of free space on a local PC or server
-
-**Network:** Any stable internet connection that doesn't block requests and responses to/from the Telegram Bot API (in Russia, local PCs and servers may experience issues; not yet applicable to VPS providers)
-
-**Interpreter:** Python 3.9+
+* **CPU:** Intel or AMD, 1.8+ GHz, 1 core
+* **OS:** Ubuntu 22.04+/Debian 10+
+* **RAM:** 3+ GB
+* **SSD:** 15+ GB (for a VPS server)/10+ GB of free space on a local PC or server
+* **Network:** Any stable internet connection that doesn't block requests and responses to/from the Telegram Bot API (in Russia, local PCs and servers may experience issues; not yet applicable to VPS providers)
+* **Interpreter:** Python 3.9+
 
 This configuration is sufficient for both the bot and the installation of all necessary dependencies (discussed below).
 
@@ -38,14 +33,14 @@ The bot requires three main components:
 
 * [Git](https://git-scm.com/install/linux) - a distributed version control system.
 * [Python interpreter](https://www.python.org/downloads/) with the following dependencies installed (installed via PIP):
-- aiogram;
-- opencv-python;
-- numpy;
-- redis;
-- apscheduler;
-- ultralytics;
-- dotenv;
-- some dependencies may need to be installed separately if they were not downloaded along with the ones listed above.
+  - aiogram;
+  - opencv-python;
+  - numpy;
+  - redis;
+  - apscheduler;
+  - ultralytics;
+  - dotenv;
+  - some dependencies may need to be installed separately if they were not downloaded along with the ones listed above.
 * Redis is an open-source NoSQL DBMS for storing user state in a state machine and user data. Installation and configuration of Redis are described on the [official website (users in Russia may require additional access to the site)](https://redis.io/docs/latest/get-started/).
 
 **Note:** This bot uses a trained model based on [YOLOv11X](https://docs.ultralytics.com/models/yolo11/), which is available in this repository. However, the entire model could not be downloaded because it exceeded the 100 MB size limit. Therefore, to obtain this model, you need to install and configure not only [Git](https://git-scm.com/install/linux) but also [Git LFS](https://git-lfs.com/) to use Git for storing large files.
@@ -61,25 +56,25 @@ The bot structure itself looks like this:
 ```text
 alchemist
 ├── callbacks/
-|      └── all_my_callbacks.py
+│      └── all_my_callbacks.py
 ├── classes/
-|      └── all_my_classes.py
+│      └── all_my_classes.py
 ├── handlers/
-|      ├── account.py
-|      ├── autofill.py
-|      ├── check_updates.py
-|      ├── fill_undefined_colors.py
-|      ├── get_image.py
-|      ├── payment.py
-|      ├── send_welcome.py
-|      ├── start_solving.py
-|      ├── support.py
-|      └── terms.py
+│      ├── account.py
+│      ├── autofill.py
+│      ├── check_updates.py
+│      ├── fill_undefined_colors.py
+│      ├── get_image.py
+│      ├── payment.py
+│      ├── send_welcome.py
+│      ├── start_solving.py
+│      ├── support.py
+│      └── terms.py
 ├── keyboards/
-|      └── all_my_keyboards.py
+│      └── all_my_keyboards.py
 ├── texts/
-|      ├── all_my_texts.py
-|      └── redis_keys.py
+│      ├── all_my_texts.py
+│      └── redis_keys.py
 ├── alchemist_bot.py
 ├── best.pt
 ├── config.py

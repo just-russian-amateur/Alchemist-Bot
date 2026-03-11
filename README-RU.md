@@ -16,17 +16,12 @@
 
 ### Рекомендованные требования
 
-**CPU:** Intel или AMD с тактовой частотой 1.8+ ГГц, 1 ядро
-
-**ОС:** Ubuntu 22.04+/Debian 10+
-
-**RAM:** 3+ ГБ
-
-**SSD:** 15+ ГБ (для VPS-сервера)/10+ ГБ свободного места на локальном ПК или сервере
-
-**Сеть:** любое стабильное интернет соединение, которое не блокирует запросы и ответы к/от Telegram Bot API (в России на локальных ПК и серверах могут наблюдаться проблемы, для VPS-провайдеров пока неактуально)
-
-**Интерпретатор:** Python 3.9+
+* **CPU:** Intel или AMD с тактовой частотой 1.8+ ГГц, 1 ядро
+* **ОС:** Ubuntu 22.04+/Debian 10+
+* **RAM:** 3+ ГБ
+* **SSD:** 15+ ГБ (для VPS-сервера)/10+ ГБ свободного места на локальном ПК или сервере
+* **Сеть:** любое стабильное интернет соединение, которое не блокирует запросы и ответы к/от Telegram Bot API (в России на локальных ПК и серверах могут наблюдаться проблемы, для VPS-провайдеров пока неактуально)
+* **Интерпретатор:** Python 3.9+
 
 Данной конфигурации достаточно как для работы бота, так и для установки всех необходимых зависимостей (о них будет сказано ниже).
 
@@ -61,25 +56,25 @@
 ```text
 alchemist
 ├── callbacks/
-|      └── all_my_callbacks.py
+│      └── all_my_callbacks.py
 ├── classes/
-|      └── all_my_classes.py
+│      └── all_my_classes.py
 ├── handlers/
-|      ├── account.py
-|      ├── autofill.py
-|      ├── check_updates.py
-|      ├── fill_undefined_colors.py
-|      ├── get_image.py
-|      ├── payment.py
-|      ├── send_welcome.py
-|      ├── start_solving.py
-|      ├── support.py
-|      └── terms.py
+│      ├── account.py
+│      ├── autofill.py
+│      ├── check_updates.py
+│      ├── fill_undefined_colors.py
+│      ├── get_image.py
+│      ├── payment.py
+│      ├── send_welcome.py
+│      ├── start_solving.py
+│      ├── support.py
+│      └── terms.py
 ├── keyboards/
-|      └── all_my_keyboards.py
+│      └── all_my_keyboards.py
 ├── texts/
-|      ├── all_my_texts.py
-|      └── redis_keys.py
+│      ├── all_my_texts.py
+│      └── redis_keys.py
 ├── alchemist_bot.py
 ├── best.pt
 ├── config.py

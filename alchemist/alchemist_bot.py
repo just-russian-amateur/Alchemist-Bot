@@ -9,6 +9,7 @@ import classes.all_my_classes as amc
 from texts.all_my_texts import KeyboardTexts, AlchemistBot
 from texts.redis_keys import RedisKeys
 from callbacks.all_my_callbacks import CallbacksData
+from middlewares.excuse_me_middleware import ExcuseMeMiddleware
 
 import asyncio
 import shutil
@@ -91,6 +92,8 @@ async def main():
     config.scheduler.add_job(recovery_attempts, 'cron', month='*', id='recovery_attempts', replace_existing=True, misfire_grace_time=300)
     
     dp.startup.register(clue)
+    dp.message.middleware(ExcuseMeMiddleware())
+    dp.callback_query.middleware(ExcuseMeMiddleware())
     dp.include_routers(send_welcome.rtr, account.rtr, terms.rtr, support.rtr, start_solving.rtr, payment.rtr, get_image.rtr, autofill.rtr, fill_undefined_colors.rtr, check_updates.rtr)
     
     try:

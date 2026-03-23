@@ -8,6 +8,7 @@ from callbacks.all_my_callbacks import CallbacksData
 
 logger = amc.ConfigLogger(__name__)
 MY_URL = "t.me/alchemist_bot_support"
+REPO_URL = "https://github.com/just-russian-amateur/Alchemist-Bot.git"
 
 
 def create_undef_buttons(color_buttons_list: list) -> list:
@@ -22,6 +23,19 @@ def create_undef_buttons(color_buttons_list: list) -> list:
     logger.log_info('Расстановка кнопок в правильном порядке')
     
     return color_buttons
+
+
+def open_repository() -> list:
+
+    logger.log_info('Кнопка открытия репозитория')
+
+    return InlineKeyboardMarkup(
+        inline_keyboard=[
+            [
+                InlineKeyboardButton(text=KeyboardTexts.OPEN_REPOSITORY, url=REPO_URL)
+            ]
+        ]
+    )
 
 
 def start_keyboard() -> list:

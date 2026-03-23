@@ -17,6 +17,8 @@ class AlchemistBot:
 
 
 class KeyboardTexts:
+    OPEN_REPOSITORY = "📖Open repository"
+
     CLUE_RESTART = "🔄️Restarting me"
 
     CLUE_ACCOUNT = "📒Your account"
@@ -82,6 +84,23 @@ class KeyboardTexts:
     PAY_150 = "💰Pay 150⭐"
 
     PAY_350 = "💰Pay 350⭐"
+
+
+class ExcuseMeTexts:
+    EXCUSE_MESSAGE = (
+        "Unfortunately, due to stricter laws regarding the processing "
+        "of user's personal data in the Russian Federation, I can no "
+        "longer work with Russian users and be confident that I am "
+        "complying with the law.😞\nHowever, since I cannot identify "
+        "you as a citizen of Russia or any other country (I do not "
+        "collect any data that could help with identification), I am "
+        "forced to stop working with all users. Thank you for using me, "
+        "and I hope I helped you complete some challenging levels for "
+        "your game!🙂\n\n<b>Note from the developer:</b> This bot is an "
+        "open-source project, so you are welcome to run, use, and modify "
+        "it as you wish, good luck!\nClick the button below to open the "
+        "project repository"
+    )
 
 
 class SendWelcomeTexts:

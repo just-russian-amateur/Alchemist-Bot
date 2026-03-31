@@ -20,7 +20,7 @@ class ExcuseMeMiddleware(BaseMiddleware):
         state = data.get(RedisKeys.STATE)
         user_data = await state.get_data()
 
-        if not (isnan(user_data[RedisKeys.FREE_ATTEMPTS]) or user_data[RedisKeys.PAID_ATTEMPTS] > 0):
+        if isnan(user_data[RedisKeys.FREE_ATTEMPTS]) or user_data[RedisKeys.PAID_ATTEMPTS] > 0:
             # Пользователи, сообщения от которых будут обработаны
             
             return await handler(event, data)

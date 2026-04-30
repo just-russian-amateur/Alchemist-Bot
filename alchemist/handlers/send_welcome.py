@@ -24,18 +24,18 @@ async def check_user(user_id: int, state: FSMContext):
     with open('id_users.txt', 'r') as id_users:
         users = list(int(user.split('\n')[0]) for user in id_users.readlines())
 
-    await state.update_data(id_my_friends=friends)
-    await state.update_data(id_users=users)
+    await state.update_data(**{RedisKeys.FRIENDS_IDS: friends})
+    await state.update_data(**{RedisKeys.USERS_IDS: users})
 
     if user_id in friends:
-        await state.update_data(count_free_attempts=nan)
-        await state.update_data(count_paid_attempts=0)
+        await state.update_data(**{RedisKeys.FREE_ATTEMPTS: nan})
+        await state.update_data(**{RedisKeys.PAID_ATTEMPTS: 0})
 
     if not user_id in users:
 
         if not user_id in friends:
-            await state.update_data(count_free_attempts=5)
-            await state.update_data(count_paid_attempts=0)
+            await state.update_data(**{RedisKeys.FREE_ATTEMPTS: 5})
+            await state.update_data(**{RedisKeys.PAID_ATTEMPTS: 0})
 
         with open('id_users.txt', 'a') as id_users:
             id_users.write(f'{user_id}\n')
@@ -52,7 +52,7 @@ async def send_welcome(message: Message,  state: FSMContext):
     await check_user(message.from_user.id, state)
     user_data = await state.get_data()
 
-    if message.from_user.id in user_data[RedisKeys.FRIENDS_IDS]:
+    if message.from_user.id in user_data.get(RedisKeys.FRIENDS_IDS):
         condition_text = SendWelcomeTexts.CONDITION_TEXT_FREE
     else:
         condition_text = SendWelcomeTexts.CONDITION_TEXT

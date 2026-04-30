@@ -10,6 +10,7 @@ from config import scheduler, redis
 from texts.all_my_texts import PaymentTexts, KeyboardTexts, LabelsForPrices
 from texts.redis_keys import RedisKeys
 from callbacks.all_my_callbacks import CallbacksData
+from alchemist_bot import update_redis_data
 
 import asyncio
 from datetime import datetime, timedelta
@@ -60,22 +61,11 @@ async def reset_unlimited_attempts(user_id: int):
 
     # Пропускаем пользователей из списка друзей
     key = f"fsm:{user_id}:{user_id}:data"
-
-    # Получаем строку с переменными для пользователя
-    value = await redis.get(key)
-
-    if value:
-
-        try:
-            # Парсим строку на отдельные параметры и сбрасываем безлимит
-            data = json.loads(value)
-            data[RedisKeys.PAID_ATTEMPTS] = 0
-
-            await redis.set(key, json.dumps(data))
-
-            logger.log_info(f'Безлимит для пользователя {user_id} обнулен')
-        except:
-            logger.log_error(f'Ошибка при обнулении безлимита для пользователя {user_id}')
+    succes_update = await update_redis_data(key, lambda data: data.update({RedisKeys.PAID_ATTEMPTS.value: 0}))
+    if succes_update:
+        logger.log_info(f'Безлимит для пользователя {user_id} обнулен')
+    else:
+        logger.log_error(f'Ошибка при обнулении безлимита для пользователя {user_id}')
 
 
 @rtr.callback_query(
@@ -104,7 +94,7 @@ async def payment(callback: CallbackQuery, state: FSMContext):
     # Генерация уникального payload для пользователя
     payload = str(uuid.uuid4())
     
-    await state.update_data(add_attempts=package["count_attempts"])
+    await state.update_data(**{RedisKeys.ADD_ATTEMPTS: package["count_attempts"]})
 
     # Данные о процессе оплаты
     payment_data = {
@@ -205,7 +195,7 @@ async def succesful_payment(message: Message, state: FSMContext):
     await redis.set(f"payment:{payload}", json.dumps(payment_data), ex=86400)
 
     user_data = await state.get_data()
-    paid_attempts = user_data[RedisKeys.PAID_ATTEMPTS]
+    paid_attempts = user_data.get(RedisKeys.PAID_ATTEMPTS)
     add_attempts = package["count_attempts"]
 
     if isnan(add_attempts):
@@ -216,7 +206,7 @@ async def succesful_payment(message: Message, state: FSMContext):
 
         scheduler.add_job(reset_unlimited_attempts, 'date', run_date=run_date, args=(message.from_user.id,), misfire_grace_time=300)
 
-        await state.update_data(end_unlimited=run_date.isoformat(" ", "minutes"))
+        await state.update_data(**{RedisKeys.END_UNLIM: run_date.isoformat(" ", "minutes")})
 
         text = PaymentTexts.SUCCESSFUL_UNLIM
 
@@ -224,7 +214,7 @@ async def succesful_payment(message: Message, state: FSMContext):
         paid_attempts += add_attempts
         text = PaymentTexts.SUCCESSFUL_PAYMENT.format(paid_attempts=paid_attempts)
 
-    await state.update_data(count_paid_attempts=paid_attempts)
+    await state.update_data(**{RedisKeys.PAID_ATTEMPTS: paid_attempts})
 
     await message.answer(
         text=text,

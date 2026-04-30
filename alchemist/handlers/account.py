@@ -16,10 +16,10 @@ rtr = Router()
 logger = amc.ConfigLogger(__name__)
 
 
-async def create_account_message(user: User, data: FSMContext) -> tuple[str, bool]:
+async def create_account_message(user: User, data: dict) -> tuple[str, bool]:
     '''Вспомогательная функция для создания сообщения'''
 
-    if user.id in data[RedisKeys.FRIENDS_IDS]:
+    if user.id in data.get(RedisKeys.FRIENDS_IDS):
 
         free_attempts_note = AccountTexts.FRIENDS_NOTE
         text = AccountTexts.FRIENDS_MESSAGE.format(
@@ -31,21 +31,21 @@ async def create_account_message(user: User, data: FSMContext) -> tuple[str, boo
         return text, True
     
     free_attempts_note = AccountTexts.USERS_NOTE
-    free_attempts = data[RedisKeys.FREE_ATTEMPTS]
+    free_attempts = data.get(RedisKeys.FREE_ATTEMPTS)
 
-    if isnan(data[RedisKeys.PAID_ATTEMPTS]):
+    if isnan(data.get(RedisKeys.PAID_ATTEMPTS)):
 
         paid_attempts = "unlimited"
-        end_unlimited = data[RedisKeys.END_UNLIM]
+        end_unlimited = data.get(RedisKeys.END_UNLIM)
         added_text = AccountTexts.TIMEOUT_UNLIM.format(end_unlimited=end_unlimited)
         account_mode = True
         
     else:
         
-        paid_attempts = data[RedisKeys.PAID_ATTEMPTS]
+        paid_attempts = data.get(RedisKeys.PAID_ATTEMPTS)
         added_text = ""
 
-        if data[RedisKeys.PAID_ATTEMPTS] != 0:
+        if data.get(RedisKeys.PAID_ATTEMPTS) != 0:
             account_mode = True
         else:
             account_mode = False

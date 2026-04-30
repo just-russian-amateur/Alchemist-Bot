@@ -3,6 +3,8 @@ from aiogram.types import BotCommand
 from aiogram.exceptions import TelegramNetworkError
 from aiogram.fsm.storage.redis import RedisStorage
 
+from redis.exceptions import WatchError
+
 from handlers import send_welcome, start_solving, payment, fill_undefined_colors, get_image, terms, support, autofill, account, check_updates
 import config
 import classes.all_my_classes as amc
@@ -19,6 +21,38 @@ import os
 logger = amc.ConfigLogger(__name__)
 
 
+async def update_redis_data(key: str, updater: callable) -> bool:
+    '''Функция для безопасного обновления полей в Redis'''
+    while True:
+        # Цикл для безопасного обновления попыток для каждого игрока
+        async with config.redis.pipeline() as pipe:
+
+            try:
+                await pipe.watch(key)
+                # Получаем строку с переменными для пользователя
+                value = await pipe.get(key)
+
+                if not value:
+                    return False
+                
+                # Парсим строку на отдельные параметры и восстанавливаем попытки
+                data = json.loads(value)
+                updater(data)
+
+                pipe.multi()
+                pipe.set(key, json.dumps(data))
+                await pipe.execute()
+                return True
+            
+            except WatchError:
+                # Повторяем попытку обновления попыток в случае неудачи
+                continue
+
+            except Exception:
+                # Обработка остальных ошибок
+                return False
+
+
 async def recovery_attempts():
     '''Функция для восстановления количества бесплатных попыток для всех пользователей сразу (кроме друзей)'''
 
@@ -27,22 +61,17 @@ async def recovery_attempts():
         friends = list(int(friend.split('\n')[0]) for friend in id_friends.readlines())
 
     async for key in config.redis.scan_iter("fsm:*:*:data"):
+
         # Пропускаем пользователей из списка друзей
         user_id = int(key.decode().split(':')[1])
         if user_id in friends:
             continue
 
-        # Получаем строку с переменными для пользователя
-        value = await config.redis.get(key)
-        if value:
-            try:
-                # Парсим строку на отдельные параметры и восстанавливаем попытки
-                data = json.loads(value)
-                data[RedisKeys.FREE_ATTEMPTS] = 5
-                await config.redis.set(key, json.dumps(data))
-                logger.log_info(f'Попытки для пользователя {user_id} восстановлены')
-            except:
-                logger.log_error(f'Ошибка при восстановлении попыток для пользователя {user_id}')
+        succes_update = await update_redis_data(key, lambda data: data.update({RedisKeys.FREE_ATTEMPTS.value: 5}))
+        if succes_update:
+            logger.log_info(f'Попытки для пользователя {user_id} восстановлены')
+        else:
+            logger.log_error(f'Ошибка при восстановлении попыток для пользователя {user_id}')
 
 
 async def clue(bot: Bot):

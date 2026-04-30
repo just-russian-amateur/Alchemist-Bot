@@ -5,6 +5,10 @@ from enum import Enum
 class RedisKeys(str, Enum):
     STATE = "state"
 
+    EVENT_FROM_USER = "event_from_user"
+
+    USERS_IDS = "id_users"
+
     FRIENDS_IDS = "id_my_friends"
 
     FREE_ATTEMPTS = "count_free_attempts"
@@ -37,6 +41,10 @@ class RedisKeys(str, Enum):
 
     CHOOSEN_FLASK = "choosen_flask"
 
+    REMOVED_FLASK = "reremoved_flask"
+
     CHOOSEN_SEGMENT = "choosen_segment"
+
+    CHOOSEN_COLOR = "choosen_color"
 
     ADD_ATTEMPTS = "add_attempts"

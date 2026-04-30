@@ -16,15 +16,15 @@ rtr = Router()
 logger = amc.ConfigLogger(__name__)
 
 
-async def check_attempts(data: FSMContext, callback: CallbackQuery, state: FSMContext):
+async def check_attempts(data: dict, callback: CallbackQuery, state: FSMContext):
     '''Функция для проверки наличия попыток у пользователя'''
 
-    await state.update_data(new_segment=0)
+    await state.update_data(**{RedisKeys.NEW_SEGMENTS: 0})
 
     logger.log_info(f'Пользователь {callback.from_user.id} приступил к загрузке изображения')
 
-    free_attempts = data[RedisKeys.FREE_ATTEMPTS]
-    paid_attempts = data[RedisKeys.PAID_ATTEMPTS]
+    free_attempts = data.get(RedisKeys.FREE_ATTEMPTS)
+    paid_attempts = data.get(RedisKeys.PAID_ATTEMPTS)
 
     if paid_attempts == 0 and free_attempts == 0:
         logger.log_info(f'У пользователя {callback.from_user.id} закончились попытки')
@@ -115,7 +115,7 @@ async def start_solving_incorrectly(message: Message, state: FSMContext):
 
     logger.log_info(f'Пользователь {message.from_user.id} ввел неверную команду перед загрузкой изображения')
 
-    if message.from_user.id in user_data[RedisKeys.FRIENDS_IDS]:
+    if message.from_user.id in user_data.get(RedisKeys.FRIENDS_IDS):
         msg = await message.answer(
             StartSolvingTexts.ERROR_ACTION_FREE,
             parse_mode='HTML'

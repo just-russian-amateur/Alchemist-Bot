@@ -1,8 +1,6 @@
 from aiogram import BaseMiddleware
 from aiogram.types import CallbackQuery
 
-from math import isnan
-
 import classes.all_my_classes as amc
 from texts.redis_keys import RedisKeys
 from texts.all_my_texts import ExcuseMeTexts
@@ -18,15 +16,23 @@ class ExcuseMeMiddleware(BaseMiddleware):
     async def __call__(self, handler, event, data):
 
         state = data.get(RedisKeys.STATE)
+        user_id = data.get(RedisKeys.EVENT_FROM_USER).id
         user_data = await state.get_data()
 
-        if isnan(user_data[RedisKeys.FREE_ATTEMPTS]) or user_data[RedisKeys.PAID_ATTEMPTS] > 0:
+        # Получаем списки id друзей и всех игроков
+        with open('id_friends.txt', 'r') as id_friends:
+            friends = list(int(friend.split('\n')[0]) for friend in id_friends.readlines())
+
+        if user_id in friends:
             # Пользователи, сообщения от которых будут обработаны
-            
+            return await handler(event, data)
+        
+        paid_attempts = user_data.get(RedisKeys.PAID_ATTEMPTS)
+
+        if paid_attempts and user_data.get(RedisKeys.PAID_ATTEMPTS) > 0:
             return await handler(event, data)
 
         logger.log_info(f'Пользователь не может использовать бота')
-
 
         if isinstance(event, CallbackQuery):
 

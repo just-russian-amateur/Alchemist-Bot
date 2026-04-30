@@ -7,6 +7,7 @@ from found_colors import found_colors_in_flasks, create_image_for_replace, repla
 import classes.all_my_classes as amc
 from keyboards.all_my_keyboards import error_image, recognition_check
 from texts.all_my_texts import GetImageTexts
+from texts.redis_keys import RedisKeys
 
 import asyncio
 
@@ -27,8 +28,8 @@ async def get_photo(message: Message, bot: Bot, state: FSMContext):
         lvl_file = f'./tmp/level_for_{message.from_user.id}.jpg'
 
         # Сохраняем пути в машину состояний
-        await state.update_data(original_image=image_for_load)
-        await state.update_data(level_file=lvl_file)
+        await state.update_data(**{RedisKeys.IMAGE: image_for_load})
+        await state.update_data(**{RedisKeys.LVL_FILE: lvl_file})
 
         # Загрузка фото в буфер для последующей обработки
         await bot.download(
@@ -41,11 +42,11 @@ async def get_photo(message: Message, bot: Bot, state: FSMContext):
         try:
             # Распознаем цвета и добавляем их в список
             undef_colors, flasks_id_list = await found_colors_in_flasks(image_for_search=image_for_load)
-            await state.update_data(undefined_colors=undef_colors)
-            await state.update_data(flasks_id_list=flasks_id_list)
-            await state.update_data(edit_undefined_colors=undef_colors)
-            await state.update_data(edit_flasks_id_list=flasks_id_list)
-        except:
+            await state.update_data(**{RedisKeys.UNDEF_COLORS: undef_colors})
+            await state.update_data(**{RedisKeys.FLASKS_LIST: flasks_id_list})
+            await state.update_data(**{RedisKeys.EDITED_UNDEF_COLORS: undef_colors})
+            await state.update_data(**{RedisKeys.EDITED_FLASKS_LIST: flasks_id_list})
+        except Exception:
             # Если есть любое прерывание во время распознавания, то просим пользователя загрузить новое фото
             # (генерация прерывания говорит о том, что фото не является скриншотом колб или не соответствует условиям)
             await message.answer(
@@ -64,8 +65,8 @@ async def get_photo(message: Message, bot: Bot, state: FSMContext):
                 undef_colors[list(undef_colors.keys())[0]] -= 1
                 flasks_id_list = await replace_in_list(flasks_id_list=flasks_id_list, color_id=list(undef_colors.keys())[0])
             undef_colors.pop(list(undef_colors.keys())[0])
-            await state.update_data(undefined_colors=undef_colors)
-            await state.update_data(flasks_id_list=flasks_id_list)
+            await state.update_data(**{RedisKeys.UNDEF_COLORS: undef_colors})
+            await state.update_data(**{RedisKeys.FLASKS_LIST: flasks_id_list})
 
         # Подготавливаем картинку, в которой подсвечиваем неопределенные области
         await create_image_for_replace(flasks_id_list=flasks_id_list, id_client=message.from_user.id)

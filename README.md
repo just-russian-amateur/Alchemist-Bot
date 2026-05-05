@@ -4,7 +4,7 @@
 
 ## Preface
 
-I decided to open source this project due to potential (and very likely) issues with **Telegram** in Russia, as well as potential problems with monetization, which could limit the bot's availability to Russian users. This step was taken to ensure that any interested user can run a local copy of the bot and use it as they see fit, without violating **the User Agreement** (linked in the **_all_my_texts.py_** file), **the laws of your country**, or **the Apache 2.0 license** selected for the current repository. I also hope that any interested user can contribute to the project's development and help fix bugs (if any are discovered), improve and expand the bot's functionality, or make other optimizations.
+I decided to open source this project due to potential issues with **Telegram** in Russia, as well as potential problems with monetization, which could limit the bot's availability to Russian users. This step was taken to ensure that any interested user can run a local copy of the bot and use it as they see fit, without violating **the User Agreement** (linked in the **_all_my_texts.py_** file), **the laws of your country**, or **the Apache 2.0 license** selected for the current repository. I also hope that any interested user can contribute to the project's development and help fix bugs (if any are discovered), improve and expand the bot's functionality, or make other optimizations.
 
 I would be very grateful!
 
@@ -16,11 +16,11 @@ You can run the bot instance on a local PC or server, or on a VPS server from an
 
 ### Recommended Requirements
 
-* **CPU:** Intel or AMD, 1.8+ GHz, 1 core
-* **OS:** Ubuntu 22.04+/Debian 10+
+* **CPU:** Intel or AMD, 1.8+ GHz, 1+ core
+* **OS:** Ubuntu 22.04+/Debian 10+, Windows 10/11 + [WSL](https://learn.microsoft.com/en-us/windows/wsl/install) (for the database)
 * **RAM:** 3+ GB
 * **SSD:** 15+ GB (for a VPS server)/10+ GB of free space on a local PC or server
-* **Network:** Any stable internet connection that doesn't block requests and responses to/from the Telegram Bot API (in Russia, local PCs and servers may experience issues; not yet applicable to VPS providers)
+* **Network:** Any stable internet connection that doesn't block requests and responses to/from the Telegram Bot API (in Russia, local PCs and servers may experience issues)
 * **Interpreter:** Python 3.9+
 
 This configuration is sufficient for both the bot and the installation of all necessary dependencies (discussed below).
@@ -40,14 +40,15 @@ The bot requires three main components:
   - apscheduler;
   - ultralytics;
   - dotenv;
+  - aiohttp-socks (this package is required to configure a proxy for the bot if you use the bot on servers where requests to **Telegram** are blocked; usage examples are in the branches marked **proxy**);
   - some dependencies may need to be installed separately if they were not downloaded along with the ones listed above.
 * Redis is an open-source NoSQL DBMS for storing user state in a state machine and user data. Installation and configuration of Redis are described on the [official website (users in Russia may require additional access to the site)](https://redis.io/docs/latest/get-started/).
 
-**Note:** This bot uses a trained model based on [YOLOv11X](https://docs.ultralytics.com/models/yolo11/), which is available in this repository. However, the entire model could not be downloaded because it exceeded the 100 MB size limit. Therefore, to obtain this model, you need to install and configure not only [Git](https://git-scm.com/install/linux) but also [Git LFS](https://git-lfs.com/) to use Git for storing large files.
+> **Note:** This bot uses a trained model based on [YOLOv11X](https://docs.ultralytics.com/models/yolo11/), which is available in this repository. However, the entire model could not be downloaded because it exceeded the 100 MB size limit. Therefore, to obtain this model, you need to install and configure not only [Git](https://git-scm.com/install/linux) but also [Git LFS](https://git-lfs.com/) to use Git for storing large files.
 
 ## A little about the project structure and files
 
-**Note:** To create a bot copy, you need to register a new bot through the official bot **@BotFather** in **Telegram** and obtain a **token** for it. [You can see how to do this here](https://core.telegram.org/bots#how-do-i-create-a-bot).
+> **Note:** To create a bot copy, you need to register a new bot through the official bot **@BotFather** in **Telegram** and obtain a **token** for it. [You can see how to do this here](https://core.telegram.org/bots#how-do-i-create-a-bot).
 
 The project structure is a hierarchical structure of logically separated functional blocks. The root of the project essentially contains system files and a generated image with example colors the bot can recognize, along with a sample environment file where the previously obtained token should be stored (for greater bot security). When using a real environment file, the **_.example_** postfix should not be present.
 
@@ -86,9 +87,9 @@ The **_alchemist_bot.py_** file is the entry point for the bot. It includes a sc
 
 The main logic of the bot's UI is handled by handlers, each of which is responsible for processing a specific bot state at the moment of user interaction. These handlers implement the bot's key logic, which includes processing available text commands, level screenshots, button presses, processing transactions in **Telegram Stars**, and accessing the database and the bot's state machine stored in **Redis**. You can learn more about what each handler does by viewing its source code.
 
-**Note:** The bot also provides for the distribution of roles between regular users and "friends". It was implemented primarily to facilitate testing the bot for logical errors after making changes to the code, when testing is performed by several people. However, it can also be used to designate privileged users who will not be subject to the attempt limit (in case you plan to monetize the bot in some other way, for example, by introducing a subscription system).
+> **Note:** The bot also provides for the distribution of roles between regular users and "friends". It was implemented primarily to facilitate testing the bot for logical errors after making changes to the code, when testing is performed by several people. However, it can also be used to designate privileged users who will not be subject to the attempt limit (in case you plan to monetize the bot in some other way, for example, by introducing a subscription system).
 
-**Note 2:** The payment processing handler can also be used as an example of working with the internal currency - **Telegram Stars**, since I haven't found many code examples for processing payments using this payment method yet.
+> **Note 2:** The payment processing handler can also be used as an example of working with the internal currency - **Telegram Stars**, since I haven't found many code examples for processing payments using this payment method yet.
 
 ## Bot Functionality and Capabilities
 

@@ -2,6 +2,7 @@ from aiogram import Bot, Dispatcher
 from aiogram.types import BotCommand
 from aiogram.exceptions import TelegramNetworkError
 from aiogram.fsm.storage.redis import RedisStorage
+from aiogram.client.session.aiohttp import AiohttpSession
 
 from redis.exceptions import WatchError
 
@@ -94,6 +95,9 @@ async def clue(bot: Bot):
 async def main():
     """Главная функция с инициализацией бота"""
 
+    # Сессия для обхода блокировок на сервере
+    session = AiohttpSession(proxy="http://127.0.0.1:1081")
+
     # Определяем количество свободного пространства на диске в Гб
     if os.name == 'nt':
         free_space = shutil.disk_usage('C:/').free / 10**9
@@ -115,7 +119,7 @@ async def main():
     # Инициализация диспетчера
     storage = RedisStorage(redis=config.redis)
     dp = Dispatcher(storage=storage)
-    bot = Bot(token=config.API_TOKEN)
+    bot = Bot(token=config.API_TOKEN, session=session)
 
     # Добавляем задачу в расписание
     config.scheduler.add_job(recovery_attempts, 'cron', month='*', id='recovery_attempts', replace_existing=True, misfire_grace_time=300)

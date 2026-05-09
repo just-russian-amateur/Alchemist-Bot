@@ -214,7 +214,7 @@ async def get_permutations(callback: CallbackQuery, state: FSMContext, undef_col
     await callback.answer()
 
 
-async def change_permutation(callback: CallbackQuery, state: FSMContext) -> tuple[list, list, int]:
+async def change_permutation(callback: CallbackQuery, state: FSMContext, lvl_file: str) -> tuple[list, list, int]:
     '''Функция для обработки логики по переключению текущей расстановки неопределенных цветов, которую выбирает пользователь'''
 
     user_data = await state.get_data()
@@ -296,7 +296,7 @@ async def change_permutation(callback: CallbackQuery, state: FSMContext) -> tupl
     return autofill_flasks_id_list, all_permutations, number
 
 
-async def show_permutation(callback: CallbackQuery, bot: Bot, all_permutations: list, number: int):
+async def show_permutation(callback: CallbackQuery, bot: Bot, all_permutations: list, number: int, lvl_file: str):
     '''Функция для отображения пользователю изображения для выбранного им расположения неопределенных цветов'''
 
     if len(all_permutations) == 1:
@@ -411,9 +411,9 @@ async def autofill(callback: CallbackQuery, bot: Bot, state: FSMContext):
         await reply(callback, bot, state, autofill_flasks_id_list, 'upload_new_or_reload', False)
         return
 
-    autofill_flasks_id_list, all_permutations, number = await change_permutation(callback, state)
+    autofill_flasks_id_list, all_permutations, number = await change_permutation(callback, state, lvl_file)
 
     # Подготавливаем и отображаем картинку пользователю
     await create_image_for_replace(flasks_id_list=autofill_flasks_id_list, id_client=callback.from_user.id)
 
-    await show_permutation(callback, bot, all_permutations, number)
+    await show_permutation(callback, bot, all_permutations, number, lvl_file)

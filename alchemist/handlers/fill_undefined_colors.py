@@ -225,7 +225,7 @@ async def fill_undef_values(callback: CallbackQuery, bot: Bot, state: FSMContext
 
             return
         
-        await replace_undefined_color(callback, bot, state, update_data)
+        await replace_undefined_color(callback, bot, state, user_data)
 
     else:
 

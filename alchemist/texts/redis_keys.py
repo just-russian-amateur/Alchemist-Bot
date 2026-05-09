@@ -37,7 +37,7 @@ class RedisKeys(str, Enum):
 
     CHOOSEN_FLASK = "choosen_flask"
 
-    REMOVED_FLASK = "reremoved_flask"
+    REMOVED_FLASK = "removed_flask"
 
     CHOOSEN_SEGMENT = "choosen_segment"
 

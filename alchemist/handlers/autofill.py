@@ -217,6 +217,7 @@ async def get_permutations(callback: CallbackQuery, state: FSMContext, undef_col
 async def change_permutation(callback: CallbackQuery, state: FSMContext, lvl_file: str) -> tuple[list, list, int]:
     '''Функция для обработки логики по переключению текущей расстановки неопределенных цветов, которую выбирает пользователь'''
 
+    number = None
     user_data = await state.get_data()
     autofill_flasks_id_list = user_data.get(RedisKeys.FLASKS_LIST)
     all_permutations = user_data.get(RedisKeys.PERMUTATIONS)

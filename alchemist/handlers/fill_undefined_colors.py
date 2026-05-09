@@ -71,6 +71,57 @@ async def edit_image(callback: CallbackQuery, state: FSMContext, new_caption: st
             await msg.delete()
 
 
+async def replace_undefined_color(callback: CallbackQuery, bot: Bot, state: FSMContext, user_data: dict):
+    '''Функция для обработки изменений цветов на изображении'''
+
+    # Промежуточный кадр без кнопок
+    new_caption = FillUndefinedColorsTexts.MANUALLY_FILLING
+    await edit_image(callback, state, new_caption)
+        
+    edit_undef_colors, edit_flasks_id_list = user_data.get(RedisKeys.EDITED_UNDEF_COLORS), user_data.get(RedisKeys.EDITED_FLASKS_LIST)
+
+    # Удаление цвета нажатой кнопки из словаря и замена неопределенного цвета цветом кнопки
+    if edit_undef_colors:
+
+        edit_undef_colors[callback.data] -= 1
+
+        if edit_undef_colors[callback.data] == 0:
+            edit_undef_colors.pop(callback.data)
+
+        edit_flasks_id_list = await replace_in_list(flasks_id_list=edit_flasks_id_list, color_id=int(callback.data))
+        
+        await state.update_data(**{RedisKeys.EDITED_UNDEF_COLORS: edit_undef_colors})
+        await state.update_data(**{RedisKeys.EDITED_FLASKS_LIST: edit_flasks_id_list})
+
+    # Автозаполнение цвета, если остался только один неопределенный
+    if len(edit_undef_colors) == 1:
+
+        while edit_undef_colors[list(edit_undef_colors.keys())[0]] != 0:
+            edit_undef_colors[list(edit_undef_colors.keys())[0]] -= 1
+            edit_flasks_id_list = await replace_in_list(flasks_id_list=edit_flasks_id_list, color_id=int(list(edit_undef_colors.keys())[0]))
+
+        edit_undef_colors.pop(list(edit_undef_colors.keys())[0])
+
+        await state.update_data(**{RedisKeys.EDITED_UNDEF_COLORS: edit_undef_colors})
+        await state.update_data(**{RedisKeys.EDITED_FLASKS_LIST: edit_flasks_id_list})
+
+    # Подготавливаем картинку, в которой подсвечиваем неопределенные области
+    await create_image_for_replace(flasks_id_list=edit_flasks_id_list, id_client=callback.from_user.id)
+
+    if edit_undef_colors:
+
+        # Изображение, где подсвечивается первый неопределенный цвет
+        new_caption = FillUndefinedColorsTexts.MANUALLY_FILLING
+        kb = colors(edit_undef_colors)
+
+        await edit_image(callback, state, new_caption, kb)
+
+        logger.log_info(f'Изображение для пользователя {callback.from_user.id} дополнено и отправлено для дальнейшего редактирования')
+
+    else:
+        await reply(callback, bot, state, edit_flasks_id_list, 'upload_new_or_reload', False)
+
+
 @rtr.callback_query(
     amc.SolveFlasks.set_color,
     F.data.in_(
@@ -174,52 +225,7 @@ async def fill_undef_values(callback: CallbackQuery, bot: Bot, state: FSMContext
 
             return
         
-        # Промежуточный кадр без кнопок
-        new_caption = FillUndefinedColorsTexts.MANUALLY_FILLING
-        await edit_image(callback, state, new_caption)
-            
-        edit_undef_colors, edit_flasks_id_list = user_data.get(RedisKeys.EDITED_UNDEF_COLORS), user_data.get(RedisKeys.EDITED_FLASKS_LIST)
-
-        # Удаление цвета нажатой кнопки из словаря и замена неопределенного цвета цветом кнопки
-        if edit_undef_colors:
-
-            edit_undef_colors[callback.data] -= 1
-
-            if edit_undef_colors[callback.data] == 0:
-                edit_undef_colors.pop(callback.data)
-
-            edit_flasks_id_list = await replace_in_list(flasks_id_list=edit_flasks_id_list, color_id=int(callback.data))
-            
-            await state.update_data(**{RedisKeys.EDITED_UNDEF_COLORS: edit_undef_colors})
-            await state.update_data(**{RedisKeys.EDITED_FLASKS_LIST: edit_flasks_id_list})
-
-        # Автозаполнение цвета, если остался только один неопределенный
-        if len(edit_undef_colors) == 1:
-
-            while edit_undef_colors[list(edit_undef_colors.keys())[0]] != 0:
-                edit_undef_colors[list(edit_undef_colors.keys())[0]] -= 1
-                edit_flasks_id_list = await replace_in_list(flasks_id_list=edit_flasks_id_list, color_id=int(list(edit_undef_colors.keys())[0]))
-
-            edit_undef_colors.pop(list(edit_undef_colors.keys())[0])
-
-            await state.update_data(**{RedisKeys.EDITED_UNDEF_COLORS: edit_undef_colors})
-            await state.update_data(**{RedisKeys.EDITED_FLASKS_LIST: edit_flasks_id_list})
-
-        # Подготавливаем картинку, в которой подсвечиваем неопределенные области
-        await create_image_for_replace(flasks_id_list=edit_flasks_id_list, id_client=callback.from_user.id)
-
-        if edit_undef_colors:
-
-            # Изображение, где подсвечивается первый неопределенный цвет
-            new_caption = FillUndefinedColorsTexts.MANUALLY_FILLING
-            kb = colors(edit_undef_colors)
-
-            await edit_image(callback, state, new_caption, kb)
-
-            logger.log_info(f'Изображение для пользователя {callback.from_user.id} дополнено и отправлено для дальнейшего редактирования')
-
-        else:
-            await reply(callback, bot, state, edit_flasks_id_list, 'upload_new_or_reload', False)
+        await replace_undefined_color(callback, bot, state, user_data)
 
     else:
 

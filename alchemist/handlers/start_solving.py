@@ -3,6 +3,7 @@ from aiogram.types import Message, CallbackQuery
 from aiogram.fsm.context import FSMContext
 
 import classes.all_my_classes as amc
+import config
 from keyboards.all_my_keyboards import pay_attempts, continue_solving
 from texts.all_my_texts import StartSolvingTexts
 from texts.redis_keys import RedisKeys
@@ -111,11 +112,10 @@ async def start_solving_incorrectly(message: Message, state: FSMContext):
     '''Функция для отслеживания любых действий кроме нажатия кнопки'''
 
     # Получаем сведения о попытках и на их основе собираем дополнение к сообщению бота
-    user_data = await state.get_data()
 
     logger.log_info(f'Пользователь {message.from_user.id} ввел неверную команду перед загрузкой изображения')
 
-    if message.from_user.id in user_data.get(RedisKeys.FRIENDS_IDS):
+    if message.from_user.id in config.friends:
         msg = await message.answer(
             StartSolvingTexts.ERROR_ACTION_FREE,
             parse_mode='HTML'

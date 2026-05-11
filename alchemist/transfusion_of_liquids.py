@@ -1,9 +1,10 @@
 from random import shuffle
+import asyncio
 
 from found_colors import EMPTY
 
 
-async def check_solving(position: tuple) -> bool:
+def check_solving(position: tuple) -> bool:
     '''Функция проверки получения решения'''
 
     for flask in position:
@@ -16,7 +17,7 @@ async def check_solving(position: tuple) -> bool:
     return True
 
 
-async def possible_moves(position: tuple, last_move=None) -> list:
+def possible_moves(position: tuple, last_move=None) -> list:
     '''
     Функция для определения всех возможных перемещений для конкретной ситуации
 
@@ -139,7 +140,7 @@ async def possible_moves(position: tuple, last_move=None) -> list:
     return moves
 
 
-async def apply_move(position: tuple, move: list) -> tuple[tuple, str]:
+def apply_move(position: tuple, move: list) -> tuple[tuple, str]:
     '''Функция для применения перемещения к текущему положению для получения нового'''
 
     # Получение данных о колбах, которые задействуются
@@ -170,19 +171,19 @@ async def apply_move(position: tuple, move: list) -> tuple[tuple, str]:
     return tuple(update_position), step
 
 
-async def transfusion_of_liquids(position: tuple) -> tuple[bool, str | None, int | None]:
+def transfusion_of_liquids(position: tuple) -> tuple[bool, str | None, int | None]:
     '''Функция перемещения цвета в текущей позиции и записи последовательности шагов'''
 
     visited_states = {tuple(sorted(position))}
     steps = []
-    stack = [[position, await possible_moves(position)]]
+    stack = [[position, possible_moves(position)]]
 
     while stack:
 
         now_position, moves = stack[-1]
 
         # Проверяем решена ли задача
-        if await check_solving(now_position):
+        if check_solving(now_position):
             return True, steps, None
         
         if not moves:
@@ -197,7 +198,7 @@ async def transfusion_of_liquids(position: tuple) -> tuple[bool, str | None, int
         move = moves.pop()
 
         # Применяем действие
-        new_position, step = await apply_move(now_position, move)
+        new_position, step = apply_move(now_position, move)
 
         # Если текущая позиция уже была посещена ранее, то переходим к следующей
         canonical_position = tuple(sorted(new_position))
@@ -208,17 +209,22 @@ async def transfusion_of_liquids(position: tuple) -> tuple[bool, str | None, int
         # Добавляем текущую позицию в список посещенных
         visited_states.add(canonical_position)
         steps.append(step)
-        stack.append([new_position, await possible_moves(new_position, move[1][0][0])])
+        stack.append([new_position, possible_moves(new_position, move[1][0][0])])
 
     return False, None, len(visited_states)
 
 
 async def transfusion_manage(task: list) -> tuple[bool, str | None, int | None]:
+    '''Обертка для функции _transfusion_manage'''
+    return await asyncio.to_thread(_transfusion_manage, task)
+
+
+def _transfusion_manage(task: list) -> tuple[bool, str | None, int | None]:
     '''Основная функция модуля, регулирующая процесс переливания'''
 
     # Возвращаем флаг решения и список шагов, если решение есть
     position_tuple = tuple(tuple(flask) for flask in task)
-    is_solved, steps_list, count_states = await transfusion_of_liquids(position_tuple)
+    is_solved, steps_list, count_states = transfusion_of_liquids(position_tuple)
     
     if is_solved:
 

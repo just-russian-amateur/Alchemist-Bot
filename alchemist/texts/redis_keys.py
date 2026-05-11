@@ -3,9 +3,9 @@ from enum import Enum
 
 
 class RedisKeys(str, Enum):
-    USERS_IDS = "id_users"
+    STATE = "state"
 
-    FRIENDS_IDS = "id_my_friends"
+    EVENT_FROM_USER = "event_from_user"
 
     FREE_ATTEMPTS = "count_free_attempts"
 

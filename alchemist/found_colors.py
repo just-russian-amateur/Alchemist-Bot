@@ -1,5 +1,7 @@
 import cv2
 import numpy as np
+import asyncio
+
 from config import model
 
 
@@ -36,7 +38,7 @@ variations = {
 }
 
 
-async def create_color_list(image: cv2.typing.MatLike) -> list:
+def create_color_list(image: cv2.typing.MatLike) -> list:
     '''Функция для создания списка колб с цветами вместо числовых значений'''
 
     # Делим колбу на 4 равных сегмента и работаем с каждым сегментом отдельно
@@ -74,7 +76,7 @@ async def create_color_list(image: cv2.typing.MatLike) -> list:
     return segments[::-1]
 
 
-async def sorted_flasks(flasks_id_list: list) -> list:
+def sorted_flasks(flasks_id_list: list) -> list:
     '''Пользовательская функция для сортировки колб в нужном порядке'''
 
     sorted_flasks_list = []
@@ -101,7 +103,7 @@ async def sorted_flasks(flasks_id_list: list) -> list:
     return sorted_flasks_list
 
 
-async def create_colors_dict(flasks_id_list: list) -> dict:
+def create_colors_dict(flasks_id_list: list) -> dict:
     '''Вспомогательная функция для составления словаря с уникальными цветами'''
     
     # При составлении словаря мы не учитываем добавленные сегменты, они всегда пустые и не влияют на словарь
@@ -115,11 +117,11 @@ async def create_colors_dict(flasks_id_list: list) -> dict:
     return {int(k): int(v) for k, v in zip(colors_id, counts)}
 
 
-async def replace_undefined(flasks_id_list: list) -> dict:
+def replace_undefined(flasks_id_list: list) -> dict:
     '''Функция для составления списка неопределенных значений недостающими цветами'''
 
     # Подготовление списка с цвтеами и их количеством, которые нужно добавить
-    colors_dict = await create_colors_dict(flasks_id_list)
+    colors_dict = create_colors_dict(flasks_id_list)
     added_colors = dict()
     count_added_colors = 0
 
@@ -151,6 +153,11 @@ async def replace_undefined(flasks_id_list: list) -> dict:
 
 
 async def found_colors_in_flasks(image_for_search: str) -> tuple[dict, list]:
+    '''Обертка для функции _found_colors_in_flasks'''
+    return await asyncio.to_thread(_found_colors_in_flasks, image_for_search)
+
+
+def _found_colors_in_flasks(image_for_search: str) -> tuple[dict, list]:
     '''Основная функция для распознавания цветов на картинке и добавления их в массив'''
 
     # Чтение изображения в цветном формате
@@ -167,7 +174,7 @@ async def found_colors_in_flasks(image_for_search: str) -> tuple[dict, list]:
         if 3 * w < h < 4 * w:
             flasks.append([x1, y1, x2, y2])
 
-    flasks = await sorted_flasks(flasks)
+    flasks = sorted_flasks(flasks)
 
     flasks_info = []
 
@@ -179,13 +186,13 @@ async def found_colors_in_flasks(image_for_search: str) -> tuple[dict, list]:
 
     for flask_contour in flasks_info:
         # Находим наиболее вероятный цвет для каждого сегмента колбы
-        colors_list = await create_color_list(flask_contour)
+        colors_list = create_color_list(flask_contour)
         flasks_id_list.append(colors_list)
 
-    return await replace_undefined(flasks_id_list), flasks_id_list
+    return replace_undefined(flasks_id_list), flasks_id_list
 
 
-async def replace_in_list(flasks_id_list: list, color_id: int) -> list:
+def replace_in_list(flasks_id_list: list, color_id: int) -> list:
     '''Функция для замены неопределенных цветов на выбранные пользователем'''
 
     for flask in flasks_id_list:
@@ -198,14 +205,14 @@ async def replace_in_list(flasks_id_list: list, color_id: int) -> list:
     return flasks_id_list
 
 
-async def replace_selected_color(flasks_id_list: list, color_id: int, choosen_flask: int, choosen_segment: int) -> list:
+def replace_selected_color(flasks_id_list: list, color_id: int, choosen_flask: int, choosen_segment: int) -> list:
     '''Функция для замены выбранного пользователем сегмента в колбе другим цветом'''
     flasks_id_list[choosen_flask][choosen_segment] = color_id
 
     return flasks_id_list
 
 
-async def remove_selected_flask(flasks_id_list: list, choosen_flask: int) -> list:
+def remove_selected_flask(flasks_id_list: list, choosen_flask: int) -> list:
     '''Функция для удаления лишней колбы, выбранной пользователем'''
     flasks_id_list.pop(choosen_flask)
 
@@ -213,6 +220,11 @@ async def remove_selected_flask(flasks_id_list: list, choosen_flask: int) -> lis
 
 
 async def create_image_for_replace(flasks_id_list: list, id_client: int):
+    '''Обертка для функции _create_image_for_replace'''
+    return await asyncio.to_thread(_create_image_for_replace, flasks_id_list, id_client)
+
+
+def _create_image_for_replace(flasks_id_list: list, id_client: int):
     '''Функция для отрисовки изображения с подсветкой того цвета, который нужно заполнить'''
 
     # Создание и сохранение пустого черного изображения
@@ -254,6 +266,8 @@ async def create_image_for_replace(flasks_id_list: list, id_client: int):
         
         cv2.rectangle(template, (x1, y1), (x2, y2), (176, 176, 90), 6)
 
+        variations_list = list(variations.values())
+
         for idx_color, color in enumerate(colors):
 
             circle_x, circle_y = cx, int(y2 - (y2 - y1) * (2 * idx_color + 1) / 8)
@@ -270,12 +284,12 @@ async def create_image_for_replace(flasks_id_list: list, id_client: int):
                 cv2.circle(template, (circle_x, circle_y), 47, circle_color, 6)
 
             elif color < UNDEFINED:
-                cv2.circle(template, (circle_x, circle_y), 47, list(variations.values())[color][2], -1)
+                cv2.circle(template, (circle_x, circle_y), 47, variations_list[color][2], -1)
 
     cv2.imwrite(filename, template)
 
 
-async def add_empty_flask(flasks_id_list: list, idx_segment: int) -> list:
+def add_empty_flask(flasks_id_list: list, idx_segment: int) -> list:
     '''Функция для добавления пустой части колбы в конец'''
 
     if idx_segment == 1:

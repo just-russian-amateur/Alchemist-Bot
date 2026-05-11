@@ -80,7 +80,7 @@ async def reply(callback: CallbackQuery, bot: Bot, state: FSMContext, flasks_id_
 
         logger.log_info(f'Пользователь {callback.from_user.id} заполнил все пустоты')
 
-        colors_dict = await create_colors_dict(flasks_id_list)
+        colors_dict = create_colors_dict(flasks_id_list)
 
         if UNDEFINED not in colors_dict and all(key == EMPTY or colors_dict[key] == 4 for key in colors_dict.keys()):
 
@@ -122,8 +122,10 @@ async def reply(callback: CallbackQuery, bot: Bot, state: FSMContext, flasks_id_
         if not isnan(user_data.get(RedisKeys.PAID_ATTEMPTS)) and not isnan(user_data.get(RedisKeys.FREE_ATTEMPTS)):
 
             if user_data.get(RedisKeys.FAIL_ATTEMPTS) == 3:
-                await state.update_data(**{RedisKeys.FAIL_ATTEMPTS: 0})
-                await state.update_data(**{RedisKeys.FREE_ATTEMPTS: user_data.get(RedisKeys.FREE_ATTEMPTS) + 1})
+                await state.update_data(**{
+                    RedisKeys.FAIL_ATTEMPTS: 0,
+                    RedisKeys.FREE_ATTEMPTS: user_data.get(RedisKeys.FREE_ATTEMPTS) + 1,
+                })
             if user_data.get(RedisKeys.FREE_ATTEMPTS) > 0:
                 await state.update_data(**{RedisKeys.FREE_ATTEMPTS: user_data.get(RedisKeys.FREE_ATTEMPTS) - 1})
             else:
@@ -180,7 +182,7 @@ async def current_image_edit(callback: CallbackQuery, state: FSMContext, flasks_
             idx_segment = user_data.get(RedisKeys.NEW_SEGMENTS) + 1
             await state.update_data(**{RedisKeys.NEW_SEGMENTS: idx_segment})
 
-        flasks_id_list = await add_empty_flask(flasks_id_list=flasks_id_list, idx_segment=idx_segment)
+        flasks_id_list = add_empty_flask(flasks_id_list=flasks_id_list, idx_segment=idx_segment)
         await state.update_data(**{RedisKeys.FLASKS_LIST: flasks_id_list})
 
         logger.log_info(f'В изображение пользователя {callback.from_user.id} была добавлена пустая четверть колбы')
@@ -214,7 +216,7 @@ async def get_permutations(callback: CallbackQuery, state: FSMContext, undef_col
     await callback.answer()
 
 
-async def change_permutation(callback: CallbackQuery, state: FSMContext, lvl_file: str) -> tuple[list, list, int]:
+async def change_permutation(callback: CallbackQuery, state: FSMContext, lvl_file: str) -> tuple[list, list, int | None]:
     '''Функция для обработки логики по переключению текущей расстановки неопределенных цветов, которую выбирает пользователь'''
 
     number = None
@@ -274,7 +276,7 @@ async def change_permutation(callback: CallbackQuery, state: FSMContext, lvl_fil
 
         # Дозаполняем неопределенные места
         for color in autofill_variation:
-            await replace_in_list(autofill_flasks_id_list, color)
+            replace_in_list(autofill_flasks_id_list, color)
 
         if len(all_permutations) == 1:
             try:

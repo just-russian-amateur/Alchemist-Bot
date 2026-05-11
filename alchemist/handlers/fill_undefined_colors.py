@@ -88,22 +88,26 @@ async def replace_undefined_color(callback: CallbackQuery, bot: Bot, state: FSMC
         if edit_undef_colors[callback.data] == 0:
             edit_undef_colors.pop(callback.data)
 
-        edit_flasks_id_list = await replace_in_list(flasks_id_list=edit_flasks_id_list, color_id=int(callback.data))
+        edit_flasks_id_list = replace_in_list(flasks_id_list=edit_flasks_id_list, color_id=int(callback.data))
         
-        await state.update_data(**{RedisKeys.EDITED_UNDEF_COLORS: edit_undef_colors})
-        await state.update_data(**{RedisKeys.EDITED_FLASKS_LIST: edit_flasks_id_list})
-
+        await state.update_data(**{
+            RedisKeys.EDITED_UNDEF_COLORS: edit_undef_colors,
+            RedisKeys.EDITED_FLASKS_LIST: edit_flasks_id_list,
+        })
+        
     # Автозаполнение цвета, если остался только один неопределенный
     if len(edit_undef_colors) == 1:
 
-        while edit_undef_colors[list(edit_undef_colors.keys())[0]] != 0:
+        while edit_undef_colors[list(edit_undef_colors.keys())[0]] > 0:
             edit_undef_colors[list(edit_undef_colors.keys())[0]] -= 1
-            edit_flasks_id_list = await replace_in_list(flasks_id_list=edit_flasks_id_list, color_id=int(list(edit_undef_colors.keys())[0]))
+            edit_flasks_id_list = replace_in_list(flasks_id_list=edit_flasks_id_list, color_id=int(list(edit_undef_colors.keys())[0]))
 
         edit_undef_colors.pop(list(edit_undef_colors.keys())[0])
 
-        await state.update_data(**{RedisKeys.EDITED_UNDEF_COLORS: edit_undef_colors})
-        await state.update_data(**{RedisKeys.EDITED_FLASKS_LIST: edit_flasks_id_list})
+        await state.update_data(**{
+            RedisKeys.EDITED_UNDEF_COLORS: edit_undef_colors,
+            RedisKeys.EDITED_FLASKS_LIST: edit_flasks_id_list,
+        })
 
     # Подготавливаем картинку, в которой подсвечиваем неопределенные области
     await create_image_for_replace(flasks_id_list=edit_flasks_id_list, id_client=callback.from_user.id)
@@ -212,8 +216,10 @@ async def fill_undef_values(callback: CallbackQuery, bot: Bot, state: FSMContext
 
                 undef_colors, flasks_id_list = user_data.get(RedisKeys.UNDEF_COLORS), user_data.get(RedisKeys.FLASKS_LIST)
 
-                await state.update_data(**{RedisKeys.EDITED_UNDEF_COLORS: undef_colors})
-                await state.update_data(**{RedisKeys.EDITED_FLASKS_LIST: flasks_id_list})
+                await state.update_data(**{
+                    RedisKeys.EDITED_UNDEF_COLORS: undef_colors,
+                    RedisKeys.EDITED_FLASKS_LIST: flasks_id_list,
+                })
 
                 # Подготавливаем картинку, в которой подсвечиваем неопределенные области
                 await create_image_for_replace(flasks_id_list=flasks_id_list, id_client=callback.from_user.id)
@@ -251,7 +257,7 @@ async def fill_undef_values(callback: CallbackQuery, bot: Bot, state: FSMContext
 
                 await state.update_data(**{RedisKeys.REMOVED_FLASK: int(callback.data)})
 
-                flasks_id_list = await remove_selected_flask(flasks_id_list, int(callback.data))
+                flasks_id_list = remove_selected_flask(flasks_id_list, int(callback.data))
 
             else:
                 # Заменяем сегмент на выбранный цвет
@@ -264,14 +270,16 @@ async def fill_undef_values(callback: CallbackQuery, bot: Bot, state: FSMContext
                 await state.update_data(**{RedisKeys.CHOOSEN_COLOR: int(callback.data)})
 
                 choosen_flask, choosen_segment = user_data.get(RedisKeys.CHOOSEN_FLASK), user_data.get(RedisKeys.CHOOSEN_SEGMENT)
-                flasks_id_list = await replace_selected_color(flasks_id_list, int(callback.data), choosen_flask, choosen_segment)
+                flasks_id_list = replace_selected_color(flasks_id_list, int(callback.data), choosen_flask, choosen_segment)
 
-            undef_colors = await replace_undefined(flasks_id_list)
+            undef_colors = replace_undefined(flasks_id_list)
     
-            await state.update_data(**{RedisKeys.UNDEF_COLORS: undef_colors})
-            await state.update_data(**{RedisKeys.FLASKS_LIST: flasks_id_list})
-            await state.update_data(**{RedisKeys.EDITED_UNDEF_COLORS: undef_colors})
-            await state.update_data(**{RedisKeys.EDITED_FLASKS_LIST: flasks_id_list})
+            await state.update_data(**{
+                RedisKeys.UNDEF_COLORS: undef_colors,
+                RedisKeys.FLASKS_LIST: flasks_id_list,
+                RedisKeys.EDITED_UNDEF_COLORS: undef_colors,
+                RedisKeys.EDITED_FLASKS_LIST: flasks_id_list,
+            })
     
             await create_image_for_replace(flasks_id_list=flasks_id_list, id_client=callback.from_user.id)
 

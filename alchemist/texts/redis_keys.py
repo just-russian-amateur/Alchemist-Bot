@@ -7,10 +7,6 @@ class RedisKeys(str, Enum):
 
     EVENT_FROM_USER = "event_from_user"
 
-    USERS_IDS = "id_users"
-
-    FRIENDS_IDS = "id_my_friends"
-
     FREE_ATTEMPTS = "count_free_attempts"
 
     PAID_ATTEMPTS = "count_paid_attempts"

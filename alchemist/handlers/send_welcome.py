@@ -6,6 +6,7 @@ from aiogram.fsm.context import FSMContext
 from math import nan
 
 import classes.all_my_classes as amc
+import config
 from keyboards.all_my_keyboards import start_keyboard
 from texts.all_my_texts import SendWelcomeTexts
 from texts.redis_keys import RedisKeys
@@ -16,27 +17,21 @@ logger = amc.ConfigLogger(__name__)
 
 async def check_user(user_id: int, state: FSMContext):
     '''Функция для проверки наличия пользователя в списке'''
-    
-    # Получаем списки id друзей и всех игроков
-    with open('id_friends.txt', 'r') as id_friends:
-        friends = list(int(friend.split('\n')[0]) for friend in id_friends.readlines())
 
-    with open('id_users.txt', 'r') as id_users:
-        users = list(int(user.split('\n')[0]) for user in id_users.readlines())
+    if user_id in config.friends:
+        await state.update_data(**{
+            RedisKeys.FREE_ATTEMPTS: nan,
+            RedisKeys.PAID_ATTEMPTS: 0,
+        })
 
-    await state.update_data(**{RedisKeys.FRIENDS_IDS: friends})
-    await state.update_data(**{RedisKeys.USERS_IDS: users})
+    if not user_id in config.users:
 
-    if user_id in friends:
-        await state.update_data(**{RedisKeys.FREE_ATTEMPTS: nan})
-        await state.update_data(**{RedisKeys.PAID_ATTEMPTS: 0})
-
-    if not user_id in users:
-
-        if not user_id in friends:
-            await state.update_data(**{RedisKeys.FREE_ATTEMPTS: 5})
-            await state.update_data(**{RedisKeys.PAID_ATTEMPTS: 0})
-
+        if not user_id in config.friends:
+            await state.update_data(**{
+                RedisKeys.FREE_ATTEMPTS: 5,
+                RedisKeys.PAID_ATTEMPTS: 0,
+            })
+            
         with open('id_users.txt', 'a') as id_users:
             id_users.write(f'{user_id}\n')
 
@@ -50,9 +45,8 @@ async def send_welcome(message: Message,  state: FSMContext):
     logger.log_info(f'Пользователем {message.from_user.id} был запущен или перезапущен бот')
 
     await check_user(message.from_user.id, state)
-    user_data = await state.get_data()
 
-    if message.from_user.id in user_data.get(RedisKeys.FRIENDS_IDS):
+    if message.from_user.id in config.friends:
         condition_text = SendWelcomeTexts.CONDITION_TEXT_FREE
     else:
         condition_text = SendWelcomeTexts.CONDITION_TEXT

@@ -58,15 +58,11 @@ async def update_redis_data(key: str, updater: callable) -> bool:
 async def recovery_attempts():
     '''Функция для восстановления количества бесплатных попыток для всех пользователей сразу (кроме друзей)'''
 
-    # Получаем списки id друзей и всех игроков
-    with open('id_friends.txt', 'r') as id_friends:
-        friends = list(int(friend.split('\n')[0]) for friend in id_friends.readlines())
-
     async for key in config.redis.scan_iter("fsm:*:*:data"):
 
         # Пропускаем пользователей из списка друзей
         user_id = int(key.decode().split(':')[1])
-        if user_id in friends:
+        if user_id in config.friends:
             continue
 
         succes_update = await update_redis_data(key, lambda data: data.update({RedisKeys.FREE_ATTEMPTS.value: 5}))

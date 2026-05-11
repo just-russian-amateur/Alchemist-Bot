@@ -12,7 +12,6 @@ class ConfigLogger:
             os.mkdir('./logs')
         self.logger = logging.getLogger(filename)
         self.logger.setLevel(logging.INFO)
-        handler = logging.FileHandler(f'./logs/{filename}.log', 'a')
         handler = RotatingFileHandler(f'./logs/{filename}.log', maxBytes=1e6, backupCount=6)
         formatter = logging.Formatter('%(name)s\t%(asctime)s\t%(levelname)s\t%(message)s')
         handler.setFormatter(formatter)

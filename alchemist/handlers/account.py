@@ -4,6 +4,7 @@ from aiogram.types import Message, CallbackQuery, User
 from aiogram.fsm.context import FSMContext
 
 import classes.all_my_classes as amc
+import config
 from keyboards.all_my_keyboards import account
 from texts.all_my_texts import AccountTexts
 from texts.redis_keys import RedisKeys
@@ -16,10 +17,10 @@ rtr = Router()
 logger = amc.ConfigLogger(__name__)
 
 
-async def create_account_message(user: User, data: dict) -> tuple[str, bool]:
+def create_account_message(user: User, data: dict) -> tuple[str, bool]:
     '''Вспомогательная функция для создания сообщения'''
 
-    if user.id in data.get(RedisKeys.FRIENDS_IDS):
+    if user.id in config.friends:
 
         free_attempts_note = AccountTexts.FRIENDS_NOTE
         text = AccountTexts.FRIENDS_MESSAGE.format(
@@ -68,7 +69,7 @@ async def show_account(update_type: Message | CallbackQuery, state: FSMContext):
     user_data = await state.get_data()
     user = update_type.from_user
 
-    text, mode = await create_account_message(user, user_data)
+    text, mode = create_account_message(user, user_data)
 
     if isinstance(update_type, CallbackQuery):
         send_func = update_type.message.edit_text

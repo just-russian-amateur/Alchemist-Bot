@@ -2,6 +2,7 @@ from aiogram import BaseMiddleware
 from aiogram.types import CallbackQuery
 
 import classes.all_my_classes as amc
+import config
 from texts.redis_keys import RedisKeys
 from texts.all_my_texts import ExcuseMeTexts
 from keyboards.all_my_keyboards import open_repository
@@ -19,11 +20,7 @@ class ExcuseMeMiddleware(BaseMiddleware):
         user_id = data.get(RedisKeys.EVENT_FROM_USER).id
         user_data = await state.get_data()
 
-        # Получаем списки id друзей и всех игроков
-        with open('id_friends.txt', 'r') as id_friends:
-            friends = list(int(friend.split('\n')[0]) for friend in id_friends.readlines())
-
-        if user_id in friends:
+        if user_id in config.friends:
             # Пользователи, сообщения от которых будут обработаны
             return await handler(event, data)
         

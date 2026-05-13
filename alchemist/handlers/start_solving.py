@@ -96,7 +96,6 @@ async def start_solving(callback: CallbackQuery, state: FSMContext):
     await callback.answer()
 
 
-
 @rtr.callback_query(
     F.data.in_(
         [CallbacksData.OK, CallbacksData.CONTINUE]
@@ -115,7 +114,7 @@ async def start_solving_incorrectly(message: Message, state: FSMContext):
 
     logger.log_info(f'Пользователь {message.from_user.id} ввел неверную команду перед загрузкой изображения')
 
-    if message.from_user.id in config.friends:
+    if await config.redis.sismember(RedisKeys.FRIENDS, message.from_user.id):
         msg = await message.answer(
             StartSolvingTexts.ERROR_ACTION_FREE,
             parse_mode='HTML'

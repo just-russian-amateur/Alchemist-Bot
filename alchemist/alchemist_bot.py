@@ -61,7 +61,8 @@ async def recovery_attempts():
 
         # Пропускаем пользователей из списка друзей
         user_id = int(key.decode().split(':')[1])
-        if user_id in config.friends:
+
+        if await config.redis.sismember(RedisKeys.FRIENDS, user_id):
             continue
 
         succes_update = await update_redis_data(key, lambda data: data.update({RedisKeys.FREE_ATTEMPTS.value: 5}))
@@ -99,10 +100,6 @@ async def main():
     # Создаем папку для хранения временных файлов
     if not os.path.isdir('./tmp'):
         os.mkdir('./tmp')
-
-    # Создаем файл для хранения id пользователей, если его не было
-    if not os.path.isfile('id_users.txt'):
-        open('id_users.txt', 'a').close()
 
     # Логгируем предупреждение, если свободного места меньше 0.2 Гб
     if free_space < 0.2:

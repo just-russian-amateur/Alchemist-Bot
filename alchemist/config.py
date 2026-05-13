@@ -41,16 +41,6 @@ color_variations = {
     24: 'DARK ORANGE'
 }
 
-# Чтение файлов с id друзей и пользователей при старте бота и сохранение их в памяти
-friends = set()
-users = set()
-
-with open('id_friends.txt', 'r') as id_friends:
-    friends = set(int(friend.strip()) for friend in id_friends if friend.strip())
-
-with open('id_users.txt', 'r') as id_users:
-    users = set(int(user.strip()) for user in id_users if user.strip())
-
 # Создание RedisJobStore
 jobstores = {'default': RedisJobStore(jobs_key='attempts.jobs', run_times_key='attempts.run_times')}
 # Объявляем хранилище Redis

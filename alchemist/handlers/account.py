@@ -17,10 +17,10 @@ rtr = Router()
 logger = amc.ConfigLogger(__name__)
 
 
-def create_account_message(user: User, data: dict) -> tuple[str, bool]:
+async def create_account_message(user: User, data: dict) -> tuple[str, bool]:
     '''Вспомогательная функция для создания сообщения'''
 
-    if user.id in config.friends:
+    if await config.redis.sismember(RedisKeys.FRIENDS, user.id):
 
         free_attempts_note = AccountTexts.FRIENDS_NOTE
         text = AccountTexts.FRIENDS_MESSAGE.format(
@@ -69,7 +69,7 @@ async def show_account(update_type: Message | CallbackQuery, state: FSMContext):
     user_data = await state.get_data()
     user = update_type.from_user
 
-    text, mode = create_account_message(user, user_data)
+    text, mode = await create_account_message(user, user_data)
 
     if isinstance(update_type, CallbackQuery):
         send_func = update_type.message.edit_text

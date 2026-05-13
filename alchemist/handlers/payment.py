@@ -59,9 +59,9 @@ PACKAGES_INFO = {
 async def reset_unlimited_attempts(user_id: int):
     '''Функция сброса безлимита'''
 
-    # Пропускаем пользователей из списка друзей
     key = f"fsm:{user_id}:{user_id}:data"
     succes_update = await update_redis_data(key, lambda data: data.update({RedisKeys.PAID_ATTEMPTS.value: 0}))
+    
     if succes_update:
         logger.log_info(f'Безлимит для пользователя {user_id} обнулен')
     else:

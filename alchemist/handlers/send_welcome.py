@@ -18,22 +18,21 @@ logger = amc.ConfigLogger(__name__)
 async def check_user(user_id: int, state: FSMContext):
     '''Функция для проверки наличия пользователя в списке'''
 
-    if user_id in config.friends:
+    if await config.redis.sismember(RedisKeys.FRIENDS, user_id):
         await state.update_data(**{
             RedisKeys.FREE_ATTEMPTS: nan,
             RedisKeys.PAID_ATTEMPTS: 0,
         })
 
-    if not user_id in config.users:
+    if not await config.redis.sismember(RedisKeys.USERS, user_id):
 
-        if not user_id in config.friends:
+        if not await config.redis.sismember(RedisKeys.FRIENDS, user_id):
             await state.update_data(**{
                 RedisKeys.FREE_ATTEMPTS: 5,
                 RedisKeys.PAID_ATTEMPTS: 0,
             })
             
-        with open('id_users.txt', 'a') as id_users:
-            id_users.write(f'{user_id}\n')
+        await config.redis.sadd(RedisKeys.USERS, user_id)
 
 
 @rtr.message(CommandStart())  # Команда для начала работы с ботом
@@ -46,7 +45,7 @@ async def send_welcome(message: Message,  state: FSMContext):
 
     await check_user(message.from_user.id, state)
 
-    if message.from_user.id in config.friends:
+    if await config.redis.sismember(RedisKeys.FRIENDS, message.from_user.id):
         condition_text = SendWelcomeTexts.CONDITION_TEXT_FREE
     else:
         condition_text = SendWelcomeTexts.CONDITION_TEXT

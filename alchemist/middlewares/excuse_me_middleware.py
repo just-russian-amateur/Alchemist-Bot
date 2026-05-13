@@ -20,7 +20,7 @@ class ExcuseMeMiddleware(BaseMiddleware):
         user_id = data.get(RedisKeys.EVENT_FROM_USER).id
         user_data = await state.get_data()
 
-        if user_id in config.friends:
+        if await config.redis.sismember(RedisKeys.FRIENDS, user_id):
             # Пользователи, сообщения от которых будут обработаны
             return await handler(event, data)
         

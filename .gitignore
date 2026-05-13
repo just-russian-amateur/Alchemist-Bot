@@ -1,5 +1,9 @@
+__pycache__
 /alchemist/__pycache__
+/alchemist/callbacks/__pycache__
 /alchemist/classes/__pycache__
 /alchemist/handlers/__pycache__
 /alchemist/keyboards/__pycache__
+/alchemist/middlewares/__pycache__
+/alchemist/texts/__pycache__
 .env

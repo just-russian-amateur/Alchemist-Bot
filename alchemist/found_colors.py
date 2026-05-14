@@ -123,11 +123,12 @@ def replace_undefined(flasks_id_list: list) -> dict:
     # Подготовление списка с цвтеами и их количеством, которые нужно добавить
     colors_dict = create_colors_dict(flasks_id_list)
     added_colors = dict()
-    count_added_colors = 0
 
     # Отсекаем изображения с полным набором палитры
     if UNDEFINED not in colors_dict:
         return added_colors
+    
+    count_added_colors = 0
     
     for key in colors_dict.keys():
         

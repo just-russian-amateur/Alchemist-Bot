@@ -293,10 +293,9 @@ def _create_image_for_replace(flasks_id_list: list, id_client: int):
 def add_empty_flask(flasks_id_list: list, idx_segment: int) -> list:
     '''Функция для добавления пустой части колбы в конец'''
 
-    if idx_segment == 1:
-        flasks_id_list.append([EMPTY])
-    else:
+    if idx_segment > 1:
         flasks_id_list.pop()
-        flasks_id_list.append([EMPTY] * idx_segment)
+        
+    flasks_id_list.append([EMPTY] * idx_segment)
         
     return flasks_id_list

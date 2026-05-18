@@ -6,4 +6,6 @@ __pycache__
 /alchemist/keyboards/__pycache__
 /alchemist/middlewares/__pycache__
 /alchemist/texts/__pycache__
+/alchemist/logs
+/alchemist/tmp
 .env

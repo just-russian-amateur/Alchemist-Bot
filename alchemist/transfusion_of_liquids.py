@@ -170,7 +170,7 @@ def apply_move(position: tuple, move: list) -> tuple[tuple, str]:
 def transfusion_of_liquids(position: tuple) -> tuple[bool, str | None, int | None]:
     '''Функция перемещения цвета в текущей позиции и записи последовательности шагов'''
 
-    visited_states = {tuple(sorted(position))}
+    visited_states = {frozenset(position)}
     steps = []
     stack = [[position, possible_moves(position)]]
 
@@ -197,7 +197,7 @@ def transfusion_of_liquids(position: tuple) -> tuple[bool, str | None, int | Non
         new_position, step = apply_move(now_position, move)
 
         # Если текущая позиция уже была посещена ранее, то переходим к следующей
-        canonical_position = tuple(sorted(new_position))
+        canonical_position = frozenset(new_position)
 
         if canonical_position in visited_states:
             continue

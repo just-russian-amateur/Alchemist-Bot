@@ -39,6 +39,7 @@ The bot requires three main components:
   - redis;
   - apscheduler;
   - ultralytics;
+  - pytz;
   - dotenv;
   - aiohttp-socks (this package is required to configure a proxy for the bot if you use the bot on servers where requests to **Telegram** are blocked; usage examples are in the branches marked **proxy**);
   - some dependencies may need to be installed separately if they were not downloaded along with the ones listed above.

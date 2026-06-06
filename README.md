@@ -108,7 +108,7 @@ Currently, the bot's functionality includes the following:
 
 ## Usage Example
 
-[Example of using the bot to solve one of the levels in a liquid-pouring game](https://youtube.com/shorts/1LuF7I0vwj4?si=c0fZsYv3RlSnkqTk)
+[Example of using the bot to solve one of the levels in a liquid-pouring game](https://www.youtube.com/shorts/yA5hJfQxB9k)
 
 ## Conclusion
 

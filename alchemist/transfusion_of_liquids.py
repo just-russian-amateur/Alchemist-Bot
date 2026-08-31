@@ -122,16 +122,31 @@ def possible_moves(position: tuple, last_move=None) -> list:
 
             # Переливание возможно только если верхние цвета совпадают или если переливаем в пустую колбу и места в целевой колбе достаточно
             if target_upper_color[1][1] >= solve_upper_color[1][1]:
-
+                '''
+                Добавляем эвристики для приоретизации перспективных ходов без использования случайной перемешки:
+                +100 очков - освобождение колбы из которой переливаем от жидкости,
+                +50 очков - освобождение колбы из неполного количества сегментов,
+                0 очков - переливание между частично заполненными жидкостями колбами,
+                -100 очков - переливание в пустую колбу (уменьшение количества буферных колб)
+                '''
                 if solve_upper_color[1][0] == target_upper_color[1][0]:
                     target_upper_color[0][1] += 1
                     target_upper_color[1][0] = EMPTY
-                    moves.append([solve_upper_color, target_upper_color])
+
+                    if solve_colors_count == 1 and count_segments == 1:
+                        score = 50
+                    elif solve_colors_count == 2 and solve_flask[-1] == EMPTY:
+                        score = 100
+                    else:
+                        score = 0
+
+                    moves.append([score, solve_upper_color, target_upper_color])
                 elif target_flask[0] == EMPTY:
-                    moves.append([solve_upper_color, target_upper_color])
+                    score = -100
+                    moves.append([score, solve_upper_color, target_upper_color])
 
     if len(moves) > 1:
-        shuffle(moves)
+        moves.sort(reverse=True)
     
     return moves
 
@@ -194,7 +209,7 @@ def transfusion_of_liquids(position: tuple) -> tuple[bool, str | None, int | Non
         move = moves.pop()
 
         # Применяем действие
-        new_position, step = apply_move(now_position, move)
+        new_position, step = apply_move(now_position, move[1:])
 
         # Если текущая позиция уже была посещена ранее, то переходим к следующей
         canonical_position = frozenset(new_position)
@@ -205,7 +220,7 @@ def transfusion_of_liquids(position: tuple) -> tuple[bool, str | None, int | Non
         # Добавляем текущую позицию в список посещенных
         visited_states.add(canonical_position)
         steps.append(step)
-        stack.append([new_position, possible_moves(new_position, move[1][0][0])])
+        stack.append([new_position, possible_moves(new_position, move[2][0][0])])
 
     return False, None, len(visited_states)
 

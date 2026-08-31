@@ -1,4 +1,3 @@
-from random import shuffle
 import asyncio
 
 from found_colors import EMPTY

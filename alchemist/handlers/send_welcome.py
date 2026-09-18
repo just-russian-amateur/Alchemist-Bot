@@ -1,13 +1,18 @@
 from aiogram import Router
 from aiogram.filters import CommandStart
-from aiogram.types import Message
+from aiogram.types import Message, InputRichMessage
 from aiogram.fsm.context import FSMContext
 
 from math import nan
 
 import classes.all_my_classes as amc
 import config
-from keyboards.all_my_keyboards import start_keyboard
+from richmessages.all_my_rich_messages import (
+    create_rich_msg,
+    build_rules_msg,
+    build_start_msg,
+    fill_format
+)
 from texts.all_my_texts import SendWelcomeTexts
 from texts.redis_keys import RedisKeys
 
@@ -25,7 +30,6 @@ async def check_user(user_id: int, state: FSMContext):
         })
 
     if not await config.redis.sismember(RedisKeys.USERS, user_id):
-
         if not await config.redis.sismember(RedisKeys.FRIENDS, user_id):
             await state.update_data(**{
                 RedisKeys.FREE_ATTEMPTS: 5,
@@ -50,10 +54,14 @@ async def send_welcome(message: Message,  state: FSMContext):
     else:
         condition_text = SendWelcomeTexts.CONDITION_TEXT
 
-    await message.answer(
-        SendWelcomeTexts.START_MESSAGE.format(first_name=message.from_user.first_name, condition_text=condition_text),
-        parse_mode='HTML',
-        reply_markup=start_keyboard()
+    rules_msg = fill_format(
+        SendWelcomeTexts.READ_RULES,
+        first_name=message.from_user.first_name
     )
+    start_msg = SendWelcomeTexts.GET_STARTED + condition_text
+
+    msg_blocks = create_rich_msg(rules_msg, build_rules_msg()) + create_rich_msg(start_msg, build_start_msg())
+
+    await message.answer_rich(InputRichMessage(blocks=msg_blocks))
 
     await state.set_state(amc.SolveFlasks.start_solving)

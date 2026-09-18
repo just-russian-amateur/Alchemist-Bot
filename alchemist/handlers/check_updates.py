@@ -23,12 +23,12 @@ async def handle_updates(update_type: Message | CallbackQuery):
 
 
 @rtr.callback_query()
-async def after_update_database_callback(callback: CallbackQuery):
+async def send_after_update_database_callback(callback: CallbackQuery):
     '''Функция для обработки нажатий любых кнопок пользователем после изменений параметров пользователя в базе данных'''
     await handle_updates(callback)
 
 
 @rtr.message()
-async def after_update_database_message(message: Message):
+async def send_after_update_database_message(message: Message):
     '''Функция для обработки любых сообщений пользователея после изменений параметров пользователя в базе данных'''
     await handle_updates(message)

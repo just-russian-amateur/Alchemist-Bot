@@ -1,11 +1,27 @@
 from aiogram import Bot, Router, F
-from aiogram.types import Message, CallbackQuery, BufferedInputFile, InputMediaPhoto
+from aiogram.types import Message, CallbackQuery, InputRichMessage
 from aiogram.fsm.context import FSMContext
-from aiogram.utils.chat_action import ChatActionSender
 
-from found_colors import replace_in_list, create_image_for_replace, replace_selected_color, replace_undefined, remove_selected_flask
+from io import BytesIO
+
+from found_colors import (
+    replace_in_list,
+    create_image_for_replace,
+    replace_selected_color,
+    replace_undefined,
+    remove_selected_flask
+)
 import classes.all_my_classes as amc
-from keyboards.all_my_keyboards import colors, change_flask, change_segment, change_color, recognition_check
+from richmessages.all_my_rich_messages import (
+    create_media_msg,
+    build_image_msg,
+    build_collage_msg,
+    build_colors_msg,
+    build_change_flask_msg,
+    build_change_segment_msg,
+    build_change_color_msg,
+    build_recognition_img_msg
+)
 from handlers.autofill import reply
 from handlers.start_solving import check_attempts
 from texts.all_my_texts import FillUndefinedColorsTexts
@@ -20,75 +36,79 @@ rtr = Router()
 logger = amc.ConfigLogger(__name__)
 
 
-async def edit_image(callback: CallbackQuery, state: FSMContext, new_caption: str, keyboard=None, new_state=None, edit_media=True, fill_color=False):
+async def edit_image(
+        callback: CallbackQuery,
+        state: FSMContext,
+        new_caption: list,
+        keyboard=None,
+        new_state=None,
+        fill_color=False
+):
     '''Функция для изменения надписей под изображением'''
 
     # Получаем данные с путями к файлам
     user_data = await state.get_data()
     lvl_file = user_data.get(RedisKeys.LVL_FILE)
 
-    if edit_media:
-        with open(lvl_file, 'rb') as open_image:
-            await callback.message.edit_media(
-                InputMediaPhoto(
-                    media=BufferedInputFile(
-                        open_image.read(),
-                        filename='solve_flasks'
-                    ),
-                    caption=new_caption
-                ),
-                reply_markup=keyboard
-            )
-
-        if new_state:
-            await state.set_state(new_state)
-
-        await callback.answer()
-
-    else:
-        # Изображение, где подсвечивается первый неопределенный цвет
-        with open(lvl_file, 'rb') as open_image:
-            await callback.message.answer_photo(
-                BufferedInputFile(
-                    open_image.read(),
-                    filename='solve_flasks'
-                ),
-                caption=new_caption,
-                reply_markup=keyboard
-            )
-
     if fill_color:
-        # Изображение с примерами цветов, которые поддерживает бот и их названиями
-        with open('color_examples.jpg', 'rb') as open_image:
-            msg = await callback.message.answer_photo(
-                BufferedInputFile(
-                    open_image.read(),
-                    filename='color_examples'
-                ),
-                caption=FillUndefinedColorsTexts.COLORS_EXAMPLE_CAPTION
+        collage = []
+
+        # Создаем коллаж из изображения и примеров цветов для заполнения
+        with open(lvl_file, 'rb') as lvl_image:
+            collage.append((BytesIO(lvl_image.read()), 'solve_flasks'))
+
+        with open('color_examples.jpg', 'rb') as colors_image:
+            collage.append((BytesIO(colors_image.read()), 'color_examples'))
+
+        await callback.message.edit_text(
+            rich_message=InputRichMessage(
+                blocks=create_media_msg(
+                    build_collage_msg(collage),
+                    new_caption,
+                    keyboard
+                )
             )
-            await asyncio.sleep(30)
-            await msg.delete()
+        )
+    else:
+        with open(lvl_file, 'rb') as open_image:
+            await callback.message.edit_text(
+                rich_message=InputRichMessage(
+                    blocks=create_media_msg(
+                        build_image_msg(open_image, 'solve_flasks'),
+                        new_caption,
+                        keyboard
+                    )
+                )
+            )
+
+    if new_state:
+        await state.set_state(new_state)
+
+    await callback.answer()
 
 
-async def replace_undefined_color(callback: CallbackQuery, bot: Bot, state: FSMContext, user_data: dict):
+async def replace_undefined_color(
+        callback: CallbackQuery,
+        bot: Bot,
+        state: FSMContext,
+        user_data: dict
+):
     '''Функция для обработки изменений цветов на изображении'''
-
-    # Промежуточный кадр без кнопок
-    new_caption = FillUndefinedColorsTexts.MANUALLY_FILLING
-    await edit_image(callback, state, new_caption)
         
-    edit_undef_colors, edit_flasks_id_list = user_data.get(RedisKeys.EDITED_UNDEF_COLORS), user_data.get(RedisKeys.EDITED_FLASKS_LIST)
+    edit_undef_colors = user_data.get(RedisKeys.EDITED_UNDEF_COLORS)
+    edit_flasks_id_list = user_data.get(RedisKeys.EDITED_FLASKS_LIST)
 
     # Удаление цвета нажатой кнопки из словаря и замена неопределенного цвета цветом кнопки
     if edit_undef_colors:
-
         edit_undef_colors[callback.data] -= 1
 
         if edit_undef_colors[callback.data] == 0:
             edit_undef_colors.pop(callback.data)
 
-        edit_flasks_id_list = replace_in_list(flasks_id_list=edit_flasks_id_list, color_id=int(callback.data))
+        edit_flasks_id_list = replace_in_list(
+            edit_flasks_id_list,
+            color_id=int(callback.data)
+        )
         
         await state.update_data(**{
             RedisKeys.EDITED_UNDEF_COLORS: edit_undef_colors,
@@ -97,10 +117,12 @@ async def replace_undefined_color(callback: CallbackQuery, bot: Bot, state: FSMC
         
     # Автозаполнение цвета, если остался только один неопределенный
     if len(edit_undef_colors) == 1:
-
         while edit_undef_colors[list(edit_undef_colors.keys())[0]] > 0:
             edit_undef_colors[list(edit_undef_colors.keys())[0]] -= 1
-            edit_flasks_id_list = replace_in_list(flasks_id_list=edit_flasks_id_list, color_id=int(list(edit_undef_colors.keys())[0]))
+            edit_flasks_id_list = replace_in_list(
+                edit_flasks_id_list,
+                color_id=int(list(edit_undef_colors.keys())[0])
+            )
 
         edit_undef_colors.pop(list(edit_undef_colors.keys())[0])
 
@@ -110,20 +132,27 @@ async def replace_undefined_color(callback: CallbackQuery, bot: Bot, state: FSMC
         })
 
     # Подготавливаем картинку, в которой подсвечиваем неопределенные области
-    await create_image_for_replace(flasks_id_list=edit_flasks_id_list, id_client=callback.from_user.id)
+    await create_image_for_replace(
+        edit_flasks_id_list,
+        id_client=callback.from_user.id
+    )
 
     if edit_undef_colors:
-
         # Изображение, где подсвечивается первый неопределенный цвет
         new_caption = FillUndefinedColorsTexts.MANUALLY_FILLING
-        kb = colors(edit_undef_colors)
+        kb = build_colors_msg(edit_undef_colors)
 
         await edit_image(callback, state, new_caption, kb)
 
         logger.log_info(f'Изображение для пользователя {callback.from_user.id} дополнено и отправлено для дальнейшего редактирования')
-
     else:
-        await reply(callback, bot, state, edit_flasks_id_list, 'upload_new_or_reload', False)
+        await reply(
+            callback,
+            bot,
+            state,
+            edit_flasks_id_list,
+            keyboard_name='upload_new_or_reload'
+        )
 
 
 @rtr.callback_query(
@@ -156,18 +185,21 @@ async def replace_undefined_color(callback: CallbackQuery, bot: Bot, state: FSMC
         ]
     )
 )
-async def fill_undef_values(callback: CallbackQuery, bot: Bot, state: FSMContext):
+async def fill_undefined_values(
+        callback: CallbackQuery,
+        bot: Bot,
+        state: FSMContext
+):
     '''Функция дозаполнения неопределенных цветов вручную'''
 
     # Получаем данные с путями к файлам
     current_state = await state.get_state()
     user_data = await state.get_data()
-    image_for_load, lvl_file = user_data.get(RedisKeys.IMAGE), user_data.get(RedisKeys.LVL_FILE)
+    image_for_load = user_data.get(RedisKeys.IMAGE)
+    lvl_file = user_data.get(RedisKeys.LVL_FILE)
 
     if current_state == amc.SolveFlasks.set_color:
-
         if callback.data == CallbacksData.UPLOAD_IMAGE:
-            
             # Удаление временных файлов
             if os.path.isfile(image_for_load):
                 os.remove(image_for_load)
@@ -175,80 +207,92 @@ async def fill_undef_values(callback: CallbackQuery, bot: Bot, state: FSMContext
                 os.remove(lvl_file)
 
             # Проверяем, что пользователь может использовать бота
-            await check_attempts(
-                data=user_data,
-                callback=callback,
-                state=state
-            )
+            await check_attempts(user_data, callback, state)
             await callback.answer()
+
             return
-
         elif callback.data in [CallbacksData.NO, CallbacksData.REMOVE_FLASK]:
-
             '''
             Распознавание завершилось с ошибкой, выбираем колбу для замены цвета
             '''
 
             flasks_id_list = user_data.get(RedisKeys.FLASKS_LIST)
-            new_caption = FillUndefinedColorsTexts.CHOOSE_FLASK
-            kb = change_flask(len(flasks_id_list))
+            caption = FillUndefinedColorsTexts.CHOOSE_FLASK
+            kb = build_change_flask_msg(len(flasks_id_list))
 
             if callback.data == CallbacksData.NO:
                 new_state = amc.SolveFlasks.choose_segment
             else:
                 new_state = amc.SolveFlasks.remove_flask
 
-            await edit_image(callback, state, new_caption, kb, new_state)
+            await edit_image(
+                callback,
+                state,
+                new_caption=caption,
+                keyboard=kb,
+                new_state=new_state
+            )
 
             logger.log_info(f'Изображение от пользователя {callback.from_user.id} было распознано неверно. Пользователь выбрал изменение проблемных цветов')
             
             return
-
         elif callback.data == CallbacksData.MANUALLY:
-
             '''
             Выбрано заполнение неизвестных цветов вручную
             '''
 
-            async with ChatActionSender.upload_photo(bot=bot, chat_id=callback.from_user.id):
+            undef_colors = user_data.get(RedisKeys.UNDEF_COLORS)
+            flasks_id_list = user_data.get(RedisKeys.FLASKS_LIST)
 
-                await callback.message.delete()
+            await state.update_data(**{
+                RedisKeys.EDITED_UNDEF_COLORS: undef_colors,
+                RedisKeys.EDITED_FLASKS_LIST: flasks_id_list,
+            })
 
-                undef_colors, flasks_id_list = user_data.get(RedisKeys.UNDEF_COLORS), user_data.get(RedisKeys.FLASKS_LIST)
+            # Подготавливаем картинку, в которой подсвечиваем неопределенные области
+            await create_image_for_replace(
+                flasks_id_list,
+                id_client=callback.from_user.id
+            )
 
-                await state.update_data(**{
-                    RedisKeys.EDITED_UNDEF_COLORS: undef_colors,
-                    RedisKeys.EDITED_FLASKS_LIST: flasks_id_list,
-                })
+            caption = FillUndefinedColorsTexts.MANUALLY_FILLING
+            kb = build_colors_msg(undef_colors)
 
-                # Подготавливаем картинку, в которой подсвечиваем неопределенные области
-                await create_image_for_replace(flasks_id_list=flasks_id_list, id_client=callback.from_user.id)
-
-                new_caption = FillUndefinedColorsTexts.MANUALLY_FILLING
-                kb = colors(undef_colors)
-
-                await edit_image(callback=callback, state=state, new_caption=new_caption, keyboard=kb, edit_media=False, fill_color=True)
+            await edit_image(
+                callback,
+                state,
+                new_caption=caption,
+                keyboard=kb,
+                fill_color=True
+            )
 
             return
         
-        await replace_undefined_color(callback, bot, state, user_data)
-
+        await replace_undefined_color(
+            callback,
+            bot,
+            state,
+            user_data
+        )
     else:
-
         if current_state == amc.SolveFlasks.choose_segment:
             # Выбираем сегмент внутри выбранной колбы для замены
             await state.update_data(**{RedisKeys.CHOOSEN_FLASK: int(callback.data)})
 
-            new_caption=FillUndefinedColorsTexts.CHOOSE_SEGMENT
-            kb = change_segment()
+            caption = FillUndefinedColorsTexts.CHOOSE_SEGMENT
+            kb = build_change_segment_msg()
             new_state = amc.SolveFlasks.choose_color
 
-            await edit_image(callback, state, new_caption, kb, new_state)
+            await edit_image(
+                callback,
+                state,
+                new_caption=caption,
+                keyboard=kb,
+                new_state=new_state
+            )
 
             logger.log_info(f'Изображение от пользователя {callback.from_user.id} было распознано неверно. Пользователь выбирает сегмент для изменения')
-        
         elif current_state == amc.SolveFlasks.remove_flask or current_state == amc.SolveFlasks.confirm_changing:
-            
             flasks_id_list = user_data.get(RedisKeys.FLASKS_LIST)
             
             if current_state == amc.SolveFlasks.remove_flask:
@@ -257,20 +301,32 @@ async def fill_undef_values(callback: CallbackQuery, bot: Bot, state: FSMContext
 
                 await state.update_data(**{RedisKeys.REMOVED_FLASK: int(callback.data)})
 
-                flasks_id_list = remove_selected_flask(flasks_id_list, int(callback.data))
-
+                flasks_id_list = remove_selected_flask(
+                    flasks_id_list,
+                    choosen_flask=int(callback.data)
+                )
             else:
                 # Заменяем сегмент на выбранный цвет
-                new_caption = FillUndefinedColorsTexts.CHOOSE_COLOR
+                caption = FillUndefinedColorsTexts.CHOOSE_COLOR
 
-                await edit_image(callback, state, new_caption)
+                await edit_image(
+                    callback,
+                    state,
+                    new_caption=caption
+                )
 
                 logger.log_info(f'Пользователь {callback.from_user.id} заменяет цвет')
 
                 await state.update_data(**{RedisKeys.CHOOSEN_COLOR: int(callback.data)})
 
-                choosen_flask, choosen_segment = user_data.get(RedisKeys.CHOOSEN_FLASK), user_data.get(RedisKeys.CHOOSEN_SEGMENT)
-                flasks_id_list = replace_selected_color(flasks_id_list, int(callback.data), choosen_flask, choosen_segment)
+                target_flask = user_data.get(RedisKeys.CHOOSEN_FLASK)
+                target_segment = user_data.get(RedisKeys.CHOOSEN_SEGMENT)
+                flasks_id_list = replace_selected_color(
+                    flasks_id_list,
+                    color_id=int(callback.data),
+                    choosen_flask=target_flask,
+                    choosen_segment=target_segment
+                )
 
             undef_colors = replace_undefined(flasks_id_list)
     
@@ -281,30 +337,42 @@ async def fill_undef_values(callback: CallbackQuery, bot: Bot, state: FSMContext
                 RedisKeys.EDITED_FLASKS_LIST: flasks_id_list,
             })
     
-            await create_image_for_replace(flasks_id_list=flasks_id_list, id_client=callback.from_user.id)
+            await create_image_for_replace(
+                flasks_id_list,
+                id_client=callback.from_user.id
+            )
 
             # Подготавливаем сообщения для сделанных выше действий
             if current_state == amc.SolveFlasks.remove_flask:
-                new_caption = FillUndefinedColorsTexts.SUCCESSFUL_REMOVAL_FLASK
-                kb = recognition_check()
-                new_state = amc.SolveFlasks.set_color    
-
+                caption = FillUndefinedColorsTexts.SUCCESSFUL_REMOVAL_FLASK
             else:
-                new_caption = FillUndefinedColorsTexts.SUCESSFUL_REPLACEMENT_COLOR
-                kb = recognition_check()
-                new_state = amc.SolveFlasks.set_color
+                caption = FillUndefinedColorsTexts.SUCESSFUL_REPLACEMENT_COLOR
 
-            await edit_image(callback, state, new_caption, kb, new_state)
+            kb = build_recognition_img_msg()
+            new_state = amc.SolveFlasks.set_color
 
+            await edit_image(
+                callback,
+                state,
+                new_caption=caption,
+                keyboard=kb,
+                new_state=new_state
+            )
         elif current_state == amc.SolveFlasks.choose_color:
-
             # Выбираем цвет на который будет изменен выбранный сегмент из списка
-            new_caption = FillUndefinedColorsTexts.CHOOSE_COLOR
-            kb = change_color()
+            caption = FillUndefinedColorsTexts.CHOOSE_COLOR
+            kb = build_change_color_msg()
             new_state = amc.SolveFlasks.confirm_changing
 
             await state.update_data(**{RedisKeys.CHOOSEN_SEGMENT: int(callback.data)})
-            await edit_image(callback, state, new_caption, kb, new_state, fill_color=True)
+            await edit_image(
+                callback,
+                state,
+                new_caption=caption,
+                keyboard=kb,
+                new_state=new_state,
+                fill_color=True
+            )
 
             logger.log_info(f'Изображение от пользователя {callback.from_user.id} было распознано неверно. Пользователь выбирает новый цвет')
 

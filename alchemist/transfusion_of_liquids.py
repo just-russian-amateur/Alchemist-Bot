@@ -1,4 +1,5 @@
 import asyncio
+from aiogram.types import InputRichBlockParagraph
 
 from found_colors import EMPTY
 
@@ -7,7 +8,6 @@ def check_solving(position: tuple) -> bool:
     '''Функция проверки получения решения'''
 
     for flask in position:
-
         first = flask[0]
 
         if any(color != first for color in flask):
@@ -16,7 +16,7 @@ def check_solving(position: tuple) -> bool:
     return True
 
 
-def possible_moves(position: tuple, last_move=None) -> list:
+def get_possible_moves(position: tuple, last_move=None) -> list:
     '''
     Функция для определения всех возможных перемещений для конкретной ситуации
 
@@ -41,7 +41,6 @@ def possible_moves(position: tuple, last_move=None) -> list:
 
     # Перебираем все колбы из которых можно перелить
     for idx_solve_flask, solve_flask in enumerate(position):
-
         # Из пустой колбы ничего перелить нельзя
         if solve_flask[0] == EMPTY:
             continue
@@ -65,10 +64,8 @@ def possible_moves(position: tuple, last_move=None) -> list:
         ]  # Пустая колба
 
         for idx_color in range(count_segments - 1, -1, -1):
-
             # Получаем необходимую информацию о самом верхнем цвете
             if solve_flask[idx_color] != EMPTY:
-
                 if mono_color_height == 0:
                     solve_upper_color[0][1] = idx_color
                     solve_upper_color[1][0] = solve_flask[idx_color]
@@ -84,13 +81,13 @@ def possible_moves(position: tuple, last_move=None) -> list:
 
         # Перебираем все колбы в которые можно перелить
         for idx_target_flask, target_flask in enumerate(position):
-
             # Переливать колбу саму в себя нельзя
             if idx_solve_flask == idx_target_flask:
                 continue
 
             # В полную колбу ничего перелить нельзя
             first = target_flask[0]
+            
             if all(color == first for color in target_flask) and target_flask[0] != EMPTY:
                 continue
 
@@ -108,7 +105,6 @@ def possible_moves(position: tuple, last_move=None) -> list:
             ]   # Пустая колба
 
             for idx_color in range(count_segments - 1, -1, -1):
-
                 if target_flask[idx_color] != EMPTY:
                     target_upper_color[0][1] = idx_color
                     target_upper_color[1][0] = target_flask[idx_color]
@@ -160,7 +156,6 @@ def apply_move(position: tuple, move: list) -> tuple[tuple, str]:
     update_position = []
 
     for idx_flask, flask in enumerate(position):
-        
         if idx_flask == solve_flask[0][0]:
             new_flask = tuple(
                 EMPTY if solve_flask[0][1] - solve_flask[1][1] < idx_color <= solve_flask[0][1] else color
@@ -186,10 +181,9 @@ def transfusion_of_liquids(position: tuple) -> tuple[bool, str | None, int | Non
 
     visited_states = {frozenset(position)}
     steps = []
-    stack = [[position, possible_moves(position)]]
+    stack = [[position, get_possible_moves(position)]]
 
     while stack:
-
         now_position, moves = stack[-1]
 
         # Проверяем решена ли задача
@@ -197,7 +191,6 @@ def transfusion_of_liquids(position: tuple) -> tuple[bool, str | None, int | Non
             return True, steps, None
         
         if not moves:
-
             stack.pop()
 
             if steps:
@@ -208,7 +201,7 @@ def transfusion_of_liquids(position: tuple) -> tuple[bool, str | None, int | Non
         move = moves.pop()
 
         # Применяем действие
-        new_position, step = apply_move(now_position, move[1:])
+        new_position, step = apply_move(now_position, move=move[1:])
 
         # Если текущая позиция уже была посещена ранее, то переходим к следующей
         canonical_position = frozenset(new_position)
@@ -219,7 +212,7 @@ def transfusion_of_liquids(position: tuple) -> tuple[bool, str | None, int | Non
         # Добавляем текущую позицию в список посещенных
         visited_states.add(canonical_position)
         steps.append(step)
-        stack.append([new_position, possible_moves(new_position, move[2][0][0])])
+        stack.append([new_position, get_possible_moves(new_position, last_move=move[2][0][0])])
 
     return False, None, len(visited_states)
 
@@ -237,18 +230,14 @@ def _transfusion_manage(task: list) -> tuple[bool, str | None, int | None]:
     is_solved, steps_list, count_states = transfusion_of_liquids(position_tuple)
     
     if is_solved:
-
-        lines = []
+        result = []
 
         for idx_step, step in enumerate(steps_list, 1):
-
-            lines.append(step)
+            result.append(InputRichBlockParagraph(text=step))
 
             if idx_step % 4 == 0:
                 # Добавляем пустую строку, разбивая решение на блоки по 4 хода для удобства отслеживания
-                lines.append('')
-
-        result = '\n'.join(lines)
+                result.append(InputRichBlockParagraph(text=""))
 
         return is_solved, result, None
 

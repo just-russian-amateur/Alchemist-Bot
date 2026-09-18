@@ -1,16 +1,27 @@
 from aiogram import Router, F
-from aiogram.types import Message, CallbackQuery, LabeledPrice, PreCheckoutQuery
+from aiogram.types import (
+    Message,
+    CallbackQuery,
+    InputRichMessage,
+    LabeledPrice,
+    PreCheckoutQuery
+)
 from aiogram.fsm.context import FSMContext
 
 from math import nan, isnan
 
 import classes.all_my_classes as amc
-from keyboards.all_my_keyboards import payment_kb, continue_solving
+from keyboards.all_my_keyboards import payment_kb
+from richmessages.all_my_rich_messages import (
+    create_rich_msg,
+    build_continue_msg,
+    fill_format
+)
 from config import scheduler, redis
 from texts.all_my_texts import PaymentTexts, KeyboardTexts, LabelsForPrices
 from texts.redis_keys import RedisKeys
 from callbacks.all_my_callbacks import CallbacksData
-from alchemist_bot import update_redis_data
+from test_alchemist_bot import update_redis_data
 
 import asyncio
 from datetime import datetime, timedelta
@@ -60,7 +71,10 @@ async def reset_unlimited_attempts(user_id: int):
     '''Функция сброса безлимита'''
 
     key = f"fsm:{user_id}:{user_id}:data"
-    succes_update = await update_redis_data(key, lambda data: data.update({RedisKeys.PAID_ATTEMPTS.value: 0}))
+    succes_update = await update_redis_data(
+        key,
+        updater=lambda data: data.update({RedisKeys.PAID_ATTEMPTS.value: 0})
+    )
     
     if succes_update:
         logger.log_info(f'Безлимит для пользователя {user_id} обнулен')
@@ -77,11 +91,10 @@ async def reset_unlimited_attempts(user_id: int):
         ]
     )
 )
-async def payment(callback: CallbackQuery, state: FSMContext):
+async def start_payment(callback: CallbackQuery, state: FSMContext):
     """Функция для покупки попыток"""
 
     if callback.data in [CallbacksData.CANCEL, CallbacksData.OK, CallbacksData.CONTINUE]:
-
         logger.log_info(f'Пользователь {callback.from_user.id} отменил покупку')
 
         await callback.message.delete()
@@ -117,7 +130,6 @@ async def payment(callback: CallbackQuery, state: FSMContext):
         start_parameter='buy_attempts',
         reply_markup=payment_kb(package["keyboard_text"])
     )
-
     await callback.answer()
 
 
@@ -130,6 +142,7 @@ async def pre_checkout(checkout: PreCheckoutQuery):
 
     if not payload_data:
         await checkout.answer(ok=False)
+
         return
     
     # Проверяем соответствие стоимости покупки
@@ -137,17 +150,19 @@ async def pre_checkout(checkout: PreCheckoutQuery):
 
     if payment_data["amount"] != checkout.total_amount:
         await checkout.answer(ok=False)
+
         return
     
     if payment_data["user_id"] != checkout.from_user.id:
         await checkout.answer(ok=False)
+
         return
         
     await checkout.answer(ok=True)
 
 
 @rtr.message(F.successful_payment)
-async def succesful_payment(message: Message, state: FSMContext):
+async def check_succesful_payment(message: Message, state: FSMContext):
     '''Безопасная обработка успешного платежа'''
 
     payload = message.successful_payment.invoice_payload
@@ -204,7 +219,13 @@ async def succesful_payment(message: Message, state: FSMContext):
         now = datetime.now(tz=utc)
         run_date = now + timedelta(days=30)
 
-        scheduler.add_job(reset_unlimited_attempts, 'date', run_date=run_date, args=(message.from_user.id,), misfire_grace_time=300)
+        scheduler.add_job(
+            reset_unlimited_attempts,
+            'date',
+            run_date=run_date,
+            args=(message.from_user.id,),
+            misfire_grace_time=300
+        )
 
         await state.update_data(**{RedisKeys.END_UNLIM: run_date.isoformat(" ", "minutes")})
 
@@ -212,13 +233,20 @@ async def succesful_payment(message: Message, state: FSMContext):
 
     else:
         paid_attempts += add_attempts
-        text = PaymentTexts.SUCCESSFUL_PAYMENT.format(paid_attempts=paid_attempts)
+        text = fill_format(
+            PaymentTexts.SUCCESSFUL_PAYMENT,
+            paid_attempts=paid_attempts
+        )
 
     await state.update_data(**{RedisKeys.PAID_ATTEMPTS: paid_attempts})
 
-    await message.answer(
-        text=text,
-        reply_markup=continue_solving()
+    await message.answer_rich(
+        InputRichMessage(
+            blocks=create_rich_msg(
+                text,
+                build_continue_msg()
+            )
+        )
     )
 
     logger.log_info(f'Пользователь {message.from_user.id} купил {add_attempts} дополнительных попыток')
@@ -227,7 +255,7 @@ async def succesful_payment(message: Message, state: FSMContext):
 
 
 @rtr.message(amc.SolveFlasks.pay_attempts)
-async def unfinished_payment(message: Message):
+async def interrupt_payment(message: Message):
     '''Функция для отслеживания любых действий кроме оплаты'''
 
     logger.log_info(f'Пользователь {message.from_user.id} проигнорировал оплату')

@@ -5,12 +5,24 @@ from aiogram.fsm.storage.redis import RedisStorage
 
 from redis.exceptions import WatchError
 
-from handlers import send_welcome, start_solving, payment, fill_undefined_colors, get_image, terms, support, autofill, account, check_updates
+from handlers import (
+    send_welcome,
+    start_solving,
+    payment,
+    fill_undefined_colors,
+    get_image,
+    terms,
+    support,
+    autofill,
+    account,
+    check_updates
+)
 import config
 import classes.all_my_classes as amc
 from texts.all_my_texts import KeyboardTexts, AlchemistBot
 from texts.redis_keys import RedisKeys
 from callbacks.all_my_callbacks import CallbacksData
+from middlewares.excuse_me_middleware import ExcuseMeMiddleware
 
 import asyncio
 import shutil
@@ -42,6 +54,7 @@ async def update_redis_data(key: str, updater: callable) -> bool:
                 pipe.multi()
                 pipe.set(key, json.dumps(data))
                 await pipe.execute()
+                
                 return True
             
             except WatchError:
@@ -64,7 +77,11 @@ async def recovery_attempts():
         if await config.redis.sismember(RedisKeys.FRIENDS, user_id):
             continue
 
-        succes_update = await update_redis_data(key, lambda data: data.update({RedisKeys.FREE_ATTEMPTS.value: 5}))
+        succes_update = await update_redis_data(
+            key,
+            updater=lambda data: data.update({RedisKeys.FREE_ATTEMPTS.value: 5})
+        )
+
         if succes_update:
             logger.log_info(f'Попытки для пользователя {user_id} восстановлены')
         else:
@@ -110,10 +127,30 @@ async def main():
     bot = Bot(token=config.API_TOKEN)
 
     # Добавляем задачу в расписание
-    config.scheduler.add_job(recovery_attempts, 'cron', month='*', id='recovery_attempts', replace_existing=True, misfire_grace_time=300)
+    config.scheduler.add_job(
+        recovery_attempts,
+        'cron',
+        month='*',
+        id='recovery_attempts',
+        replace_existing=True,
+        misfire_grace_time=300
+    )
     
     dp.startup.register(clue)
-    dp.include_routers(send_welcome.rtr, account.rtr, terms.rtr, support.rtr, start_solving.rtr, payment.rtr, get_image.rtr, autofill.rtr, fill_undefined_colors.rtr, check_updates.rtr)
+    dp.message.middleware(ExcuseMeMiddleware())
+    dp.callback_query.middleware(ExcuseMeMiddleware())
+    dp.include_routers(
+        send_welcome.rtr,
+        account.rtr,
+        terms.rtr,
+        support.rtr,
+        start_solving.rtr,
+        payment.rtr,
+        get_image.rtr,
+        autofill.rtr,
+        fill_undefined_colors.rtr,
+        check_updates.rtr
+    )
     
     try:
         config.scheduler.start()

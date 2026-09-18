@@ -49,15 +49,15 @@ def create_color_list(image: cv2.typing.MatLike) -> list:
     hsv_colors = cv2.cvtColor(image, cv2.COLOR_BGR2HSV)
 
     for i in range(3, 33, 8):
-        y1, y2, x1, x2 = round(height * i / 32), round(height * (i + 2) / 32), round(width * 3 / 8), round(width * 5 / 8)
+        y1, y2 = round(height * i / 32), round(height * (i + 2) / 32)
+        x1, x2 = round(width * 3 / 8), round(width * 5 / 8)
         segment = hsv_colors[y1:y2, x1:x2]
+        OK_COLOR = False
 
         # Более агрессивный подход для удаления ненужных шумов с изображения с использованием эрозии
         segment = cv2.erode(segment, kernel=morph_kernel, iterations=3)
 
-        OK_COLOR = False
         for variation in variations.values():
-
             # Проверяем пороговое значение для каждой вариации цвета на картинке и находим площадь, которую занимает цвет
             thresholder = cv2.inRange(segment, variation[1][0], variation[1][1])
             
@@ -84,7 +84,6 @@ def sorted_flasks(flasks_id_list: list) -> list:
     layer = []
 
     for flask in flasks_id_list:
-
         if not layer:
             layer.append(flask)
             continue
@@ -131,7 +130,6 @@ def replace_undefined(flasks_id_list: list) -> dict:
     count_added_colors = 0
     
     for key in colors_dict.keys():
-        
         # Составляем словарь с цветами которых не хватает и их количеством
         if key == EMPTY or key == UNDEFINED or colors_dict[key] == 4:
             continue
@@ -142,10 +140,8 @@ def replace_undefined(flasks_id_list: list) -> dict:
     
     # Случай, когда пользователь еще не открыл все варианты цветов хотя бы в одном экземпляре
     if colors_dict[UNDEFINED] > count_added_colors:
-
         for _ in range(int((colors_dict[UNDEFINED] - count_added_colors) / 4)):
             for variation in variations.keys():
-
                 if not variations[variation][0] in colors_dict.keys() and not variations[variation][0] in added_colors.keys():
                     added_colors[variations[variation][0]] = 4
                     break
@@ -168,7 +164,6 @@ def _found_colors_in_flasks(image_for_search: str) -> tuple[dict, list]:
     flasks = [] # Список прямоугольников-колб
 
     for box in boxes:
-
         x1, y1, x2, y2 = map(int, box.xyxy[0])
         w, h = x2 - x1, y2 - y1
         
@@ -198,15 +193,20 @@ def replace_in_list(flasks_id_list: list, color_id: int) -> list:
 
     for flask in flasks_id_list:
         for i, color in enumerate(flask):
-
             if color == UNDEFINED:
                 flask[i] = color_id
+                
                 return flasks_id_list
             
     return flasks_id_list
 
 
-def replace_selected_color(flasks_id_list: list, color_id: int, choosen_flask: int, choosen_segment: int) -> list:
+def replace_selected_color(
+        flasks_id_list: list,
+        color_id: int,
+        choosen_flask: int,
+        choosen_segment: int
+) -> list:
     '''Функция для замены выбранного пользователем сегмента в колбе другим цветом'''
     flasks_id_list[choosen_flask][choosen_segment] = color_id
 
@@ -245,7 +245,6 @@ def _create_image_for_replace(flasks_id_list: list, id_client: int):
 
     for i in range(count_lines):
         for j in range(1, 7):
-
             flasks_centers.append([int(j * step_x), int((i + 1) * step_y)])
 
             if len(flasks_centers) >= count_flasks:
@@ -258,7 +257,6 @@ def _create_image_for_replace(flasks_id_list: list, id_client: int):
 
     # Отрисовка всех колб с цветами и пустыми полями внутри них
     for idx_flask, colors in enumerate(flasks_id_list):
-
         height_flask = width_flask * len(colors)
         cx, cy = flasks_centers[idx_flask]
         
@@ -270,11 +268,9 @@ def _create_image_for_replace(flasks_id_list: list, id_client: int):
         variations_list = list(variations.values())
 
         for idx_color, color in enumerate(colors):
-
             circle_x, circle_y = cx, int(y2 - (y2 - y1) * (2 * idx_color + 1) / 8)
             
             if color == UNDEFINED:
-
                 cnt_undef += 1
 
                 if cnt_undef == 1:
@@ -295,7 +291,7 @@ def add_empty_flask(flasks_id_list: list, idx_segment: int) -> list:
 
     if idx_segment > 1:
         flasks_id_list.pop()
-        
+    
     flasks_id_list.append([EMPTY] * idx_segment)
         
     return flasks_id_list

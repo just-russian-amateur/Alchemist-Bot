@@ -1,11 +1,15 @@
 from aiogram import Router, F
 from aiogram.filters import Command
-from aiogram.types import Message, CallbackQuery, User
+from aiogram.types import Message, CallbackQuery, InputRichMessage, User
 from aiogram.fsm.context import FSMContext
 
 import classes.all_my_classes as amc
 import config
-from keyboards.all_my_keyboards import account
+from richmessages.all_my_rich_messages import (
+    create_rich_msg,
+    build_account_msg,
+    fill_format
+)
 from texts.all_my_texts import AccountTexts
 from texts.redis_keys import RedisKeys
 from callbacks.all_my_callbacks import CallbacksData
@@ -21,28 +25,25 @@ async def create_account_message(user: User, data: dict) -> tuple[str, bool]:
     '''Вспомогательная функция для создания сообщения'''
 
     if await config.redis.sismember(RedisKeys.FRIENDS, user.id):
-
-        free_attempts_note = AccountTexts.FRIENDS_NOTE
-        text = AccountTexts.FRIENDS_MESSAGE.format(
+        text = fill_format(
+            AccountTexts.FRIENDS_MESSAGE,
             full_name=user.full_name,
-            id=user.id,
-            note=free_attempts_note
+            id=user.id
         )
 
         return text, True
     
-    free_attempts_note = AccountTexts.USERS_NOTE
     free_attempts = data.get(RedisKeys.FREE_ATTEMPTS)
 
     if isnan(data.get(RedisKeys.PAID_ATTEMPTS)):
-
         paid_attempts = "unlimited"
         end_unlimited = data.get(RedisKeys.END_UNLIM)
-        added_text = AccountTexts.TIMEOUT_UNLIM.format(end_unlimited=end_unlimited)
+        added_text = fill_format(
+            AccountTexts.TIMEOUT_UNLIM,
+            end_unlimited=end_unlimited
+        )
         account_mode = True
-        
     else:
-        
         paid_attempts = data.get(RedisKeys.PAID_ATTEMPTS)
         added_text = ""
 
@@ -51,11 +52,11 @@ async def create_account_message(user: User, data: dict) -> tuple[str, bool]:
         else:
             account_mode = False
 
-    text = AccountTexts.USERS_MESSAGE.format(
+    text = fill_format(
+        AccountTexts.USERS_MESSAGE,
         full_name=user.full_name,
         id=user.id,
         free_attempts=free_attempts,
-        note=free_attempts_note,
         paid_attempts=paid_attempts,
         added_text=added_text
     )
@@ -75,9 +76,16 @@ async def show_account(update_type: Message | CallbackQuery, state: FSMContext):
         send_func = update_type.message.edit_text
     else:
         await update_type.delete()
-        send_func = update_type.answer
+        send_func = update_type.answer_rich
 
-    await send_func(text, parse_mode='HTML', reply_markup=account(mode))
+    await send_func(
+        rich_message=InputRichMessage(
+            blocks=create_rich_msg(
+                text,
+                build_account_msg(mode)
+            )
+        )
+    )
 
     if isinstance(update_type, CallbackQuery):
         await update_type.answer()
@@ -86,7 +94,7 @@ async def show_account(update_type: Message | CallbackQuery, state: FSMContext):
 
 
 @rtr.message(Command(CallbacksData.ACCOUNT))    # Команда для вызова профиля пользователя
-async def my_account_message(message: Message, state: FSMContext):
+async def call_account_message(message: Message, state: FSMContext):
     '''Функция для показа информации о пользователе'''
 
     await show_account(message, state)
@@ -101,7 +109,7 @@ async def my_account_message(message: Message, state: FSMContext):
     amc.SolveFlasks.start_solving,
     F.data == CallbacksData.ACCOUNT
 )
-async def my_account_callback(callback: CallbackQuery, state: FSMContext):
+async def call_account_callback(callback: CallbackQuery, state: FSMContext):
     '''Функция для показа информации о пользователе'''
 
     await show_account(callback, state)

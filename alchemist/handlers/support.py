@@ -1,10 +1,10 @@
 from aiogram import Router
 from aiogram.filters import Command
-from aiogram.types import Message
+from aiogram.types import Message, InputRichMessage
 from aiogram.fsm.context import FSMContext
 
 import classes.all_my_classes as amc
-from keyboards.all_my_keyboards import feedback
+from richmessages.all_my_rich_messages import create_rich_msg, build_feedback_msg
 from texts.all_my_texts import SupportTexts
 from callbacks.all_my_callbacks import CallbacksData
 
@@ -21,9 +21,13 @@ async def call_support(message: Message, state: FSMContext):
 
     await message.delete()
 
-    await message.answer(
-        SupportTexts.SUPPORT,
-        reply_markup=feedback()
+    await message.answer_rich(
+        InputRichMessage(
+            blocks=create_rich_msg(
+                SupportTexts.SUPPORT,
+                build_feedback_msg()
+            )
+        )
     )
     
     await state.set_state(amc.SolveFlasks.start_solving)

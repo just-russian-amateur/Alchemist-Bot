@@ -306,6 +306,7 @@ def build_colors_msg(undef_colors: dict) -> list:
 
 
 def build_change_flask_msg(num_of_lasks: int) -> list:
+    '''Сообщение с выбором колбы для замены цвета внутри нее или ее удаления'''
 
     cnt = 0
     button_list, button_line = [], []
@@ -327,7 +328,7 @@ def build_change_flask_msg(num_of_lasks: int) -> list:
 
 
 def build_change_segment_msg() -> list:
-
+    '''Сообщение с выбором сегмента колбы для замены цвета внутри него'''
     return [
         InputRichBlockButtons(
             buttons=[
@@ -341,6 +342,7 @@ def build_change_segment_msg() -> list:
 
 
 def build_change_color_msg() -> list:
+    '''Сообщение с выбором цветов для заполнения выбранного места'''
 
     buttons_list, buttons_line = [], []
     cnt = 0
@@ -363,7 +365,6 @@ def build_change_color_msg() -> list:
 
 def build_no_result_msg() -> list:
     '''Сообщение о отсутствием решения уровня'''
-
     return [
         InputRichBlockButtons(
             buttons=[
@@ -380,6 +381,7 @@ def build_no_result_msg() -> list:
 
 
 def build_upload_file_msg(mode: str) -> list:
+    '''Сообщение для подготовки к загрузке изображения'''
 
     if mode == 'upload_new_or_reload':
         return [
@@ -401,6 +403,8 @@ def build_upload_file_msg(mode: str) -> list:
 
 
 def build_autofill_options_msg(mode: str | None) -> list:
+    '''Сообщение с выбором варианта для автозаполнения'''
+    
     if mode == 'first':
         return [
             InputRichBlockButtons(
@@ -444,6 +448,7 @@ def build_autofill_options_msg(mode: str | None) -> list:
 
 
 def build_select_mode_msg() -> list:
+    '''Сообщение с выбором режима заполнения пустот'''
     return [
         InputRichBlockButtons(
             buttons=[

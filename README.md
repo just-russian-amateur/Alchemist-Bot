@@ -47,6 +47,8 @@ The bot requires three main components:
 
 > **Note:** This bot uses a trained model based on [YOLOv11X](https://docs.ultralytics.com/models/yolo11/), which is available in this repository. However, the entire model could not be downloaded because it exceeded the 100 MB size limit. Therefore, to obtain this model, you need to install and configure not only [Git](https://git-scm.com/install/linux) but also [Git LFS](https://git-lfs.com/) to use Git for storing large files.
 
+> **Note 2:** The project includes a **rich-messages-feature** branch featuring the updated message structure introduced in update Telegram Bot API 10.3; supporting this requires aiogram library version 3.31.0 or higher.
+
 ## A little about the project structure and files
 
 > **Note:** To create a bot copy, you need to register a new bot through the official bot **@BotFather** in **Telegram** and obtain a **token** for it. [You can see how to do this here](https://core.telegram.org/bots#how-do-i-create-a-bot).

@@ -21,7 +21,7 @@ from config import scheduler, redis
 from texts.all_my_texts import PaymentTexts, KeyboardTexts, LabelsForPrices
 from texts.redis_keys import RedisKeys
 from callbacks.all_my_callbacks import CallbacksData
-from test_alchemist_bot import update_redis_data
+from alchemist_bot import update_redis_data
 
 import asyncio
 from datetime import datetime, timedelta
